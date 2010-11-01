@@ -12,6 +12,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <wchar.h>
+#include "clientsocket.h"
 #include "../server/bcserver.h"
 
 /* This function creates a socket for the client
@@ -24,7 +25,7 @@ int init_client(void)
 {
     int client;
     struct sockaddr_in address;
-    wchar_t message[] = L"This is the client!";
+    char message[] = "This is the client!";
 
     client = socket(AF_INET, SOCK_STREAM, 0);   /* create the socket */
     if(client == -1)
@@ -57,11 +58,18 @@ int init_client(void)
  * file descriptor as input. */
 void close_client(int client_id)
 {
-   if( close(client_id) == -1)      /* close the socket */
-   {
-       perror("COULD NOT CLOSE CLIENT!");
-       exit(1);
-   }
+    /* send the server our 'quit' message. */
+    if( write(client_id, "exit", sizeof("exit")) == -1 )
+    {
+        perror("COULDN'T SEND EXIT MESSAGE!");
+        exit(1);
+    }
+
+    if( close(client_id) == -1)      /* close the socket */
+    {
+        perror("COULD NOT CLOSE CLIENT!");
+        exit(1);
+     }
 }
 
 

@@ -54,7 +54,10 @@ void handle_clients (void)
         if(strcmp(ch, "exit") == 0)
             close (client);
         else
+        {
+            printf("%s", ch);
             write(client, ch, 1024);
+        }
     }
 }
 

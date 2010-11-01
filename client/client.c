@@ -13,6 +13,7 @@
 #include <errno.h>
 #include <sys/ioctl.h>
 #include <ncurses.h>
+#include "clientsocket.h"
 #include "client.h"
 
 
@@ -97,8 +98,9 @@ int main(int argc, char* argv[])
 {
 	int is_running = 1;
 	int x_terminal_size, y_terminal_size;
-
-	memset(client_buffer, '\0', sizeof(client_buffer));
+        int client_id = init_client();                  /* create a client. */
+	
+        memset(client_buffer, '\0', sizeof(client_buffer));
 	get_terminal_size(&x_terminal_size, &y_terminal_size);
 	
 	initscr();
@@ -161,6 +163,8 @@ int main(int argc, char* argv[])
 	delwin(transcript_window);
 	delwin(client_chat_window);
 	endwin();
+        
+        close_client(client_id);
 
 	return 0;
 }
