@@ -7,7 +7,7 @@ LIBS = -lncurses
 BUILD_DIR = bin
 
 CLIENT_SRC_DIR = client
-CLIENT_OBJECTS = $(CLIENT_SRC_DIR)/main.o $(CLIENT_SRC_DIR)/clientsocket.o
+CLIENT_OBJECTS = $(CLIENT_SRC_DIR)/client.o $(CLIENT_SRC_DIR)/clientsocket.o
 
 all: client
 
