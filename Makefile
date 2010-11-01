@@ -2,18 +2,18 @@
 #
 
 CC = gcc
-CFLAGS = -Wall -O3 -ansi
+CFLAGS = -Wall -O3
 LIBS = -lncurses
 BUILD_DIR = bin
 
 CLIENT_SRC_DIR = client
-CLIENT_OBJECTS = main.o
+CLIENT_OBJECTS = $(CLIENT_SRC_DIR)/main.o $(CLIENT_SRC_DIR)/clientsocket.o
 
 all: client
 
-client: $(CLIENT_SRC_DIR)/$(CLIENT_OBJECTS)
-	$(CC) -o $(BUILD_DIR)/client $(CLIENT_SRC_DIR)/$(CLIENT_OBJECTS) $(LIBS)
+client: $(CLIENT_OBJECTS)
+	$(CC) -o $(BUILD_DIR)/client $(CLIENT_OBJECTS) $(LIBS)
 
 clean:
-	rm $(CLIENT_SRC_DIR)/$(CLIENT_OBJECTS)
+	rm $(CLIENT_OBJECTS)
 	rm $(BUILD_DIR)/client
