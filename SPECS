@@ -30,13 +30,13 @@ REQUIRED COMMAND KEYS
     Ctrl-^: (Ctrl-6) deep-six!
     Ctrl-]: resume transcript at end
     Ctrl-G: gaudy! toggle gaudy (emphasized) text
-    Ctrl-H: (BKSP) delete previous char
-    Ctrl-J: (ENTER)
+>    Ctrl-H: (BKSP) delete previous char
+>    Ctrl-J: (ENTER)
     Ctrl-L: lurk!
-    Ctrl-M: (RETURN) treat the same as Ctrl-J
-    Ctrl-N: scroll down to next page in transcript
-    Ctrl-P: scroll up to previous page in transcript
-    Ctrl-Q: quit the program
+>    Ctrl-M: (RETURN) treat the same as Ctrl-J
+>    Ctrl-N: scroll down to next page in transcript
+>    Ctrl-P: scroll up to previous page in transcript
+>    Ctrl-Q: quit the program
     Ctrl-U: delete to beginning of text
     Ctrl-W: delete previous word (including any trailing spaces)
     Ctrl-Y: yell!
@@ -67,7 +67,7 @@ OPTIONAL EDITING KEYS
 
 RESERVED KEYS (FOR EXTENSIONS)
 
-    Ctrl-[ (ESC): prefix for function keys, arrow keys, etc.
+>    Ctrl-[ (ESC): prefix for function keys, arrow keys, etc.
     Ctrl-I (TAB)
     Ctrl-O, Ctrl-T, Ctrl-Z, Ctrl-\, Ctrl-_
 
