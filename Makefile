@@ -13,16 +13,16 @@ SERVER_SRC_DIR = server
 SERVER_OBJECTS = $(SERVER_SRC_DIR)/bcserver.o
 
 
-all: client server
+all: client bcserver
 
 client: $(CLIENT_OBJECTS)
 	$(CC) -o $(BUILD_DIR)/client $(CLIENT_OBJECTS) $(LIBS)
 
-server: $(SERVER_OBJECTS)
-	$(CC) -o $(BUILD_DIR)/server $(SERVER_OBJECTS) $(LIBS)
+bcserver: $(SERVER_OBJECTS)
+	$(CC) -o $(BUILD_DIR)/bcserver $(SERVER_OBJECTS) $(LIBS)
 
 clean:
 	rm $(SERVER_OBJECTS)
 	rm $(CLIENT_OBJECTS)
-	rm $(BUILD_DIR)/server
+	rm $(BUILD_DIR)/bcserver
 	rm $(BUILD_DIR)/client
