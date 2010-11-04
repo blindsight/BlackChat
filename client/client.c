@@ -53,22 +53,69 @@ static void get_terminal_size(int *x, int *y)
 }
 
 
-/* Page the specified window up by "line" number of lines. */
-void window_page_up(WINDOW *win, int *line, int max_columns, char *buffer)
+/* Get number of lines in buffer. */
+static int str_get_num_lines(char *str)
 {
-	if((*line)*max_columns > strlen(buffer)) (*line) --;
+        int i;
+        int num_lines = 0;
 
-	wclear(win);
-	wprintw(win, &buffer[(*line)*max_columns]);
+        for(i = 0; i < strlen(str); i++) {
+                if(str[i] == '\n') num_lines ++;
+        }
+
+        return num_lines;
 }
+
 
 /* Page the specified window down by "line" number of lines. */
 void window_page_down(WINDOW *win, int *line, int max_columns, char *buffer)
 {
-	if((*line) < 0) (*line) = 0;
+        int i = 0;
+        int found_num_lines = 0;
+        int actual_number_of_lines = str_get_num_lines(buffer);
 
-	wclear(win);
-	wprintw(win, &buffer[(*line)*max_columns]);
+
+	if((*line) >= actual_number_of_lines) {
+                (*line) = actual_number_of_lines - 1;
+                return;
+        }
+
+
+        for(i = 0; i < strlen(buffer); i ++) {
+                if(buffer[i] == '\n') found_num_lines ++;
+                if(found_num_lines >= (*line)) {
+                        break;
+                }
+        }
+
+
+        wclear(win);
+        wprintw(win, &buffer[i]);
+}
+
+/* Page the specified window up by "line" number of lines. */
+void window_page_up(WINDOW *win, int *line, int max_columns, char *buffer)
+{
+	int i = 0;
+        int found_num_lines = 0;
+
+
+	if((*line) < 0) {
+            (*line) = 0;
+            return;
+        }
+
+
+        for(i = 0; i < strlen(buffer); i ++) {
+                if(buffer[i] == '\n') found_num_lines ++;
+                if(found_num_lines >= (*line)) {
+                        break;
+                }
+        }
+
+
+        wclear(win);
+        wprintw(win, &buffer[i]);
 }
 
 
@@ -207,17 +254,17 @@ int main(int argc, char* argv[])
 					break;
 				case 14: /* CTRL-N */
 					transcript_current_line ++;
-					window_page_up( transcript_window,
-							&transcript_current_line,
-							TRANSCRIPT_MAX_COLUMNS,
-							transcript_buffer );
-					break;
-				case 16: /* CTRL-P */
-					transcript_current_line --;
 					window_page_down( transcript_window,
 							  &transcript_current_line,
 							  TRANSCRIPT_MAX_COLUMNS,
 							  transcript_buffer );
+					break;
+				case 16: /* CTRL-P */
+					transcript_current_line --;
+					window_page_up( transcript_window,
+						        &transcript_current_line,
+							TRANSCRIPT_MAX_COLUMNS,
+							transcript_buffer );
 					break;
 				case 17: /* CTRL-Q */ 
 					is_running = 0;
@@ -227,19 +274,19 @@ int main(int argc, char* argv[])
 			/* Scroll the clients typing window down. */
 			case KEY_DOWN:
 				client_current_line ++;
-				window_page_up( client_chat_window, 
-					        &client_current_line, 
-						MAX_COLUMNS,
-						client_buffer );
-				break;
+				if(client_current_line*MAX_COLUMNS > strlen(client_buffer)) client_current_line --;
+
+                                wclear(client_chat_window);
+                                wprintw(client_chat_window, &client_buffer[client_current_line*MAX_COLUMNS]);
+                                break;
 			/* Scroll the clients typing window up. */
 			case KEY_UP:
 				client_current_line --;
-				window_page_down( client_chat_window,
-						  &client_current_line,
-						  MAX_COLUMNS,
-						  client_buffer );
-				break;
+				if(client_current_line < 0) client_current_line = 0;
+
+                                wclear(client_chat_window);
+                                wprintw(client_chat_window, &client_buffer[client_current_line*MAX_COLUMNS]);
+                                break;
 		
 			/* Delete the previous chracter. */
 			case KEY_BACKSPACE:
