@@ -32,32 +32,51 @@ void die (const char *msg)
 
 void handle_clients (void)
 {
+    fd_set input;
     struct sockaddr_in client_addr;
     socklen_t client_len;
     int client;
-    char ch[1024];
+    char *ch = malloc(1024);
     client_len = sizeof(client_addr);
     client = accept(server, (struct sockaddr *) &client_addr, &client_len);
     if(client == -1) die("server: bad client socket");
 
+    FD_ZERO(&input);
+    FD_SET(client, &input);
+
+
     for (;;)
     {
+        fd_set tempset = input;
+        int bytes_read;
       //  int client;
        // char ch;
 
        // client_len = sizeof (client_addr);
         //client = accept (server, (struct sockaddr *) &client_addr, &client_len);
         //if (client == -1) die ("server: bad client socket");
-
-        read (client, ch, 1024);
-        //write (client, &ch, 1024);
-        if(strcmp(ch, "exit") == 0)
-            close (client);
-        else
-        {
-            printf("%s", ch);
-            write(client, ch, 1024);
+        
+        switch(select(client + 1, &tempset, 0, 0, NULL)){
+            case -1:
+                perror("Select failed!");
+                exit(-1);
+                break;
+            default:
+                if(FD_ISSET(client, &tempset)){
+                    bytes_read = read(client, ch, 1024);
+                    if(bytes_read == 0){
+                        FD_CLR(client, &tempset);
+                        close(client);
+                    }
+                    
+                    printf("Read from client: %s", ch);
+                    write(client, ch, bytes_read);
+                }
         }
+
+        //read (client, ch, 1024);
+        //write (client, &ch, 1024);
+       
     }
 }
 
