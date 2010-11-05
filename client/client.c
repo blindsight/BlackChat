@@ -238,8 +238,6 @@ int main(int argc, char* argv[])
 		write_to_transcript_window(buf);
 */
 
-                /* Read from the server. */
-                read_from_server(client_id);
 
 
                 /* Check what keys we pressed. */
@@ -307,6 +305,9 @@ int main(int argc, char* argv[])
 				print_client_chat_buffer();
 				break;
 		}
+
+                /* Read from the server. */
+                read_from_server(client_id);
 
 		wrefresh(transcript_window);
 		wrefresh(client_chat_window);

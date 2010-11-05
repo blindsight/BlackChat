@@ -23,7 +23,7 @@
 void write_out(int client_id)
 {
     char *buffer = grab_text_from_client_typing_window();
-    if(write(client_id, buffer, sizeof(buffer)) == -1) {
+    if(write(client_id, buffer, sizeof(char)*strlen(buffer)) == -1) {
         write_to_transcript_window("Error: Couldn't write to server!\n");
     }
 
@@ -38,6 +38,8 @@ void read_from_server(int client_id)
     FD_SET(client_id, &servs);
     struct timeval timeout = {0, 75000};
 
+    memset(servout, '\0', sizeof(servout));
+
     switch(select(client_id +1, &servs, 0, 0, &timeout))
     {
     case 0:
@@ -46,7 +48,7 @@ void read_from_server(int client_id)
         write_to_transcript_window("Error: couldn't read from server!\n");
         break;
     default:
-         if(read(client_id, servout, sizeof(servout)) > 0)
+        if(read(client_id, servout, sizeof(servout)) > 0)
         {
             write_to_transcript_window(servout);
         }
