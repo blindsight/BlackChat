@@ -248,11 +248,8 @@ int main(int argc, char* argv[])
 					print_client_chat_buffer();
 					break;
 				case 10: /* CTRL-J and CTRL-M */
-					write_to_transcript_window("[Client Says]: ");    /* write client chat text to transcript window. */
-					write_to_transcript_window(client_buffer);
-					write_to_transcript_window("\n");
-					clear_text_from_client_typing_window();
-					break;
+					write_out(client_id);                    /* enter key is pressed so send a message to the server. */
+                                        break;
 				case 14: /* CTRL-N */
 					transcript_current_line ++;
 					window_page_down( transcript_window,

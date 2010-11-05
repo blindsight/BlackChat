@@ -12,8 +12,25 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <wchar.h>
+#include "client.h"
 #include "clientsocket.h"
 #include "../server/bcserver.h"
+
+
+
+/* This function is called whenever we (the client)
+ * press the enter key. */
+void write_out(int client_id)
+{
+    char *buffer = grab_text_from_client_typing_window();
+    if(write(client_id, buffer, sizeof(buffer)) == -1) {
+        write_to_transcript_window("Error: Couldn't write to server!\n");
+    }
+
+    clear_text_from_client_typing_window();
+}
+
+
 
 /* This function creates a socket for the client
  * then connects to the server and writes a short
