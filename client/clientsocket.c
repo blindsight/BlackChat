@@ -33,13 +33,26 @@ void write_out(int client_id)
 void read_from_server(int client_id)
 {
     char servout[1024];
-    if(read(client_id, servout, sizeof(servout)) > 0)
+    fd_set servs;
+    FD_ZERO(&servs);
+    FD_SET(client_id, &servs);
+    struct timeval timeout = {0, 75000};
+
+    switch(select(client_id +1, &servs, 0, 0, &timeout))
     {
-        write_to_transcript_window(servout);
+    case 0:
+        break;
+    case -1:
+        write_to_transcript_window("Error: couldn't read from server!\n");
+        break;
+    default:
+         if(read(client_id, servout, sizeof(servout)) > 0)
+        {
+            write_to_transcript_window(servout);
+        }
+
     }
-
 }
-
 
 
 /* This function creates a socket for the client
