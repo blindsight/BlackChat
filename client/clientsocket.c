@@ -30,6 +30,16 @@ void write_out(int client_id)
     clear_text_from_client_typing_window();
 }
 
+void read_from_server(int client_id)
+{
+    char servout[1024];
+    if(read(client_id, servout, sizeof(servout)) > 0)
+    {
+        write_to_transcript_window(servout);
+    }
+
+}
+
 
 
 /* This function creates a socket for the client
