@@ -35,9 +35,8 @@ void read_from_server(int client_id)
     char servout[1024];
     if(read(client_id, servout, sizeof(servout)) > 0)
     {
-        write_to_transcript_window(servout);
+   /*     write_to_transcript_window(servout); */
     }
-
 }
 
 

@@ -238,6 +238,11 @@ int main(int argc, char* argv[])
 		write_to_transcript_window(buf);
 */
 
+                /* Read from the server. */
+                read_from_server(client_id);
+
+
+                /* Check what keys we pressed. */
 		switch(ch) {
 			/*
 			 * Check if we pressed a control key. */
