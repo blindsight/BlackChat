@@ -15,5 +15,9 @@ void close_client(int client_id);
 /* Received enter key from client. */
 void write_out();
 
+/* Read from server. */
+void read_from_server(int client_id);
+
+
 #endif
 
