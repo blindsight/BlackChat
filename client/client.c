@@ -211,7 +211,7 @@ int main(int argc, char* argv[])
 {
 	int is_running = 1;
 	int x_terminal_size, y_terminal_size;
-/*        int client_id = init_client();                   create a client. */
+        int client_id = init_client();                 /*  create a client. */
 	
         memset(client_buffer, '\0', sizeof(client_buffer));
 	memset(transcript_buffer, '\0', sizeof(transcript_buffer));
@@ -314,7 +314,7 @@ int main(int argc, char* argv[])
 	delwin(client_chat_window);
 	endwin();
         
-      /*  close_client(client_id); */
+        close_client(client_id);
 
 	return 0;
 }
