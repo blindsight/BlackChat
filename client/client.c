@@ -242,6 +242,7 @@ int main(int argc, char* argv[])
 			/*
 			 * Check if we pressed a control key. */
 			if(iscntrl(ch)) {
+                                case 127:/* Backsapce Key (grok hack) */
 				case 8:  /* CTRL-H */
 					client_buffer[ strlen(client_buffer)-1 ] = '\0';
 					print_client_chat_buffer();
