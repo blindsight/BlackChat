@@ -245,6 +245,10 @@ static void init_other_windows()
 /* Free our other windows. */
 static void free_other_windows()
 {
+        int i;
+        for(i = 0; i < 10; i ++) {
+                delwin(other_chat_windows[i].window);
+        }
 	free(other_chat_windows);
 }
 
@@ -253,7 +257,8 @@ static void refresh_other_windows()
 {
 	int i;
 	for(i = 0; i < 10; i ++) {
-/*		wprintw(other_chat_windows[i].window, "Hello"); */
+		mvwprintw(other_chat_windows[i].window, 0,0, other_chat_windows[i].userName);
+		mvwprintw(other_chat_windows[i].window, 1,0, other_chat_windows[i].buffer);
 		wrefresh(other_chat_windows[i].window);
 	}
 }
@@ -273,6 +278,26 @@ static void delete_num_chars_behind_cursor(int ch)
  =================================================================
  =================================================================
  */
+
+/* Set the window user name. */
+void set_window_user_name(int num, char *name)
+{
+        strcpy(other_chat_windows[num].userName, name);
+}
+
+/* Append text to the specified user window. */
+void append_text_to_window(int num, char *text)
+{
+        strcat(other_chat_windows[num].buffer, text);
+}
+
+/* Clear the text from the specified user window. */
+void clear_user_window_text(int num)
+{
+        memset(other_chat_windows[num].buffer, '\0', sizeof(other_chat_windows[num].buffer));
+}
+
+
 
 
 /* Get the text inside our chat window. */
@@ -343,6 +368,15 @@ int main(int argc, char* argv[])
 	write_to_transcript_window("**************************************\n");
 	write_to_transcript_window("******** Wecome to BlackChat! ********\n");
 	write_to_transcript_window("**************************************\n");
+/*
+        set_window_user_name(0, "bob");
+        set_window_user_name(1, "sue");
+        set_window_user_name(2, "dan");
+        append_text_to_window(0, "Hello World, my name is bob!");
+        append_text_to_window(1, "yo everyone, i'm a chick!");
+        append_text_to_window(2, "hey, my name is Dan!");
+*/
+    
 
 	while(is_running) {
 		int ch = getch();
