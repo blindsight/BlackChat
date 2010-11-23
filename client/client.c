@@ -255,10 +255,34 @@ static void free_other_windows()
 /* Draw other windows. */
 static void refresh_other_windows()
 {
-	int i;
+        char textToPrint[OTHER_WINDOW_BUFFER_SIZE];
+	int i, j, index;
+
+
+
+        /* Print the text. */
 	for(i = 0; i < 10; i ++) {
+                
+                /* Get the very end of the string to print only. */
+                memset(textToPrint, '\0', sizeof(other_chat_windows[i].buffer));
+                strcpy(textToPrint, other_chat_windows[i].buffer);
+
+                if( strlen(textToPrint) > 20 ) {
+                        index = 20; 
+                        for(j = strlen(textToPrint); index >= 0; j--) {
+                                textToPrint[ index ] = other_chat_windows[i].buffer[j];
+                                index --;
+                        }
+                }
+
+
+                /* Print */
 		mvwprintw(other_chat_windows[i].window, 0,0, other_chat_windows[i].userName);
-		mvwprintw(other_chat_windows[i].window, 1,0, other_chat_windows[i].buffer);
+		mvwprintw(  other_chat_windows[i].window,
+                            1,
+                            0,
+                            textToPrint);
+
 		wrefresh(other_chat_windows[i].window);
 	}
 }
@@ -368,14 +392,14 @@ int main(int argc, char* argv[])
 	write_to_transcript_window("**************************************\n");
 	write_to_transcript_window("******** Wecome to BlackChat! ********\n");
 	write_to_transcript_window("**************************************\n");
-/*
+        
         set_window_user_name(0, "bob");
         set_window_user_name(1, "sue");
         set_window_user_name(2, "dan");
         append_text_to_window(0, "Hello World, my name is bob!");
         append_text_to_window(1, "yo everyone, i'm a chick!");
         append_text_to_window(2, "hey, my name is Dan!");
-*/
+
     
 
 	while(is_running) {
