@@ -25,6 +25,11 @@ KEYS
     keys, etc., you can do so as an extension: all such keys are
     represented by a character sequence starting with Ctrl-[ (ESC).
 
+
+note:
+>    means done
+*    working on it
+
 REQUIRED COMMAND KEYS
 
     Ctrl-^: (Ctrl-6) deep-six!
@@ -47,13 +52,13 @@ OPTIONAL EDITING KEYS
     for any other purpose.
 
     Ctrl-@: (Ctrl-SPC) toggle marking text
-    Ctrl-A: go to beginning of text
-    Ctrl-B: go backward one char
+*    Ctrl-A: go to beginning of text
+*    Ctrl-B: go backward one char
     Ctrl-C: copy marked region and turn off marking
     Ctrl-D: delete char at cursor
-    Ctrl-E: go to end of text
-    Ctrl-F: go forward one char
-    Ctrl-K: kill to end of text
+*    Ctrl-E: go to end of text
+*    Ctrl-F: go forward one char
+*    Ctrl-K: kill to end of text
     Ctrl-R: reverse (backward) search for next character typed
     Ctrl-S: (forward) search for next character typed
     Ctrl-V: paste

@@ -18,6 +18,10 @@
 #include "client.h"
 
 
+#define MAX_USER_NAME_LENGTH				16
+#define OTHER_WINDOW_BUFFER_SIZE			256
+
+
 #define MAX_ROWS					3
 #define MAX_COLUMNS 					40
 #define MAX_CHARS_IN_CLIENT_TYPING_WINDOW 	MAX_ROWS * MAX_COLUMNS
@@ -30,13 +34,24 @@
 
 char client_buffer[1024];
 int client_current_line = 0;
+int client_cursor_position = 0;
 
-char transcript_buffer[1024 * 4];
+char *transcript_buffer;
+int transcript_buffer_size = 256;
 int transcript_current_line = 0;
 
 WINDOW *transcript_window;
 WINDOW *client_chat_window;
-WINDOW *other_chat_windows[9];
+
+typedef struct other_window_t
+{
+	WINDOW *window;
+	char userName[MAX_USER_NAME_LENGTH];
+	char buffer[OTHER_WINDOW_BUFFER_SIZE];
+} other_window;
+
+other_window *other_chat_windows;
+
 
 
 /* Get the size of the current terminal window. */
@@ -155,11 +170,40 @@ static void print_buffer_to_window(WINDOW *win, int max_chars, int max_columns, 
 /* Print out the current client chat-typing window. */
 static void print_client_chat_buffer()
 {
+	int i = 0;
+	int xPos = 0;
+	int yPos = 0;
+
+	
+	/* Make sure the cursor position is valid. */
+	if(client_cursor_position > strlen(client_buffer)) {
+		client_cursor_position = strlen(client_buffer);
+	} else if(client_cursor_position < 0) {
+		client_cursor_position = 0;
+	}
+
+
+	/* Print the text to the client window. */
 	print_buffer_to_window( client_chat_window, 
 				MAX_CHARS_IN_CLIENT_TYPING_WINDOW,
 				MAX_COLUMNS,
 				client_buffer,
 				&client_current_line );
+
+
+	/* Position the cursor in the client window. */
+	for(i = 0; i < client_cursor_position; i ++) {
+		xPos++;
+		if(xPos >= MAX_COLUMNS) {
+			yPos ++;
+			xPos = 0;
+		}
+	}
+	yPos -= client_current_line;
+
+
+	/* Position the cursor for realz. */
+	wmove(client_chat_window, yPos, xPos);
 }
 
 /* Print out the current client chat-typing window. */
@@ -171,6 +215,57 @@ static void print_transcript_chat_buffer()
 				transcript_buffer,
 				&transcript_current_line );
 }
+
+/* Initialze other windows. */
+static void init_other_windows()
+{
+	int i;
+	int xPos = 40;
+	int yPos = 4;
+	other_chat_windows = (other_window*)malloc( sizeof(other_window) * 10 );
+
+	for(i = 0; i < 10; i ++) {	
+		other_chat_windows[i].window = newwin(2,20,yPos,xPos);
+		memset(other_chat_windows[i].userName, '\0', sizeof(other_chat_windows[i].userName));
+		memset(other_chat_windows[i].buffer, '\0', sizeof(other_chat_windows[i].buffer));
+
+		/* Move window to new location. */
+		if(i % 2 == 0) {
+			wcolor_set(other_chat_windows[i].window, 1, NULL);
+			yPos ++;
+			xPos = 60;
+		} else {
+			wcolor_set(other_chat_windows[i].window, 2, NULL);
+			yPos += 2;
+			xPos = 40;
+		}
+	}
+}
+
+/* Free our other windows. */
+static void free_other_windows()
+{
+	free(other_chat_windows);
+}
+
+/* Draw other windows. */
+static void refresh_other_windows()
+{
+	int i;
+	for(i = 0; i < 10; i ++) {
+/*		wprintw(other_chat_windows[i].window, "Hello"); */
+		wrefresh(other_chat_windows[i].window);
+	}
+}
+
+/* Delete the specified number of characters behind the current cursor position. */
+#if 0
+static void delete_num_chars_behind_cursor(int ch)
+{
+	
+}
+#endif
+
 
 
 /*
@@ -189,6 +284,7 @@ char *grab_text_from_client_typing_window(void)
 /* Clear the text from our chat window. */
 void clear_text_from_client_typing_window(void)
 {
+	client_cursor_position = 0;
 	client_current_line = 0;
 	wclear(client_chat_window);
 	memset(client_buffer, '\0', sizeof(client_buffer));
@@ -197,10 +293,20 @@ void clear_text_from_client_typing_window(void)
 /* Add some text to our transcript window. */
 void write_to_transcript_window(char *text)
 {
-	if( (strlen(transcript_buffer) + strlen(text)) >= sizeof(transcript_buffer) ) {
-		/* TODO: handle buffer overrun */
-	}
+	while( (strlen(transcript_buffer) + strlen(text)) > transcript_buffer_size ) {
+		int i = 0;
+		char *temp_buffer = (char*)malloc( sizeof(char) * (transcript_buffer_size*2) );
 
+		/* Copy over old values. */
+		for(i = 0; i < strlen(transcript_buffer); i++) {
+			temp_buffer[i] = transcript_buffer[i];
+		}
+
+		free(transcript_buffer);		/* Free old buffer. */
+		transcript_buffer_size *= 2;
+		transcript_buffer = temp_buffer;
+	}
+	
 	strcat(transcript_buffer, text);
 	print_transcript_chat_buffer();
 }
@@ -211,20 +317,28 @@ int main(int argc, char* argv[])
 {
 	int is_running = 1;
 	int x_terminal_size, y_terminal_size;
-        int client_id = init_client();                 /*  create a client. */
-	
+/*	int client_id = init_client();                   create a client. */
+
+	transcript_buffer = (char*)malloc(sizeof(char)*transcript_buffer_size);
         memset(client_buffer, '\0', sizeof(client_buffer));
 	memset(transcript_buffer, '\0', sizeof(transcript_buffer));
 
 	get_terminal_size(&x_terminal_size, &y_terminal_size);
 	
 	initscr();
+	start_color();
+	init_pair(0, COLOR_WHITE, COLOR_BLACK);
+	init_pair(1, COLOR_RED, COLOR_GREEN);
+	init_pair(2, COLOR_YELLOW, COLOR_RED);
 	raw();
 	keypad(stdscr, TRUE);
 	noecho();
 
+	color_set(0, NULL);
+	
 	transcript_window  = newwin(23,40,0,0);
 	client_chat_window = newwin(MAX_ROWS,MAX_COLUMNS,20,40);
+	init_other_windows();
 
 	write_to_transcript_window("**************************************\n");
 	write_to_transcript_window("******** Wecome to BlackChat! ********\n");
@@ -239,20 +353,54 @@ int main(int argc, char* argv[])
 */
 
 
-
                 /* Check what keys we pressed. */
 		switch(ch) {
 			/*
 			 * Check if we pressed a control key. */
 			if(iscntrl(ch)) {
+#if 0
+				case 1:  /* CTRL-A */
+					client_current_line = 0;
+					client_cursor_position = 0;
+					print_client_chat_buffer();
+					break;
+
+				case 2:  /* CTRL-B */
+					client_cursor_position --;
+					print_client_chat_buffer();
+					break;
+
+				case 5:  /* CTRL-E */
+					client_cursor_position = strlen(client_buffer);
+					print_client_chat_buffer();
+					break;
+
+				case 6:  /* CTRL-F */
+					client_cursor_position ++;
+					print_client_chat_buffer();
+					break;
+#endif
                                 case 127:/* Backsapce Key (grok hack) */
 				case 8:  /* CTRL-H */
 					client_buffer[ strlen(client_buffer)-1 ] = '\0';
 					print_client_chat_buffer();
 					break;
 				case 10: /* CTRL-J and CTRL-M */
-					write_out(client_id);                    /* enter key is pressed so send a message to the server. */
+		/* UNCOMMENT ME FOR USE WITH SERVER */
+					write_to_transcript_window(client_buffer);
+					clear_text_from_client_typing_window();
+				/*	write_out(client_id);                    enter key is pressed so send a message to the server. */
                                         break;
+
+				case 11: /* CTRL-K */
+					{
+						int i;
+						for(i = client_cursor_position+1; i < strlen(client_buffer); i ++) {
+							client_buffer[i] = '\0';
+						}
+					}
+					break;
+
 				case 14: /* CTRL-N */
 					transcript_current_line ++;
 					window_page_down( transcript_window,
@@ -291,15 +439,38 @@ int main(int argc, char* argv[])
 		
 			/* Delete the previous chracter. */
 			case KEY_BACKSPACE:
-				client_buffer[ strlen(client_buffer)-1 ] = '\0';
-				print_client_chat_buffer();
+				/* Check if were deleting the last character. */
+				if( client_cursor_position == strlen(client_buffer) ) {
+					client_buffer[ client_cursor_position-1 ] = '\0';
+					client_cursor_position --;
+					print_client_chat_buffer();
+				} else {
+					/* If were here, that means were NOT deleting the last character. */
+					int i;
+					for(i = client_cursor_position-1; i < strlen(client_buffer); i ++) {
+						client_buffer[i] = client_buffer[i+1];
+					}
+					client_cursor_position --;
+					print_client_chat_buffer();
+				}
 				break;
 
 			/* If were here, that means we didn't press any "special" keys so that means were
 			 * trying to write some generic characters to our chat window. */
 			default:
-				/* Store the new char in our buffer. */
-				client_buffer[ strlen(client_buffer) ] = ch;
+				/* Check if were inserting a character before the end of our client
+				 * typing buffer. */
+				if( client_cursor_position != strlen(client_buffer) ) {
+					
+					/* Move all characters in front of the cursor up one. */
+					int i;
+					for(i = strlen(client_buffer)+1; i > client_cursor_position; i --) {
+						client_buffer[i] = client_buffer[i-1];
+					}
+				}
+
+				/* Add the character to our buffer. */
+				client_buffer[ client_cursor_position++ ] = ch;
 				
 				/* Print our new/updated buffer. */
 				print_client_chat_buffer();
@@ -307,17 +478,21 @@ int main(int argc, char* argv[])
 		}
 
                 /* Read from the server. */
-                read_from_server(client_id);
-
+/*                read_from_server(client_id); */
+		
+		refresh_other_windows();
 		wrefresh(transcript_window);
 		wrefresh(client_chat_window);
 	}
+
+	free_other_windows();
+	free(transcript_buffer);
 
 	delwin(transcript_window);
 	delwin(client_chat_window);
 	endwin();
         
-        close_client(client_id);
+/*        close_client(client_id); */
 
 	return 0;
 }
