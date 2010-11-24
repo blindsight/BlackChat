@@ -53,4 +53,15 @@ int main(int argc, char **argv) {
     
 }
 
+void handle_messages(SERVER_OBJ* server, SERVER_QUEUE_OBJ* messages){
+  
+  if(isEmpty(messages)){
+	sem_wait(&messages_sem);
+  }
+  pthread_mutex_lock(&mutex);
+  //TODO process message
+  pthread_mutex_unlock(&mutex);
+}
+
+
 

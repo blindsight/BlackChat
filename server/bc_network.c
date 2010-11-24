@@ -1,6 +1,6 @@
 #include "bc_network.h"
 
-void fill_queue(SERVER_OBJ *server);
+void fill_queue(SERVER_OBJ *server, SERVER_QUEUE_OBJ *messages);
 void *listen_thread(void *args);
 void *client_thread(void *args);
 
@@ -15,6 +15,9 @@ SERVER_OBJ *init_network(SERVER_QUEUE_OBJ *messages){
   
   if(pthread_mutex_init(&mutex, NULL) != 0)
     return NULL; //Couldn't create mutex
+    
+  if(sem_init(&messages_sem, 0, 0) == -1)
+    return NULL; //Couldn't init semaphore
   
   if(server->server_socket == -1)
     return NULL;  //Couldn't create socket
@@ -32,7 +35,7 @@ SERVER_OBJ *init_network(SERVER_QUEUE_OBJ *messages){
     return NULL;  //Could't Listen for incoming connections
     
   pthread_mutex_lock(&mutex);  
-  fill_queue(server);
+  fill_queue(server, messages);
   pthread_mutex_unlock(&mutex);
   
   if(pthread_create(&server->listen_thread_id, NULL, listen_thread, server) == -1)
@@ -45,7 +48,7 @@ SERVER_OBJ *init_network(SERVER_QUEUE_OBJ *messages){
   
 }
 
-void fill_queue(SERVER_OBJ *server){
+void fill_queue(SERVER_OBJ *server, SERVER_QUEUE_OBJ *messages){
   
   server->unconnected_clients = init_queue(10);
   server->connected_clients = init_queue(10);
@@ -58,6 +61,7 @@ void fill_queue(SERVER_OBJ *server){
     
     client->client_id = i;
     client->seconds_connected = 0;
+    client->messages = messages;
     
     enqueue(server->unconnected_clients, client);
     
@@ -116,10 +120,20 @@ void *client_thread(void *args){
   
   CLIENT_OBJ *client = (CLIENT_OBJ *)args;
   
-  //TODO read message
-  
   pthread_mutex_lock(&mutex);
-  //TODO post message
+  
+  if(!isEmpty(client->messages)){
+  
+    //TODO read message and put it in messages queue
+    
+  }
+  else{
+   
+    //TODO read message put it in messages queue 
+    sem_post(&messages_sem); //Lets the main thread know there are messages to process
+    
+  } 
+  
   pthread_mutex_unlock(&mutex);
   
 }
