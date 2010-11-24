@@ -18,7 +18,7 @@
 #include "client.h"
 
 
-#define MAX_USER_NAME_LENGTH				16
+#define MAX_USER_NAME_LENGTH				21
 #define OTHER_WINDOW_BUFFER_SIZE			256
 
 
@@ -67,6 +67,17 @@ static void get_terminal_size(int *x, int *y)
 	*y = ws.ws_row;
 }
 
+/* Re-Draw all our windows. */
+static void refresh_other_windows();
+/* -------------------------- */
+static void refresh_all_windows()
+{
+
+        refresh_other_windows();
+	wrefresh(transcript_window);
+	wrefresh(client_chat_window);
+
+}
 
 /* Get number of lines in buffer. */
 static int str_get_num_lines(char *str)
@@ -222,6 +233,7 @@ static void init_other_windows()
 	int i;
 	int xPos = 40;
 	int yPos = 4;
+        int lastColor = 1;
 	other_chat_windows = (other_window*)malloc( sizeof(other_window) * 10 );
 
 	for(i = 0; i < 10; i ++) {	
@@ -231,14 +243,29 @@ static void init_other_windows()
 
 		/* Move window to new location. */
 		if(i % 2 == 0) {
-			wcolor_set(other_chat_windows[i].window, 1, NULL);
+			if(lastColor == 1) 
+                            wcolor_set(other_chat_windows[i].window, 1, NULL);
+                        else
+                            wcolor_set(other_chat_windows[i].window, 2, NULL);
+                        
+                        mvprintw(yPos+2, xPos, "--------------------");
 			yPos ++;
 			xPos = 60;
+                        lastColor ++;
 		} else {
-			wcolor_set(other_chat_windows[i].window, 2, NULL);
+                        if(lastColor == 1) 
+                            wcolor_set(other_chat_windows[i].window, 1, NULL);
+                        else
+                            wcolor_set(other_chat_windows[i].window, 2, NULL);
+
+                        mvprintw(yPos-1, xPos, "--------------------");
 			yPos += 2;
 			xPos = 40;
 		}
+
+
+                /* This ensures zig-zagging of colors. */
+                if(lastColor > 1) lastColor = 0;
 	}
 }
 
@@ -255,6 +282,7 @@ static void free_other_windows()
 /* Draw other windows. */
 static void refresh_other_windows()
 {
+        char nameToPrint[MAX_USER_NAME_LENGTH];
         char textToPrint[OTHER_WINDOW_BUFFER_SIZE];
 	int i, j, index;
 
@@ -263,21 +291,33 @@ static void refresh_other_windows()
         /* Print the text. */
 	for(i = 0; i < 10; i ++) {
                 
-                /* Get the very end of the string to print only. */
+                /* Make sure we only print the end of the buffer AND/OR print white space so the
+                 * color continues to the end of the window. */
                 memset(textToPrint, '\0', sizeof(other_chat_windows[i].buffer));
                 strcpy(textToPrint, other_chat_windows[i].buffer);
-
                 if( strlen(textToPrint) > 20 ) {
-                        index = 20; 
+                        index = 20;
                         for(j = strlen(textToPrint); index >= 0; j--) {
                                 textToPrint[ index ] = other_chat_windows[i].buffer[j];
                                 index --;
                         }
+                } else {
+                        for(j = strlen(textToPrint); j < 20; j ++) {
+                            strcat(textToPrint, " ");
+                        }
                 }
 
+                
+                /* Do the same thing but for the user name.*/
+                memset(nameToPrint, '\0', sizeof(other_chat_windows[i].userName));
+                strcpy(nameToPrint, other_chat_windows[i].userName);
+                for(j = strlen(nameToPrint); j < 20; j ++) {
+                        strcat(nameToPrint, " ");
+                }
+ 
 
                 /* Print */
-		mvwprintw(other_chat_windows[i].window, 0,0, other_chat_windows[i].userName);
+		mvwprintw(  other_chat_windows[i].window, 0,0, nameToPrint);
 		mvwprintw(  other_chat_windows[i].window,
                             1,
                             0,
@@ -286,6 +326,9 @@ static void refresh_other_windows()
 		wrefresh(other_chat_windows[i].window);
 	}
 }
+
+
+
 
 /* Delete the specified number of characters behind the current cursor position. */
 #if 0
@@ -342,6 +385,7 @@ void clear_text_from_client_typing_window(void)
 /* Add some text to our transcript window. */
 void write_to_transcript_window(char *text)
 {
+        /* Deal with buffer over run for the transcript window. */
 	while( (strlen(transcript_buffer) + strlen(text)) > transcript_buffer_size ) {
 		int i = 0;
 		char *temp_buffer = (char*)malloc( sizeof(char) * (transcript_buffer_size*2) );
@@ -356,6 +400,11 @@ void write_to_transcript_window(char *text)
 		transcript_buffer = temp_buffer;
 	}
 	
+
+        
+
+
+        /* Append text to transcript window. */
 	strcat(transcript_buffer, text);
 	print_transcript_chat_buffer();
 }
@@ -376,9 +425,11 @@ int main(int argc, char* argv[])
 	
 	initscr();
 	start_color();
-	init_pair(0, COLOR_WHITE, COLOR_BLACK);
-	init_pair(1, COLOR_RED, COLOR_GREEN);
-	init_pair(2, COLOR_YELLOW, COLOR_RED);
+	init_pair(0, COLOR_WHITE,   COLOR_BLACK);
+	init_pair(1, COLOR_GREEN,   COLOR_BLACK);
+	init_pair(2, COLOR_YELLOW,  COLOR_BLACK);
+        init_pair(3, COLOR_CYAN,    COLOR_BLACK);
+        init_pair(4, COLOR_MAGENTA, COLOR_BLACK);
 	raw();
 	keypad(stdscr, TRUE);
 	noecho();
@@ -387,6 +438,9 @@ int main(int argc, char* argv[])
 	
 	transcript_window  = newwin(23,40,0,0);
 	client_chat_window = newwin(MAX_ROWS,MAX_COLUMNS,20,40);
+        wcolor_set(transcript_window,  3, NULL);
+        wcolor_set(client_chat_window, 4, NULL);
+
 	init_other_windows();
 
 	write_to_transcript_window("**************************************\n");
@@ -396,11 +450,12 @@ int main(int argc, char* argv[])
         set_window_user_name(0, "bob");
         set_window_user_name(1, "sue");
         set_window_user_name(2, "dan");
+        set_window_user_name(3, "joe");
         append_text_to_window(0, "Hello World, my name is bob!");
-        append_text_to_window(1, "yo everyone, i'm a chick!");
+        append_text_to_window(1, "yo everyone, I'm in love with blackchat!");
         append_text_to_window(2, "hey, my name is Dan!");
+        append_text_to_window(3, "Whats up!?");
 
-    
 
 	while(is_running) {
 		int ch = getch();
@@ -445,7 +500,9 @@ int main(int argc, char* argv[])
 					break;
 				case 10: /* CTRL-J and CTRL-M */
 		/* UNCOMMENT ME FOR USE WITH SERVER */
+                                        write_to_transcript_window("[Client Says]: ");
 					write_to_transcript_window(client_buffer);
+                                        write_to_transcript_window("\n");
 					clear_text_from_client_typing_window();
 				/*	write_out(client_id);                    enter key is pressed so send a message to the server. */
                                         break;
@@ -476,6 +533,11 @@ int main(int argc, char* argv[])
 				case 17: /* CTRL-Q */ 
 					is_running = 0;
 					break;
+
+                                /*
+                                 * If we encountered an unkown escape charcter, break out of here so we don't
+                                 * print it. */
+                                break;              /* TODO: Fix me! */
 			}
 
 			/* Scroll the clients typing window down. */
@@ -537,10 +599,8 @@ int main(int argc, char* argv[])
 
                 /* Read from the server. */
 /*                read_from_server(client_id); */
-		
-		refresh_other_windows();
-		wrefresh(transcript_window);
-		wrefresh(client_chat_window);
+	
+                refresh_all_windows();
 	}
 
 	free_other_windows();
