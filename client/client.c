@@ -561,7 +561,7 @@ int main(int argc, char* argv[])
 						write_to_transcript_window(buf);
 					}
 					clear_text_from_client_typing_window();
-				/*	write_out(client_id);                    enter key is pressed so send a message to the server. */
+				/*	write_out(client_id);                   // enter key is pressed so send a message to the server. */ 
                                         break;
 
 				case 11: /* CTRL-K */

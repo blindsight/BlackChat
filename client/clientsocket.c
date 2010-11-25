@@ -2,7 +2,7 @@
 /* Josh Hartman */
 /* itsthejash@gmail.com | hartman0331@live.missouristate.edu */
 /* Black Group */
-
+/* edited 11/24/10 */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -15,16 +15,24 @@
 #include "client.h"
 #include "clientsocket.h"
 #include "../server/bcserver.h"
-
+#include "../server/protocol.h"
 
 
 /* This function is called whenever we (the client)
  * press the enter key. */
 void write_out(int client_id)
 {
-    char *buffer = grab_text_from_client_typing_window();
-    if(write(client_id, buffer, sizeof(char)*strlen(buffer)) == -1) {
+    int type = 1;                    //set at 1 for testing (1: to transcript window)
+    int by_sent;                    //bytes sent total!
+    int from = client_id;           //being sent from.
+    int to = 11;                    //set at 11 for testing (11: send to server)
+    char *message = grab_text_from_client_typing_window();
+    char buffer[2000];
+    by_sent = 16 + sizeof(char)*strlen(message);        //total bytes 4*4 = 16 for the first 4 ints + string bytes
+    sprintf(buffer,"%d%d%d%d%s", type, by_sent, from, to, message);     //combine to make string = [(type)(bytes sent)(from)(to)(message . . .)]
+    if(write(client_id, buffer, by_sent) == -1) {
         write_to_transcript_window("Error: Couldn't write to server!\n");
+       // write_to_transcript_window(buffer); 
     }
 
     clear_text_from_client_typing_window();
@@ -32,7 +40,7 @@ void write_out(int client_id)
 
 void read_from_server(int client_id)
 {
-    char servout[1024];
+    char servout[2000];
     fd_set servs;
     FD_ZERO(&servs);
     FD_SET(client_id, &servs);
@@ -113,6 +121,5 @@ void close_client(int client_id)
         exit(1);
      }
 }
-
 
 
