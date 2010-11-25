@@ -42,7 +42,7 @@ REQUIRED COMMAND KEYS
 >    Ctrl-N: scroll down to next page in transcript
 >    Ctrl-P: scroll up to previous page in transcript
 >    Ctrl-Q: quit the program
-    Ctrl-U: delete to beginning of text
+>    Ctrl-U: delete to beginning of text
     Ctrl-W: delete previous word (including any trailing spaces)
     Ctrl-Y: yell!
 

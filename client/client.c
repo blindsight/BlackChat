@@ -533,7 +533,7 @@ int main(int argc, char* argv[])
 			/*
 			 * Check if we pressed a control key. */
 			if(iscntrl(ch)) {
-#if 0
+#ifdef OPTIONAL_EDIT_KEYS
 				case 1:  /* CTRL-A */
 					client_current_line = 0;
 					client_cursor_position = 0;
@@ -596,8 +596,16 @@ int main(int argc, char* argv[])
 							TRANSCRIPT_MAX_COLUMNS,
 							transcript_buffer );
 					break;
+
 				case 17: /* CTRL-Q */ 
 					is_running = 0;
+					break;
+
+				case 21: /* CTRL-U */
+					client_current_line = 0;
+					client_cursor_position = 0;
+					memset(client_buffer, '\0', strlen(client_buffer)+1);	
+					print_client_chat_buffer();
 					break;
 
 				case 29: /* CTRL-] */
