@@ -19,7 +19,7 @@ void clear_text_from_client_typing_window(void);
 
 
 /* Add some text to our transcript window. */
-void write_to_transcript_window(char *text);
+void write_to_transcript_window(char *str);
 
 
 /* This sets the name of one of the client windows.

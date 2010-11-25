@@ -33,7 +33,7 @@ note:
 REQUIRED COMMAND KEYS
 
     Ctrl-^: (Ctrl-6) deep-six!
-    Ctrl-]: resume transcript at end
+>    Ctrl-]: resume transcript at end
     Ctrl-G: gaudy! toggle gaudy (emphasized) text
 >    Ctrl-H: (BKSP) delete previous char
 >    Ctrl-J: (ENTER)

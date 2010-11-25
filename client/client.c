@@ -51,7 +51,7 @@ typedef struct other_window_t
 } other_window;
 
 other_window *other_chat_windows;
-
+int userIsScrolling = 0;
 
 
 /* Get the size of the current terminal window. */
@@ -86,7 +86,10 @@ static int str_get_num_lines(char *str)
         int num_lines = 0;
 
         for(i = 0; i < strlen(str); i++) {
-                if(str[i] == '\n') num_lines ++;
+                if( str[i] == '\n' || 
+		   (i % TRANSCRIPT_MAX_COLUMNS) == 0) {
+			num_lines ++;
+		}
         }
 
         return num_lines;
@@ -101,14 +104,16 @@ void window_page_down(WINDOW *win, int *line, int max_columns, char *buffer)
         int actual_number_of_lines = str_get_num_lines(buffer);
 
 
+	/* Make sure the user didn't pass to large of a value. */
 	if((*line) >= actual_number_of_lines) {
                 (*line) = actual_number_of_lines - 1;
                 return;
         }
 
 
+	/* Figure out where to start printing from. */
         for(i = 0; i < strlen(buffer); i ++) {
-                if(buffer[i] == '\n') found_num_lines ++;
+                if( (i % TRANSCRIPT_MAX_COLUMNS) == 0 ) found_num_lines ++;
                 if(found_num_lines >= (*line)) {
                         break;
                 }
@@ -126,14 +131,17 @@ void window_page_up(WINDOW *win, int *line, int max_columns, char *buffer)
         int found_num_lines = 0;
 
 
+	/* Make sure we didn't get passed to small of a value. */
 	if((*line) < 0) {
             (*line) = 0;
             return;
         }
 
 
+	/* Start counting the number of lines and figure out where the (*line) number
+	 * we want to print from starts. */
         for(i = 0; i < strlen(buffer); i ++) {
-                if(buffer[i] == '\n') found_num_lines ++;
+                if( (i % TRANSCRIPT_MAX_COLUMNS) == 0 ) found_num_lines ++;
                 if(found_num_lines >= (*line)) {
                         break;
                 }
@@ -171,6 +179,7 @@ static void print_buffer_to_window(WINDOW *win, int max_chars, int max_columns, 
 			(*curr_line) ++;
 			num_chars_off_screen -= max_columns;
 		}
+
 
 		wprintw(win, &buffer[(*curr_line)*max_columns]);
 	} else {
@@ -382,9 +391,22 @@ void clear_text_from_client_typing_window(void)
 	memset(client_buffer, '\0', sizeof(client_buffer));
 }
 
-/* Add some text to our transcript window. */
-void write_to_transcript_window(char *text)
+/* Append the line to the transcript window. */
+static void write_to_ts_win(char *str)
 {
+	int   size = sizeof(char) * (strlen(str)+TRANSCRIPT_MAX_ROWS);
+	char *text = (char*)malloc(size);
+
+	/* Copy over string. */
+	memset(text, '\0', size);
+	strcpy(text,str);
+
+	/* Pad out the string so it takes up the whole line. */
+	while( strlen(text) % TRANSCRIPT_MAX_COLUMNS != 0 ) {
+		strcat(text, " ");
+	}
+
+
         /* Deal with buffer over run for the transcript window. */
 	while( (strlen(transcript_buffer) + strlen(text)) > transcript_buffer_size ) {
 		int i = 0;
@@ -400,13 +422,46 @@ void write_to_transcript_window(char *text)
 		transcript_buffer = temp_buffer;
 	}
 	
-
-        
-
+       
+	
 
         /* Append text to transcript window. */
 	strcat(transcript_buffer, text);
-	print_transcript_chat_buffer();
+	if(userIsScrolling == 0)
+		print_transcript_chat_buffer();
+
+	free(text);
+}
+
+/* add some text to our transcript window. */
+void write_to_transcript_window(char *str)
+{
+	int length = strlen(str);
+	int i, j;
+	int found_nl_index = 0;
+
+
+	/*************************************************/
+	for(i = 0; i <= length; i ++) {
+		/* We found a new line. */
+		if(str[i] == '\n' || str[i] =='\0') {
+			char *s = (char*)malloc( sizeof(char) * (i+2) );
+			int s_index = 0;
+
+			/* Copy over the string we found so far. */
+			for(j = found_nl_index; j < i; j ++) {
+				s[s_index] = str[j];
+				s_index ++;
+			}
+
+			s[s_index] = '\0';
+
+			write_to_ts_win(s);     /* Append the text to our transcript window. */
+			found_nl_index = i+1;   /* Increment our new line index. */
+
+			free(s);
+		}
+	}
 }
 
 
@@ -443,9 +498,9 @@ int main(int argc, char* argv[])
 
 	init_other_windows();
 
-	write_to_transcript_window("**************************************\n");
-	write_to_transcript_window("******** Wecome to BlackChat! ********\n");
-	write_to_transcript_window("**************************************\n");
+	write_to_transcript_window("**************************************");
+	write_to_transcript_window("******** Wecome to BlackChat! ********");
+	write_to_transcript_window("**************************************");
         
         set_window_user_name(0, "bob");
         set_window_user_name(1, "sue");
@@ -500,9 +555,11 @@ int main(int argc, char* argv[])
 					break;
 				case 10: /* CTRL-J and CTRL-M */
 		/* UNCOMMENT ME FOR USE WITH SERVER */
-                                        write_to_transcript_window("[Client Says]: ");
-					write_to_transcript_window(client_buffer);
-                                        write_to_transcript_window("\n");
+					{
+						char buf[1024];
+						sprintf(buf, "[Client Says]: %s", client_buffer);
+						write_to_transcript_window(buf);
+					}
 					clear_text_from_client_typing_window();
 				/*	write_out(client_id);                    enter key is pressed so send a message to the server. */
                                         break;
@@ -517,6 +574,7 @@ int main(int argc, char* argv[])
 					break;
 
 				case 14: /* CTRL-N */
+					userIsScrolling = 1;
 					transcript_current_line ++;
 					window_page_down( transcript_window,
 							  &transcript_current_line,
@@ -524,6 +582,7 @@ int main(int argc, char* argv[])
 							  transcript_buffer );
 					break;
 				case 16: /* CTRL-P */
+					userIsScrolling = 1;
 					transcript_current_line --;
 					window_page_up( transcript_window,
 						        &transcript_current_line,
@@ -532,6 +591,11 @@ int main(int argc, char* argv[])
 					break;
 				case 17: /* CTRL-Q */ 
 					is_running = 0;
+					break;
+
+				case 29: /* CTRL-] */
+					userIsScrolling = 0;
+					print_transcript_chat_buffer();
 					break;
 
                                 /*
