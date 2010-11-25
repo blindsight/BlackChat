@@ -427,8 +427,15 @@ static void write_to_ts_win(char *str)
 
         /* Append text to transcript window. */
 	strcat(transcript_buffer, text);
-	if(userIsScrolling == 0)
+	if(userIsScrolling == 0) {
 		print_transcript_chat_buffer();
+	} else {
+		window_page_up( transcript_window,
+			        &transcript_current_line,
+				TRANSCRIPT_MAX_COLUMNS,
+				transcript_buffer );
+
+	}
 
 	free(text);
 }
@@ -561,7 +568,7 @@ int main(int argc, char* argv[])
 						write_to_transcript_window(buf);
 					}
 					clear_text_from_client_typing_window();
-				/*	write_out(client_id);                   // enter key is pressed so send a message to the server. */ 
+				/*	write_out(client_id);                    enter key is pressed so send a message to the server. */
                                         break;
 
 				case 11: /* CTRL-K */
