@@ -16,14 +16,15 @@
 #include <ncurses.h>
 #include "clientsocket.h"
 #include "client.h"
+#include "logger.h"
 
 
 #define MAX_USER_NAME_LENGTH				21
 #define OTHER_WINDOW_BUFFER_SIZE			256
 
 
-#define MAX_ROWS					3
-#define MAX_COLUMNS 					40
+#define MAX_ROWS					1
+#define MAX_COLUMNS 					80
 #define MAX_CHARS_IN_CLIENT_TYPING_WINDOW 	MAX_ROWS * MAX_COLUMNS
 
 #define TRANSCRIPT_MAX_ROWS				23
@@ -51,7 +52,8 @@ typedef struct other_window_t
 } other_window;
 
 other_window *other_chat_windows;
-int userIsScrolling = 0;
+int user_is_scrolling = 0;
+int gaudy_mode_on     = 0;
 
 
 /* Get the size of the current terminal window. */
@@ -164,6 +166,11 @@ void window_page_up(WINDOW *win, int *line, int max_columns, char *buffer)
  */
 static void print_buffer_to_window(WINDOW *win, int max_chars, int max_columns, char *buffer, int *curr_line)
 {
+	int buf_len    = strlen(buffer);
+	int using_bold = 0;
+	int i;
+
+
 	/* Clear the chat window for writing. */
 	wclear(win);
 
@@ -171,19 +178,38 @@ static void print_buffer_to_window(WINDOW *win, int max_chars, int max_columns, 
 	 * The reason is because every time we want to add a new character to our 
 	 * window, we don't want it to scroll to the top.  We want our window to stay
 	 * were it's at. */
-	if( (strlen(buffer) - max_chars) > 0 ) {
-		int num_chars_off_screen =  strlen(buffer) - max_chars;
-		(*curr_line) = 0;
+	int num_chars_off_screen =  buf_len - max_chars;
+	(*curr_line) = 0;
 
-		while(num_chars_off_screen > 0) {
-			(*curr_line) ++;
-			num_chars_off_screen -= max_columns;
+	while(num_chars_off_screen > 0) {
+		(*curr_line) ++;
+		num_chars_off_screen -= max_columns;
+	}
+
+
+	/* Now write our buffer to the window. */
+	for(i = (*curr_line)*max_columns; i <= buf_len; i ++) {
+		/* Check if we found the start of a gaudy character. */
+		if( buffer[i] == 2 ) {
+			using_bold = 1;
+		} else if(buffer[i] == 3) {
+			using_bold = 0;
+		} else {
+			/* Write the character to the window. */
+			if(using_bold)
+				waddch(win, buffer[i] | A_BOLD);
+			else {
+				/* Print out our charcter. */
+				char ch = buffer[i];
+
+				/* We need to make sure not to print out the actual escape character. */
+				if(ch == '\0' || ch == '\n')
+					wprintw(win, "%c", ch);
+				else {
+					waddch(win, ch);
+				}
+			}
 		}
-
-
-		wprintw(win, &buffer[(*curr_line)*max_columns]);
-	} else {
-		wprintw(win, buffer);
 	}
 }
 
@@ -206,12 +232,13 @@ static void print_client_chat_buffer()
 	/* Print the text to the client window. */
 	print_buffer_to_window( client_chat_window, 
 				MAX_CHARS_IN_CLIENT_TYPING_WINDOW,
-				MAX_COLUMNS,
+			/*	MAX_COLUMNS,	*/
+				1,
 				client_buffer,
 				&client_current_line );
 
 
-	/* Position the cursor in the client window. */
+	/* Get the position the cursor in the client window. */
 	for(i = 0; i < client_cursor_position; i ++) {
 		xPos++;
 		if(xPos >= MAX_COLUMNS) {
@@ -234,6 +261,44 @@ static void print_transcript_chat_buffer()
 				TRANSCRIPT_MAX_COLUMNS,
 				transcript_buffer,
 				&transcript_current_line );
+}
+
+/* Delete the last word in the specified buffer. */
+static void delete_last_word_in_buffer(char *buffer)
+{
+	int word_end      = strlen(buffer);
+	int word_start    = word_end;
+	int did_find_word = 0;
+	int i;
+
+
+	/* Starting from the index at the end of the string, start moving
+	 * backwards until we come to something other than a space, then
+	 * continue moving until we hit a space again. */
+	for(i = word_end; i >= 0; i --) {
+		/* Check if we found something other than a space. */
+		if(buffer[i] != ' ' && buffer[i] != '\n' && buffer[i] != '\0') {
+			did_find_word = 1;
+		/* If where here, that means we found a space. */
+		} else {
+			/* We finally found the end of our word... */
+			if(did_find_word == 1) {
+				word_start = i;
+				break;
+			}
+		}
+	}
+
+
+	/* Check if we actually went to the beginning of out string.
+	 * ie. The last word is the first word. */
+	if(word_start == word_end)	word_start = 0;
+
+
+	/* Zero out from the beginnnig of where our word starts from. */
+	for(i = word_start; i <= word_end; i ++) {
+		buffer[i] = '\0';
+	}
 }
 
 /* Initialze other windows. */
@@ -391,11 +456,35 @@ void clear_text_from_client_typing_window(void)
 	memset(client_buffer, '\0', sizeof(client_buffer));
 }
 
+
+/* This is a special strlen function for use in the function below it.
+ * We need a special strlen to pick up the escape characters ^B and ^C. 
+ * NOTE: This function basically returns how many of the "special" chars
+ *       appear in the string. */
+static int s_strlen(char *str)
+{
+	int index  = 0;
+	int length = 0;
+	for(;;) {
+		if( str[index] == '\0' )  break;
+		if( str[index] == 2 || 
+		    str[index] == 3 ) {
+			length ++;
+		}
+
+		index ++;
+	}
+
+	return length;
+}
+
 /* Append the line to the transcript window. */
 static void write_to_ts_win(char *str)
 {
-	int   size = sizeof(char) * (strlen(str)+TRANSCRIPT_MAX_ROWS);
+	int   size = sizeof(char) * (strlen(str)+(TRANSCRIPT_MAX_ROWS*2));
 	char *text = (char*)malloc(size);
+	int   i;
+
 
 	/* Copy over string. */
 	memset(text, '\0', size);
@@ -403,6 +492,10 @@ static void write_to_ts_win(char *str)
 
 	/* Pad out the string so it takes up the whole line. */
 	while( strlen(text) % TRANSCRIPT_MAX_COLUMNS != 0 ) {
+		strcat(text, " ");
+	}
+	/* ---- */
+	for(i = 0; i < s_strlen(text); i ++) {
 		strcat(text, " ");
 	}
 
@@ -420,14 +513,12 @@ static void write_to_ts_win(char *str)
 		free(transcript_buffer);		/* Free old buffer. */
 		transcript_buffer_size *= 2;
 		transcript_buffer = temp_buffer;
-	}
-	
-       
-	
+	}       
+
 
         /* Append text to transcript window. */
 	strcat(transcript_buffer, text);
-	if(userIsScrolling == 0) {
+	if(user_is_scrolling == 0) {
 		print_transcript_chat_buffer();
 	} else {
 		window_page_up( transcript_window,
@@ -437,6 +528,7 @@ static void write_to_ts_win(char *str)
 
 	}
 
+	log_writeln(text);
 	free(text);
 }
 
@@ -479,12 +571,18 @@ int main(int argc, char* argv[])
 	int x_terminal_size, y_terminal_size;
 /*	int client_id = init_client();                   create a client. */
 
+	log_init();
+	log_writeln(" --------------------------- ");
+	log_writeln(" > Starting BlackChat");
+
 	transcript_buffer = (char*)malloc(sizeof(char)*transcript_buffer_size);
         memset(client_buffer, '\0', sizeof(client_buffer));
 	memset(transcript_buffer, '\0', sizeof(transcript_buffer));
 
 	get_terminal_size(&x_terminal_size, &y_terminal_size);
-	
+	log_writeln(" > ... detecting current terminal size xy:(%d,%d)", x_terminal_size, y_terminal_size);
+
+	log_writeln(" > ... initializing ncurses screen in raw mode");
 	initscr();
 	start_color();
 	init_pair(0, COLOR_WHITE,   COLOR_BLACK);
@@ -498,13 +596,16 @@ int main(int argc, char* argv[])
 
 	color_set(0, NULL);
 	
+	log_writeln(" > ... creating transcript and client window");
 	transcript_window  = newwin(23,40,0,0);
-	client_chat_window = newwin(MAX_ROWS,MAX_COLUMNS,20,40);
+	client_chat_window = newwin(MAX_ROWS,MAX_COLUMNS,24,0);
         wcolor_set(transcript_window,  3, NULL);
         wcolor_set(client_chat_window, 4, NULL);
 
+	log_writeln(" > ... creating other 9 windows");
 	init_other_windows();
 
+	log_writeln(" > ... [beginning transcript]");
 	write_to_transcript_window("**************************************");
 	write_to_transcript_window("******** Wecome to BlackChat! ********");
 	write_to_transcript_window("**************************************");
@@ -555,6 +656,18 @@ int main(int argc, char* argv[])
 					print_client_chat_buffer();
 					break;
 #endif
+				case 7:  /* CTRL-G */
+					gaudy_mode_on = (gaudy_mode_on == 1) ? 0 : 1;
+					if(gaudy_mode_on) {
+						client_buffer[ client_cursor_position++ ] = 2;
+					} else {
+						client_buffer[ client_cursor_position++ ] = 3;
+					}
+
+					/* Print out updates to the window. */
+					print_client_chat_buffer();
+					break;
+
                                 case 127:/* Backsapce Key (grok hack) */
 				case 8:  /* CTRL-H */
 					client_buffer[ strlen(client_buffer)-1 ] = '\0';
@@ -563,7 +676,7 @@ int main(int argc, char* argv[])
 				case 10: /* CTRL-J and CTRL-M */
 		/* UNCOMMENT ME FOR USE WITH SERVER */
 					{
-						char buf[1024];
+						char *buf = (char*)malloc( (strlen("[Client Says]: ")+strlen(client_buffer)+1) * sizeof(char) );
 						sprintf(buf, "[Client Says]: %s", client_buffer);
 						write_to_transcript_window(buf);
 					}
@@ -581,7 +694,7 @@ int main(int argc, char* argv[])
 					break;
 
 				case 14: /* CTRL-N */
-					userIsScrolling = 1;
+					user_is_scrolling = 1;
 					transcript_current_line ++;
 					window_page_down( transcript_window,
 							  &transcript_current_line,
@@ -589,18 +702,19 @@ int main(int argc, char* argv[])
 							  transcript_buffer );
 					break;
 				case 16: /* CTRL-P */
-					userIsScrolling = 1;
+					user_is_scrolling = 1;
 					transcript_current_line --;
 					window_page_up( transcript_window,
 						        &transcript_current_line,
 							TRANSCRIPT_MAX_COLUMNS,
 							transcript_buffer );
 					break;
-
+				
 				case 17: /* CTRL-Q */ 
+					log_writeln(" > ... recived quit signal from client");
 					is_running = 0;
 					break;
-
+				
 				case 21: /* CTRL-U */
 					client_current_line = 0;
 					client_cursor_position = 0;
@@ -608,8 +722,13 @@ int main(int argc, char* argv[])
 					print_client_chat_buffer();
 					break;
 
+				case 23: /* CTRL-W */
+					delete_last_word_in_buffer(client_buffer);
+					print_client_chat_buffer();
+					break;
+
 				case 29: /* CTRL-] */
-					userIsScrolling = 0;
+					user_is_scrolling = 0;
 					print_transcript_chat_buffer();
 					break;
 
@@ -682,6 +801,8 @@ int main(int argc, char* argv[])
                 refresh_all_windows();
 	}
 
+	log_writeln(" > ... [ending transcript]");
+	log_writeln(" > ... freeing resources");
 	free_other_windows();
 	free(transcript_buffer);
 
@@ -691,5 +812,8 @@ int main(int argc, char* argv[])
         
 /*        close_client(client_id); */
 
+	log_writeln(" > ... closing client log");
+	log_writeln(" > ... bye bye for now!");
+	log_close();
 	return 0;
 }

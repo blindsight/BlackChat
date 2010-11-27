@@ -7,7 +7,7 @@ LIBS = -lncurses
 BUILD_DIR = bin
 
 CLIENT_SRC_DIR = client
-CLIENT_OBJECTS = $(CLIENT_SRC_DIR)/client.o $(CLIENT_SRC_DIR)/clientsocket.o
+CLIENT_OBJECTS = $(CLIENT_SRC_DIR)/logger.o $(CLIENT_SRC_DIR)/client.o $(CLIENT_SRC_DIR)/clientsocket.o
 
 SERVER_SRC_DIR = server
 SERVER_OBJECTS = $(SERVER_SRC_DIR)/bcserver.o
@@ -26,3 +26,4 @@ clean:
 	rm $(CLIENT_OBJECTS)
 	rm $(BUILD_DIR)/server
 	rm $(BUILD_DIR)/client
+	rm $(BUILD_DIR)/client.log
