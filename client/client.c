@@ -196,19 +196,18 @@ static void print_buffer_to_window(WINDOW *win, int max_chars, int max_columns, 
 			using_bold = 0;
 		} else {
 			/* Write the character to the window. */
-			if(using_bold)
+			if(using_bold) {
 				waddch(win, buffer[i] | A_BOLD);
-			else {
+                        } else {
 				/* Print out our charcter. */
 				char ch = buffer[i];
-
 				/* We need to make sure not to print out the actual escape character. */
 				if(ch == '\0' || ch == '\n')
 					wprintw(win, "%c", ch);
 				else {
 					waddch(win, ch);
 				}
-			}
+                        }
 		}
 	}
 }

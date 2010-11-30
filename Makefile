@@ -1,29 +1,17 @@
-# BlackChat
+# Blackchat
+#  --- Master Makefile
 #
-
-CC = gcc
-CFLAGS = -Wall -O3
-LIBS = -lncurses
-BUILD_DIR = bin
-
-CLIENT_SRC_DIR = client
-CLIENT_OBJECTS = $(CLIENT_SRC_DIR)/logger.o $(CLIENT_SRC_DIR)/client.o $(CLIENT_SRC_DIR)/clientsocket.o
-
-SERVER_SRC_DIR = server
-SERVER_OBJECTS = $(SERVER_SRC_DIR)/bcserver.o
-
 
 all: client server
 
-client: $(CLIENT_OBJECTS)
-	$(CC) -o $(BUILD_DIR)/client $(CLIENT_OBJECTS) $(LIBS)
+client:
+	make -w -B -C client
 
-server: $(SERVER_OBJECTS)
-	$(CC) -o $(BUILD_DIR)/server $(SERVER_OBJECTS) $(LIBS)
+server:
+	cd server; make
 
 clean:
-	rm $(SERVER_OBJECTS)
-	rm $(CLIENT_OBJECTS)
-	rm $(BUILD_DIR)/server
-	rm $(BUILD_DIR)/client
-	rm $(BUILD_DIR)/client.log
+	cd client; client clean
+	cd server; server clean
+
+
