@@ -37,7 +37,7 @@ REQUIRED COMMAND KEYS
 *    Ctrl-G: gaudy! toggle gaudy (emphasized) text
 >    Ctrl-H: (BKSP) delete previous char
 >    Ctrl-J: (ENTER)
-    Ctrl-L: lurk!:w
+    Ctrl-L: lurk!
 >    Ctrl-M: (RETURN) treat the same as Ctrl-J
 >    Ctrl-N: scroll down to next page in transcript
 >    Ctrl-P: scroll up to previous page in transcript
