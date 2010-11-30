@@ -43,6 +43,7 @@ int transcript_current_line = 0;
 
 WINDOW *transcript_window;
 WINDOW *client_chat_window;
+WINDOW *lurk_win;
 
 typedef struct other_window_t
 {
@@ -72,12 +73,14 @@ static void get_terminal_size(int *x, int *y)
 /* Re-Draw all our windows. */
 static void refresh_other_windows();
 /* -------------------------- */
-static void refresh_all_windows()
+static void refresh_all_windows(int is_lurking)
 {
 
         refresh_other_windows();
 	wrefresh(transcript_window);
-	wrefresh(client_chat_window);
+
+        if(!is_lurking)
+	    wrefresh(client_chat_window);
 
 }
 
@@ -569,6 +572,8 @@ int main(int argc, char* argv[])
 {
 	int is_running = 1;
 	int x_terminal_size, y_terminal_size;
+        int is_lurking = 0;
+
 /*	int client_id = init_client();                   create a client. */
 
 	log_init();
@@ -599,8 +604,12 @@ int main(int argc, char* argv[])
 	log_writeln(" > ... creating transcript and client window");
 	transcript_window  = newwin(23,40,0,0);
 	client_chat_window = newwin(MAX_ROWS,MAX_COLUMNS,24,0);
+        lurk_win = newwin(MAX_ROWS, MAX_COLUMNS, 24, 0);
+        wcolor_set(lurk_win,           4, NULL);
         wcolor_set(transcript_window,  3, NULL);
         wcolor_set(client_chat_window, 4, NULL);
+
+        wprintw(lurk_win, "Lurking... Use CTRL-L to unLurk or CTRL-Q to quit.");
 
 	log_writeln(" > ... creating other 9 windows");
 	init_other_windows();
@@ -626,9 +635,25 @@ int main(int argc, char* argv[])
 
 		sprintf(buf, "key pressed: '%c'  int value: %d\n", ch, ch);
 		write_to_transcript_window(buf);
+
+
 */
-
-
+                if(is_lurking){
+                    switch(ch) {
+                        case 12:
+                            is_lurking = 0;
+                            redrawwin(client_chat_window);
+                            wrefresh(client_chat_window);
+                            break;
+                        case 17:
+                            is_running = 0;
+                            break;
+                        default:
+                            redrawwin(lurk_win);
+                            wrefresh(lurk_win);
+                    }
+                }
+                else{
                 /* Check what keys we pressed. */
 		switch(ch) {
 			/*
@@ -692,6 +717,17 @@ int main(int argc, char* argv[])
 						}
 					}
 					break;
+
+                                case 12: /* CTRL-L */
+                                        {
+                                            if(!is_lurking){
+
+                                                redrawwin(lurk_win);
+                                                wrefresh(lurk_win);
+                                                is_lurking = 1;
+                                            }
+                                        }
+                                        break;
 
 				case 14: /* CTRL-N */
 					user_is_scrolling = 1;
@@ -794,11 +830,12 @@ int main(int argc, char* argv[])
 				print_client_chat_buffer();
 				break;
 		}
+                }
 
                 /* Read from the server. */
 /*                read_from_server(client_id); */
 	
-                refresh_all_windows();
+                refresh_all_windows(is_lurking);
 	}
 
 	log_writeln(" > ... [ending transcript]");
