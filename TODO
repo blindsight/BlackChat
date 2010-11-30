@@ -1,0 +1,16 @@
+/*****************************************************************/
+/*************  Black Chat ToDo list ****************************/
+/***************************************************************/
+
+
+Client:
+Add Networking code to gui code -
+I looked through the main.c and client.c and no where in there does it call
+the function to connect to the server to send and recieve data.
+
+
+Server:
+I need to implement a way to inteligently disconnect clients.
+I need to put in a timer to count seconds connected
+I need to put in a bytes transfered counter for each client and a total
+
