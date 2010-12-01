@@ -1,0 +1,66 @@
+ --------------------------- 
+ > Starting BlackChat
+ > ... detecting current terminal size xy:(185,43)
+ > ... initializing ncurses screen in raw mode
+ > ... creating transcript and client window
+ > ... creating other 9 windows
+ > ... [beginning transcript]
+**************************************  
+******** Wecome to BlackChat! ********  
+**************************************  
+[Client Says]: asdfkljasd klfjsd        
+[Client Says]: askl djfklasd f          
+[Client Says]: asd fkasdjf asdklfj sd   
+[Client Says]:  fask                    
+[Client Says]:                          
+[Client Says]:                          
+[Client Says]:                          
+[Client Says]:                          
+[Client Says]:                          
+[Client Says]:                          
+[Client Says]:                          
+[Client Says]: as dfklj asdf            
+[Client Says]:  asdf asdjfkl            
+[Client Says]: asd fasdklfjksd          
+[Client Says]: a skdjfasd               
+[Client Says]: f asdkf jsdklfj df       
+[Client Says]: sdf kasdfj sdklf         
+[Client Says]: ask djfklasd jf          
+[Client Says]: as fkj fklsdjf klsdjf sdf
+[Client Says]:                          
+[Client Says]:                          
+[Client Says]: as dfklasdj fklsdf       
+[Client Says]: sdfkl jasdfkl jsdfksdjfsdf                                       
+[Client Says]: asd fklsdjf klsdjfklsdf  
+[Client Says]: f asdkfj asdklfjasdkflsdf
+[Client Says]: a fjasdklj f             
+[Client Says]:  dfklasjd fklsdjfkl sdjf 
+[Client Says]: asdkfjasdklfj klfj       
+[Client Says]: sdkflasdklf              
+[Client Says]: asdkfjklasdf             
+[Client Says]: asfjasdf                 
+[Client Says]: asdfjasdkf               
+[Client Says]: afkljasdklfjasdklfj      
+[Client Says]: askljfsdklf              
+[Client Says]: afkjsdf                  
+[Client Says]: akslfjsklfj askfj sdklf  
+[Client Says]:  askjfklasdjfksdf        
+[Client Says]: asasdkfljksdjf           
+[Client Says]: asfkjasdfkl jskf         
+[Client Says]: gkljasdklfjask ljfsd     
+[Client Says]: klasdjf klfjkljf         
+[Client Says]: afkl jasfkl jsdk         
+[Client Says]: asd fkljasdfkl           
+[Client Says]: klasdfj asdkljf  fkasdjfklsdjf                                   
+[Client Says]: asklfj askf j            
+[Client Says]: as dkfj askfjsd          
+[Client Says]:                          
+[Client Says]: a sdkjfasdkjf            
+[Client Says]:  asdfkjasd klf           
+[Client Says]: ]askfl jasdkl f          
+[Client Says]: asfklj sdklf             
+ > ... recived quit signal from client
+ > ... [ending transcript]
+ > ... freeing resources
+ > ... closing client log
+ > ... bye bye for now!
