@@ -200,19 +200,18 @@ static void print_buffer_to_window(WINDOW *win, int max_chars, int max_columns, 
 		} else {
 			/* Write the character to the window. */
 			if(using_bold) {
-				waddch(win, buffer[i] | A_BOLD);
+				wattron(win, A_BOLD);
+				wprintw(win, "%c", buffer[i]);
                         } else {
-				/* Print out our charcter. */
-				char ch = buffer[i];
-				/* We need to make sure not to print out the actual escape character. */
-				if(ch == '\0' || ch == '\n')
-					wprintw(win, "%c", ch);
-				else {
-					waddch(win, ch);
-				}
+				wattroff(win, A_BOLD);
+				wprintw(win, "%c", buffer[i]);
                         }
 		}
 	}
+
+
+	/* Disable bold-ing just in case the user forgot to disable it. */
+	wattroff(win, A_BOLD);
 }
 
 /* Print out the current client chat-typing window. */
@@ -241,14 +240,12 @@ static void print_client_chat_buffer()
 
 
 	/* Get the position the cursor in the client window. */
-	for(i = 0; i < client_cursor_position; i ++) {
-		xPos++;
-		if(xPos >= MAX_COLUMNS) {
-			yPos ++;
-			xPos = 0;
+	for(i = 0; i < strlen(client_buffer); i ++) {
+		if (client_buffer[i] != 2 && 
+		    client_buffer[i] != 3 ) {
+			xPos++;
 		}
 	}
-	yPos -= client_current_line;
 
 
 	/* Position the cursor for realz. */
@@ -618,14 +615,14 @@ int main(int argc, char* argv[])
 	write_to_transcript_window("******** Wecome to BlackChat! ********");
 	write_to_transcript_window("**************************************");
         
-        set_window_user_name(0, "bob");
-        set_window_user_name(1, "sue");
-        set_window_user_name(2, "dan");
-        set_window_user_name(3, "joe");
-        append_text_to_window(0, "Hello World, my name is bob!");
-        append_text_to_window(1, "yo everyone, I'm in love with blackchat!");
-        append_text_to_window(2, "hey, my name is Dan!");
-        append_text_to_window(3, "Whats up!?");
+	set_window_user_name(0, "bob");
+	set_window_user_name(1, "sue");
+	set_window_user_name(2, "dan");
+	set_window_user_name(3, "joe");
+	append_text_to_window(0, "Hello World, my name is bob!");
+	append_text_to_window(1, "yo everyone, I'm in love with blackchat!");
+	append_text_to_window(2, "hey, my name is Dan!");
+	append_text_to_window(3, "Whats up!?");
 
 
 	while(is_running) {
@@ -634,52 +631,29 @@ int main(int argc, char* argv[])
 
 		sprintf(buf, "key pressed: '%c'  int value: %d\n", ch, ch);
 		write_to_transcript_window(buf);
-
-
 */
-                if(is_lurking){
-                    switch(ch) {
-                        case 12:
-                            is_lurking = 0;
-                            redrawwin(client_chat_window);
-                            wrefresh(client_chat_window);
-                            break;
-                        case 17:
-                            is_running = 0;
-                            break;
-                        default:
-                            redrawwin(lurk_win);
-                            wrefresh(lurk_win);
-                    }
-                }
-                else{
-                /* Check what keys we pressed. */
+
+	/* Check if were in "Lurk" mode. */
+        if(is_lurking) {
+        	switch(ch) {
+                case 12: /* lurk-off */
+                    is_lurking = 0;
+                    redrawwin(client_chat_window);
+                    wrefresh(client_chat_window);
+                    break;
+                case 17: /* lurk-quit */
+                    is_running = 0;
+                    break;
+                default:
+                    redrawwin(lurk_win);
+                    wrefresh(lurk_win);
+            }
+        } else {
+		/* Check what keys we pressed. */
 		switch(ch) {
 			/*
 			 * Check if we pressed a control key. */
 			if(iscntrl(ch)) {
-#ifdef OPTIONAL_EDIT_KEYS
-				case 1:  /* CTRL-A */
-					client_current_line = 0;
-					client_cursor_position = 0;
-					print_client_chat_buffer();
-					break;
-
-				case 2:  /* CTRL-B */
-					client_cursor_position --;
-					print_client_chat_buffer();
-					break;
-
-				case 5:  /* CTRL-E */
-					client_cursor_position = strlen(client_buffer);
-					print_client_chat_buffer();
-					break;
-
-				case 6:  /* CTRL-F */
-					client_cursor_position ++;
-					print_client_chat_buffer();
-					break;
-#endif
 				case 7:  /* CTRL-G */
 					gaudy_mode_on = (gaudy_mode_on == 1) ? 0 : 1;
 					if(gaudy_mode_on) {
@@ -692,7 +666,7 @@ int main(int argc, char* argv[])
 					print_client_chat_buffer();
 					break;
 
-                                case 127:/* Backsapce Key (grok hack) */
+					    case 127:/* Backsapce Key (grok hack) */
 				case 8:  /* CTRL-H */
 					client_buffer[ strlen(client_buffer)-1 ] = '\0';
 					print_client_chat_buffer();
@@ -700,13 +674,24 @@ int main(int argc, char* argv[])
 				case 10: /* CTRL-J and CTRL-M */
 		/* UNCOMMENT ME FOR USE WITH SERVER */
 					{
-						char *buf = (char*)malloc( (strlen("[Client Says]: ")+strlen(client_buffer)+1) * sizeof(char) );
+						char *buf = NULL;
+
+
+						/* If we had gaudy mode on, we need to disable it. */
+						if(gaudy_mode_on) {
+							client_buffer[ client_cursor_position++ ] = 3;
+							gaudy_mode_on = 0;
+						}
+
+
+						/* Get our buffer togther to write to the transcript window. */
+						buf = (char*)malloc( (strlen("[Client Says]: ")+strlen(client_buffer)+1) * sizeof(char) );
 						sprintf(buf, "[Client Says]: %s", client_buffer);
 						write_to_transcript_window(buf);
 					}
 					clear_text_from_client_typing_window();
 				/*	write_out(client_id);                    enter key is pressed so send a message to the server. */
-                                        break;
+						    break;
 
 				case 11: /* CTRL-K */
 					{
@@ -717,16 +702,16 @@ int main(int argc, char* argv[])
 					}
 					break;
 
-                                case 12: /* CTRL-L */
-                                        {
-                                            if(!is_lurking){
+					    case 12: /* CTRL-L */
+						    {
+							if(!is_lurking){
 
-                                                redrawwin(lurk_win);
-                                                wrefresh(lurk_win);
-                                                is_lurking = 1;
-                                            }
-                                        }
-                                        break;
+							    redrawwin(lurk_win);
+							    wrefresh(lurk_win);
+							    is_lurking = 1;
+							}
+						    }
+						    break;
 
 				case 14: /* CTRL-N */
 					user_is_scrolling = 1;
@@ -740,16 +725,16 @@ int main(int argc, char* argv[])
 					user_is_scrolling = 1;
 					transcript_current_line --;
 					window_page_up( transcript_window,
-						        &transcript_current_line,
+								&transcript_current_line,
 							TRANSCRIPT_MAX_COLUMNS,
 							transcript_buffer );
 					break;
-				
+		
 				case 17: /* CTRL-Q */ 
 					log_writeln(" > ... recived quit signal from client");
 					is_running = 0;
 					break;
-				
+		
 				case 21: /* CTRL-U */
 					client_current_line = 0;
 					client_cursor_position = 0;
@@ -767,10 +752,10 @@ int main(int argc, char* argv[])
 					print_transcript_chat_buffer();
 					break;
 
-                                /*
-                                 * If we encountered an unkown escape charcter, break out of here so we don't
-                                 * print it. */
-                                break;              /* TODO: Fix me! */
+		    /*
+		     * If we encountered an unkown escape charcter, break out of here so we don't
+		     * print it. */
+		    break;              /* TODO: Fix me! */
 			}
 
 			/* Scroll the clients typing window down. */
@@ -778,18 +763,18 @@ int main(int argc, char* argv[])
 				client_current_line ++;
 				if(client_current_line*MAX_COLUMNS > strlen(client_buffer)) client_current_line --;
 
-                                wclear(client_chat_window);
-                                wprintw(client_chat_window, &client_buffer[client_current_line*MAX_COLUMNS]);
-                                break;
+					    wclear(client_chat_window);
+					    wprintw(client_chat_window, &client_buffer[client_current_line*MAX_COLUMNS]);
+					    break;
 			/* Scroll the clients typing window up. */
 			case KEY_UP:
 				client_current_line --;
 				if(client_current_line < 0) client_current_line = 0;
 
-                                wclear(client_chat_window);
-                                wprintw(client_chat_window, &client_buffer[client_current_line*MAX_COLUMNS]);
-                                break;
-		
+					    wclear(client_chat_window);
+					    wprintw(client_chat_window, &client_buffer[client_current_line*MAX_COLUMNS]);
+					    break;
+
 			/* Delete the previous chracter. */
 			case KEY_BACKSPACE:
 				/* Check if were deleting the last character. */
@@ -814,7 +799,7 @@ int main(int argc, char* argv[])
 				/* Check if were inserting a character before the end of our client
 				 * typing buffer. */
 				if( client_cursor_position != strlen(client_buffer) ) {
-					
+			
 					/* Move all characters in front of the cursor up one. */
 					int i;
 					for(i = strlen(client_buffer)+1; i > client_cursor_position; i --) {
@@ -824,17 +809,17 @@ int main(int argc, char* argv[])
 
 				/* Add the character to our buffer. */
 				client_buffer[ client_cursor_position++ ] = ch;
-				
+		
 				/* Print our new/updated buffer. */
 				print_client_chat_buffer();
 				break;
+			}
 		}
-                }
 
-                /* Read from the server. */
-/*                read_from_server(client_id); */
-	
-                refresh_all_windows(is_lurking);
+        	/* Read from the server. */
+/*      	read_from_server(client_id); */
+
+        	refresh_all_windows(is_lurking);
 	}
 
 	log_writeln(" > ... [ending transcript]");
@@ -846,7 +831,7 @@ int main(int argc, char* argv[])
 	delwin(client_chat_window);
 	endwin();
         
-/*        close_client(client_id); */
+/*  close_client(client_id); */
 
 	log_writeln(" > ... closing client log");
 	log_writeln(" > ... bye bye for now!");
