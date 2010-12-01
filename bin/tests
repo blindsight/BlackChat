@@ -15,17 +15,17 @@ cmd:text(0) text:8 uid:7 fuid:5 content:keep it away
 0008003005keep it away!
 cmd:text(0) text:8 uid:3 fuid:5 content:keep it away!
 010000500000000000000000000
-cmd:window(1) type:0 uid:5 x:0 y:0 z:0 w:0 h:0
+cmd:window(1) type:0 wid:5 x:0 y:0 z:0 w:0 h:0
 0101007001100220101000200
-cmd:window(1) type:1 uid:7 x:11 y:22 z:1 w:100 h:200
+cmd:window(1) type:1 wid:7 x:11 y:22 z:1 w:100 h:200
 0102006100050009905000600
-cmd:window(1) type:2 uid:6 x:1000 y:5000 z:99 w:500 h:600
+cmd:window(1) type:2 wid:6 x:1000 y:5000 z:99 w:500 h:600
 0103010567384534534569537
-cmd:window(1) type:3 uid:10 x:5673 y:8453 z:45 w:3456 h:9537
+cmd:window(1) type:3 wid:10 x:5673 y:8453 z:45 w:3456 h:9537
 0104900567493049434673948
-cmd:window(1) type:4 uid:900 x:5674 y:9304 z:94 w:3467 h:3948
+cmd:window(1) type:4 wid:900 x:5674 y:9304 z:94 w:3467 h:3948
 0105678749392568334568674
-cmd:window(1) type:5 uid:678 x:7493 y:9256 z:83 w:3456 h:8674
+cmd:window(1) type:5 wid:678 x:7493 y:9256 z:83 w:3456 h:8674
 0200567009
 cmd:vote(2) type:0 uid:567 vuid:9
 0201567009
