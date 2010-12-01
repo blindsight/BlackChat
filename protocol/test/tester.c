@@ -61,12 +61,12 @@ int main() {
 
 void process_command(char *input, char *output) {
 	char *message = (char *)malloc(sizeof(line));
+	WIN_OBJ *window;
 
 	int type_result;
 	int user = -1;
 	int from_user = -1;
 	int type = -1;
-	int x, y, z, w, h;
 	
 	//should there be a function to get all this information?
 	type_result = get_type_from_message(input);
@@ -88,15 +88,13 @@ void process_command(char *input, char *output) {
 
 		break;
 		case	CMD_WINDOW:
+			window = (WIN_OBJ *)malloc(sizeof(WIN_OBJ));
+			
+			get_window_from_message(input, window);
+			
+			sprintf(output,"cmd:%s(%d) type:%d wid:%d x:%d y:%d z:%d w:%d h:%d",cmd_type[type_result], type_result, window->type, window->wid, window->x, window->y, window->z, window->w, window->h);
 		
-			x = get_window_x_from_message(input);
-			y = get_window_y_from_message(input);
-			z = get_window_z_from_message(input);
-			w = get_window_w_from_message(input);
-			h = get_window_h_from_message(input);
-		
-			type = get_window_type_from_message(input);
-			sprintf(output,"cmd:%s(%d) type:%d uid:%d x:%d y:%d z:%d w:%d h:%d",cmd_type[type_result], type_result, type, user, x, y, z, w, h);
+			free(window);
 		break;
 		case	CMD_VOTE:
 			from_user = get_voted_for_uid_from_message(input);

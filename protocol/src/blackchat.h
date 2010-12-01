@@ -28,35 +28,9 @@
 #define VOTE_ACCEPTED		1
 #define VOTE_NOT_ACCEPTED	2
 
-
 #define USER_NAME_LEN	20	//this is code points not chars
 				/* which means any char that uses this will need
 				to times this by 4 for the max size */
-
-int get_type_from_message(const char *message);
-/* returns CMD_* */
-
-//text
-int get_text_type_from_message(const char *message);
-void get_text_from_message(char *message, char *result);
-
-//window
-int get_window_type_from_message(const char *message);
-int get_window_x_from_message(const char *message);
-int get_window_y_from_message(const char *message);
-int get_window_z_from_message(const char *message);
-int get_window_w_from_message(const char *message);
-int get_window_h_from_message(const char *message);
-
-int get_userlist_type_from_message(const char *message);
-
-int get_vote_type_from_message(const char *message);
-int get_voted_for_uid_from_message(const char *message);
-
-int get_user_from_message(const char *message);
-int get_from_user_from_message(const char *message);
-
-int get_error_type_from_message(const char *message);
 
 typedef struct protocol_command {
 
@@ -83,3 +57,30 @@ typedef struct user_obj {
 	char name[USER_NAME_LEN*4];	//alpha num + foreign chars
 	HST_OBJ *im;
 } UR_OBJ;
+			
+int get_type_from_message(const char *message);
+/* returns CMD_* */
+
+//text
+int get_text_type_from_message(const char *message);
+void get_text_from_message(char *message, char *result);
+
+//window
+int get_window_type_from_message(const char *message);
+int get_window_x_from_message(const char *message);
+int get_window_y_from_message(const char *message);
+int get_window_z_from_message(const char *message);
+int get_window_w_from_message(const char *message);
+int get_window_h_from_message(const char *message);
+int get_window_id_from_message(const char *message);
+void get_window_from_message(const char *message, WIN_OBJ *window);
+
+int get_userlist_type_from_message(const char *message);
+
+int get_vote_type_from_message(const char *message);
+int get_voted_for_uid_from_message(const char *message);
+
+int get_user_from_message(const char *message);
+int get_from_user_from_message(const char *message);
+
+int get_error_type_from_message(const char *message);

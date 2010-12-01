@@ -144,3 +144,28 @@ int get_error_type_from_message(const char *message) {
 	result[2]='\0';
 	return atoi(result);	
 }
+
+int get_window_id_from_message(const char *message) {
+	char result[3]; 
+	
+ 	strncpy(result, message+4,3);
+	result[4]='\0';
+	return atoi(result);
+}
+
+void get_window_from_message(const char *message, WIN_OBJ *window) {
+	
+	if(get_type_from_message(message) == CMD_WINDOW) {
+	
+		window->wid = get_window_id_from_message(message);
+		window->type = get_window_type_from_message(message);
+		window->x = get_window_x_from_message(message);
+		window->y = get_window_y_from_message(message);
+		window->z = get_window_z_from_message(message);
+		window->w = get_window_w_from_message(message);
+		window->h = get_window_h_from_message(message);
+	
+	} else {
+		window=NULL;
+	}
+}
