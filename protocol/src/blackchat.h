@@ -5,8 +5,8 @@
 #define	CMD_TEXT		0
 #define	CMD_WINDOW		1
 #define	CMD_VOTE		2
-#define CMD_USERLIST	3
-#define CMD_ERROR		90
+#define CMD_USERLIST		3
+#define CMD_ERROR		4
 
 /* text defines can be combined in the following ways
 	TEXT_MAIN_CHAT & TEXT_YELL
@@ -36,11 +36,27 @@
 int get_type_from_message(const char *message);
 /* returns CMD_* */
 
+//text
 int get_text_type_from_message(const char *message);
 void get_text_from_message(char *message, char *result);
 
+//window
+int get_window_type_from_message(const char *message);
+int get_window_x_from_message(const char *message);
+int get_window_y_from_message(const char *message);
+int get_window_z_from_message(const char *message);
+int get_window_w_from_message(const char *message);
+int get_window_h_from_message(const char *message);
+
+int get_userlist_type_from_message(const char *message);
+
+int get_vote_type_from_message(const char *message);
+int get_voted_for_uid_from_message(const char *message);
+
 int get_user_from_message(const char *message);
 int get_from_user_from_message(const char *message);
+
+int get_error_type_from_message(const char *message);
 
 typedef struct protocol_command {
 
@@ -49,7 +65,7 @@ typedef struct protocol_command {
 typedef struct window_obj {
 	int wid;
 	int type;
-	int x, y;
+	int x, y, z, w, h;
 } WIN_OBJ;
 
 typedef struct history_obj {
