@@ -105,6 +105,9 @@ static int str_get_num_lines(char *str)
 void window_page_down(WINDOW *win, int *line, int max_columns, char *buffer)
 {
         int i = 0;
+        int num_bold_chars = 0;
+        int start = 0;
+        int using_bold = 0;
         int found_num_lines = 0;
         int actual_number_of_lines = str_get_num_lines(buffer);
 
@@ -118,6 +121,19 @@ void window_page_down(WINDOW *win, int *line, int max_columns, char *buffer)
 
 	/* Figure out where to start printing from. */
         for(i = 0; i < strlen(buffer); i ++) {
+                /* --------- */
+                if(buffer[i] == 2) {
+                    if(!using_bold) {
+                        num_bold_chars ++;
+                    }
+                    using_bold = 1;
+                /* --------- */
+                } else if(buffer[i] == 3) {
+                    num_bold_chars ++;
+                    using_bold = 0;
+                }
+ 
+
                 if( (i % TRANSCRIPT_MAX_COLUMNS) == 0 ) found_num_lines ++;
                 if(found_num_lines >= (*line)) {
                         break;
@@ -126,14 +142,42 @@ void window_page_down(WINDOW *win, int *line, int max_columns, char *buffer)
 
 
         wclear(win);
-        wprintw(win, &buffer[i]);
+        start = i + num_bold_chars;
+        using_bold = 0;
+
+
+	/* Now write our buffer to the window. */
+	for(i = start; i <= strlen(buffer); i ++) {
+		/* Check if we found the start of a gaudy character. */
+		if( buffer[i] == 2 ) {
+			using_bold = 1;
+		} else if(buffer[i] == 3) {
+			using_bold = 0;
+		} else {
+			/* Write the character to the window. */
+			if(using_bold) {
+				wattron(win, A_BOLD);
+				wprintw(win, "%c", buffer[i]);
+                        } else {
+				wattroff(win, A_BOLD);
+				wprintw(win, "%c", buffer[i]);
+                        }
+		}
+	}
+
+
+	/* Disable bold-ing just in case the user forgot to disable it. */
+	wattroff(win, A_BOLD);
 }
 
 /* Page the specified window up by "line" number of lines. */
 void window_page_up(WINDOW *win, int *line, int max_columns, char *buffer)
 {
 	int i = 0;
+        int num_bold_chars = 0;
         int found_num_lines = 0;
+        int start = 0;
+        int using_bold = 0;
 
 
 	/* Make sure we didn't get passed to small of a value. */
@@ -146,6 +190,18 @@ void window_page_up(WINDOW *win, int *line, int max_columns, char *buffer)
 	/* Start counting the number of lines and figure out where the (*line) number
 	 * we want to print from starts. */
         for(i = 0; i < strlen(buffer); i ++) {
+                /* --------- */
+                if(buffer[i] == 2) {
+                    if(!using_bold) {
+                        num_bold_chars ++;
+                    }
+                    using_bold = 1;
+                /* --------- */
+                } else if(buffer[i] == 3) {
+                    num_bold_chars ++;
+                    using_bold = 0;
+                }
+  
                 if( (i % TRANSCRIPT_MAX_COLUMNS) == 0 ) found_num_lines ++;
                 if(found_num_lines >= (*line)) {
                         break;
@@ -154,7 +210,32 @@ void window_page_up(WINDOW *win, int *line, int max_columns, char *buffer)
 
 
         wclear(win);
-        wprintw(win, &buffer[i]);
+        start = i + num_bold_chars;
+        using_bold = 0;
+
+
+	/* Now write our buffer to the window. */
+	for(i = start; i <= strlen(buffer); i ++) {
+		/* Check if we found the start of a gaudy character. */
+		if( buffer[i] == 2 ) {
+			using_bold = 1;
+		} else if(buffer[i] == 3) {
+			using_bold = 0;
+		} else {
+			/* Write the character to the window. */
+			if(using_bold) {
+				wattron(win, A_BOLD);
+				wprintw(win, "%c", buffer[i]);
+                        } else {
+				wattroff(win, A_BOLD);
+				wprintw(win, "%c", buffer[i]);
+                        }
+		}
+	}
+
+
+	/* Disable bold-ing just in case the user forgot to disable it. */
+	wattroff(win, A_BOLD);
 }
 
 
@@ -169,8 +250,9 @@ void window_page_up(WINDOW *win, int *line, int max_columns, char *buffer)
  */
 static void print_buffer_to_window(WINDOW *win, int max_chars, int max_columns, char *buffer, int *curr_line)
 {
-	int buf_len    = strlen(buffer);
-	int using_bold = 0;
+	int buf_len        = strlen(buffer);
+        int num_bold_chars = 0;
+	int using_bold     = 0;
 	int i;
 
 
@@ -183,15 +265,32 @@ static void print_buffer_to_window(WINDOW *win, int max_chars, int max_columns, 
 	 * were it's at. */
 	int num_chars_off_screen =  buf_len - max_chars;
 	(*curr_line) = 0;
-
 	while(num_chars_off_screen > 0) {
 		(*curr_line) ++;
 		num_chars_off_screen -= max_columns;
 	}
 
 
+        /* Figure out how many bold chars are above the current line where printing. */
+        for(i = 0; i < (*curr_line)*max_columns; i ++) {
+                /* --------- */
+                if(buffer[i] == 2) {
+                    num_bold_chars ++;
+                    using_bold = 1;
+                } else if(buffer[i] == 3) {
+                    num_bold_chars ++;
+                    using_bold = 0;
+                }
+        }
+
+
+
+        /* Reset vars. */
+        i = i + num_bold_chars;
+        using_bold = 0;
+
 	/* Now write our buffer to the window. */
-	for(i = (*curr_line)*max_columns; i <= buf_len; i ++) {
+	for(i; i <= buf_len; i ++) {
 		/* Check if we found the start of a gaudy character. */
 		if( buffer[i] == 2 ) {
 			using_bold = 1;
@@ -491,11 +590,11 @@ static void write_to_ts_win(char *str)
 
 	/* Pad out the string so it takes up the whole line. */
 	while( strlen(text) % TRANSCRIPT_MAX_COLUMNS != 0 ) {
-		strcat(text, " ");
+		strcat(text, "~");
 	}
 	/* ---- */
 	for(i = 0; i < s_strlen(text); i ++) {
-		strcat(text, " ");
+		strcat(text, "~");
 	}
 
 
@@ -520,6 +619,7 @@ static void write_to_ts_win(char *str)
 	if(user_is_scrolling == 0) {
 		print_transcript_chat_buffer();
 	} else {
+
 		window_page_up( transcript_window,
 			        &transcript_current_line,
 				TRANSCRIPT_MAX_COLUMNS,
@@ -599,8 +699,8 @@ int main(int argc, char* argv[])
 	
 	log_writeln(" > ... creating transcript and client window");
 	transcript_window  = newwin(23,40,0,0);
-	client_chat_window = newwin(MAX_ROWS,MAX_COLUMNS,24,0);
-        lurk_win = newwin(MAX_ROWS, MAX_COLUMNS, 24, 0);
+	client_chat_window = newwin(MAX_ROWS, MAX_COLUMNS,24,0);
+        lurk_win           = newwin(MAX_ROWS, MAX_COLUMNS, 24, 0);
         wcolor_set(lurk_win,           4, NULL);
         wcolor_set(transcript_window,  3, NULL);
         wcolor_set(client_chat_window, 4, NULL);
@@ -615,14 +715,14 @@ int main(int argc, char* argv[])
 	write_to_transcript_window("******** Wecome to BlackChat! ********");
 	write_to_transcript_window("**************************************");
         
-	set_window_user_name(0, "bob");
+	set_window_user_name(0, "chris");
 	set_window_user_name(1, "sue");
 	set_window_user_name(2, "dan");
 	set_window_user_name(3, "joe");
-	append_text_to_window(0, "Hello World, my name is bob!");
+	append_text_to_window(0, "Sup!");
 	append_text_to_window(1, "yo everyone, I'm in love with blackchat!");
 	append_text_to_window(2, "hey, my name is Dan!");
-	append_text_to_window(3, "Whats up!?");
+	append_text_to_window(3, "Hey!?");
 
 
 	while(is_running) {
@@ -716,6 +816,7 @@ int main(int argc, char* argv[])
 				case 14: /* CTRL-N */
 					user_is_scrolling = 1;
 					transcript_current_line ++;
+
 					window_page_down( transcript_window,
 							  &transcript_current_line,
 							  TRANSCRIPT_MAX_COLUMNS,
@@ -724,8 +825,9 @@ int main(int argc, char* argv[])
 				case 16: /* CTRL-P */
 					user_is_scrolling = 1;
 					transcript_current_line --;
+
 					window_page_up( transcript_window,
-								&transcript_current_line,
+						    	&transcript_current_line,
 							TRANSCRIPT_MAX_COLUMNS,
 							transcript_buffer );
 					break;
