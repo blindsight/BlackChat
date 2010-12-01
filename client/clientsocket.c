@@ -14,7 +14,7 @@
 #include <wchar.h>
 #include "client.h"
 #include "clientsocket.h"
-#include "../server/bcserver.h"
+#include "../server/bc_network.h"
 #include "../server/protocol.h"
 
 

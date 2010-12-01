@@ -8,6 +8,7 @@ LIBS = -lpthread
 BUILD_DIR = ../bin
 OBJS = bc_network.o bc_server_queue.o main.o
 
+.PHONY: clean
 
 all: server
 
