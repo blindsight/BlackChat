@@ -61,12 +61,17 @@ int main() {
 
 void process_command(char *input, char *output) {
 	char *message = (char *)malloc(sizeof(line));
-	WIN_OBJ *window;
+	WIN_OBJ window;
 
 	int type_result;
 	int user = -1;
 	int from_user = -1;
 	int type = -1;
+	int offset = 0;
+	int user_num = 0;
+	int i = 0;
+	UR_OBJ user_list[20];
+	UR_OBJ curr_user;
 	
 	//should there be a function to get all this information?
 	type_result = get_type_from_message(input);
@@ -88,7 +93,7 @@ void process_command(char *input, char *output) {
 
 		break;
 		case	CMD_WINDOW:
-			window = (WIN_OBJ *)malloc(sizeof(WIN_OBJ));
+			window = (WIN_OBJ)malloc(sizeof(struct window_obj));
 			
 			get_window_from_message(input, window);
 			
@@ -103,7 +108,33 @@ void process_command(char *input, char *output) {
 		break;
 		case	CMD_USERLIST:
 			type = get_userlist_type_from_message(input);
-			sprintf(output,"cmd:%s(%d) type:%d uid:%d",cmd_type[type_result], type_result, type, user);
+			
+			if(type != USER_LIST_REQUEST) {
+				char temp_buff[1024];
+				sprintf(output,"cmd:%s(%d) type:%d uid:%d",cmd_type[type_result], type_result, type, user);
+				user_list[user_num] = (UR_OBJ)malloc(sizeof(struct user_obj));
+
+				offset = get_first_user(input, user_list[user_num]);	
+			
+			//	user_num++;
+				
+				do {	
+					user_num++;
+					user_list[user_num] = (UR_OBJ)malloc(sizeof(struct user_obj));
+				}
+				while((offset = get_next_user(offset,input, user_list[user_num])) > 0);
+			
+				//printf("user num %d\n",user_num);
+				for(i=0; i<user_num; i++) {
+				curr_user = user_list[i];
+					
+					sprintf(temp_buff," offset:%d uid:%d name:%s", (int)strlen(curr_user->name)+3,curr_user->uid, curr_user->name);
+					strcat(output, temp_buff);
+				}
+			
+			} else {
+				sprintf(output,"cmd:%s(%d) type:%d uid:%d",cmd_type[type_result], type_result, type, user);
+			}
 		break;
 		case	CMD_ERROR:
 			type = get_error_type_from_message(input);

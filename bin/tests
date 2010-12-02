@@ -34,8 +34,8 @@ cmd:vote(2) type:1 uid:567 vuid:9
 cmd:vote(2) type:2 uid:567 vuid:9
 0300058
 cmd:userlist(3) type:0 uid:58
-0301058010056Timothy08567Tanya07009Josh
-cmd:userlist(3) type:1 uid:58 offset:10 uid:56 name:Timothy offset:8 uid 567 name:Tanya offset:7 uid:9 name:Josh
+0301058010056Timothy008567Tanya007009Josh
+cmd:userlist(3) type:1 uid:58 offset:10 uid:56 name:Timothy offset:8 uid:567 name:Tanya offset:7 uid:9 name:Josh
 0302067010056Timothy
 cmd:userlist(3) type:2 uid:67 offset:10 uid:56 name:Timothy
 0401
