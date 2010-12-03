@@ -28,6 +28,10 @@
 #define VOTE_ACCEPTED		1
 #define VOTE_NOT_ACCEPTED	2
 
+#define USER_LIST_REQUEST	0
+#define USER_LIST_CURRENT	2
+#define USER_LIST_SIGN_OFF	3
+
 #define USER_NAME_LEN	20	//this is code points not chars
 				/* which means any char that uses this will need
 				to times this by 4 for the max size */
@@ -40,14 +44,14 @@ typedef struct window_obj {
 	int wid;
 	int type;
 	int x, y, z, w, h;
-} WIN_OBJ;
+} *WIN_OBJ;
 
 typedef struct history_obj {
 	char* line;
 	int time;
 	struct user_obj *from;
 	struct history_obj *next;
-} HST_OBJ;
+} *HST_OBJ;
 
 typedef struct user_obj {
 	int lurk;
@@ -56,7 +60,7 @@ typedef struct user_obj {
 	int uid;
 	char name[USER_NAME_LEN*4];	//alpha num + foreign chars
 	HST_OBJ *im;
-} UR_OBJ;
+} *UR_OBJ;
 			
 int get_type_from_message(const char *message);
 /* returns CMD_* */
@@ -73,7 +77,7 @@ int get_window_z_from_message(const char *message);
 int get_window_w_from_message(const char *message);
 int get_window_h_from_message(const char *message);
 int get_window_id_from_message(const char *message);
-void get_window_from_message(const char *message, WIN_OBJ *window);
+void get_window_from_message(const char *message, WIN_OBJ window);
 
 int get_userlist_type_from_message(const char *message);
 
@@ -84,3 +88,6 @@ int get_user_from_message(const char *message);
 int get_from_user_from_message(const char *message);
 
 int get_error_type_from_message(const char *message);
+
+int get_next_user(int offset, const char *message, UR_OBJ user);
+int get_first_user(const char *message, UR_OBJ user);
