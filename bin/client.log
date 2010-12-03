@@ -1,6 +1,6 @@
  --------------------------- 
  > Starting BlackChat
- > ... detecting current terminal size xy:(113,36)
+ > ... detecting current terminal size xy:(118,33)
  > ... initializing ncurses screen in raw mode
  > ... creating transcript and client window
  > ... creating other 9 windows
@@ -9,30 +9,18 @@
 ******** Wecome to BlackChat! ********~~
 **************************************~~
 [Client Says]: ~~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: šÿšÿšÿšÿšÿššÿššÿššÿšÿšÿšÿššÿšÿšÿšÿšÿšÿšÿšÿšÿšššÿšÿšÿšÿšÿšÿsdfsdf~
-[Client Says]: asd~~~~~~~~~~~~~~~~~~~~~~
-What's up?~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Client Says]: sd~~~~~~~~~~~~~~~~~~~~~~~
+[Client Says]: s~~~~~~~~~~~~~~~~~~~~~~~~
+[Client Says]: ds~~~~~~~~~~~~~~~~~~~~~~~
+[Client Says]: dsd~~~~~~~~~~~~~~~~~~~~~~
+[Client Says]: sd~~~~~~~~~~~~~~~~~~~~~~~
+[Client Says]: sd~~~~~~~~~~~~~~~~~~~~~~~
+[Client Says]: sd~~~~~~~~~~~~~~~~~~~~~~~
+DITTO!!!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Client Says]: yo~~~~~~~~~~~~~~~~~~~~~~~
 [Client Says]: sdf~~~~~~~~~~~~~~~~~~~~~~
 [Client Says]: sdf~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: d~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: d~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: d~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: d~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: d~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: d~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: d~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: d~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: d~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: d~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: d~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: d~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: d~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: d~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: d~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: d~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: d~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: d~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: d~~~~~~~~~~~~~~~~~~~~~~~~
+[Client Says]: sdf~~~~~~~~~~~~~~~~~~~~~~
  > ... recived quit signal from client
  > ... [ending transcript]
  > ... freeing resources
