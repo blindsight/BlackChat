@@ -30,7 +30,6 @@ sem_t messages_sem;
 typedef struct server{
   
   int server_socket;
-  int num_clients;
   pthread_t listen_thread_id;
   
   SERVER_QUEUE_OBJ *connected_clients;

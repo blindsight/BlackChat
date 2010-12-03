@@ -6,8 +6,21 @@
 SERVER_OBJ *bc_server;
 
 void update_time(int sig){
+    pthread_mutex_lock(&mutex);
+    int num_clients = size(bc_server->connected_clients);
+    pthread_mutex_unlock(&mutex);
 
-  //TODO update each connected client with a new time
+    for(int i = 0; i < num_clients; i++){
+        
+        CLIENT_OBJ * client = dequeue(bc_server->connected_clients);
+
+        client->time += 1;
+
+        enqueue(bc_server->connectec_clients);
+        
+    }
+
+  //TODO send time updates to each client
 }
 
 void cleanup(int sig){

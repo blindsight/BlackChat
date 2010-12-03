@@ -59,7 +59,12 @@ void fill_queue(SERVER_OBJ *server, SERVER_QUEUE_OBJ *messages){
     CLIENT_OBJ *client = (CLIENT_OBJ *)malloc(sizeof(CLIENT_OBJ));
     memset(client, 0, sizeof(CLIENT_OBJ));
     
-    client->client_id = i;
+    client->user_data = (UR_OBJ)malloc(sizeof(UR_OBJ));
+    client->user_data->history = (HST_OBJ *)malloc(sizeof(HST_OBJ));
+    client->user_data->im = (HST_OBJ *)malloc(sizeof(HST_OBJ));
+    client->user_data->lurk = 0;
+    client->user_data->uid = i;
+    client->user_data->name = NULL;
     client->seconds_connected = 0;
     client->messages = messages;
     
