@@ -1,90 +1,29 @@
  --------------------------- 
  > Starting BlackChat
- > ... detecting current terminal size xy:(180,63)
+ > ... detecting current terminal size xy:(182,64)
  > ... initializing ncurses screen in raw mode
  > ... creating transcript and client window
  > ... creating other 9 windows
  > ... [beginning transcript]
-**************************************~~
-******** Wecome to BlackChat! ********~~
-**************************************~~
-[Client Says]: as dfklasdjfklklasdjfklasdjfklasdjfklasdjf~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: ~~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: ~~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: ~~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: ~~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: ~~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: asdf jklasdklfasdklfjasdlkfjasdfk~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: asdklfjasdklfjasdfkljasdklfjaasfkljasdklfjsdkf~~~~~~~~~~~~~~~~~~~
-[Client Says]: ~~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: ~~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: ~~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: ~~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: ~~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: ~~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: asdfkljsdfklasdklfjasdklfjasdklf234~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: asdfjasdklfj~~~~~~~~~~~~~
-[Client Says]: ~~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: ~~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: ~~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: ~~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: ~~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: ~~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: ~~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: ~~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: ~~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: ~~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: ~~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: ~~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: ~~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: ~~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: ~~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: ~~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: ~~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: ~~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: ~~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: ~~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: ~~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: ~~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: ~~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: ~~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: ~~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: asdklfjasdkljfaslkfjasdkljfasdf~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: asdfjasdklfjsdf~~~~~~~~~~
-[Client Says]: ~~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: ~~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: ~~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: ~~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: ~~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: ~~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: asdlkfjasdjklf2384723897423984723894~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: lasdfasdkljf894789237423894asdklfj~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: ~~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: ~~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: ~~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: asdkljfasdjfasdklfjasdkljfksd23849~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: ~~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: ~~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: ~~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: ~~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: ~~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: ~~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: ~~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: ~~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: ~~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: ~~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: ~~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: ~~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: ~~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: ~~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: ~~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: ~~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: ~~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: ~~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: ~~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: ~~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: ~~~~~~~~~~~~~~~~~~~~~~~~~
-[Client Says]: ~~~~~~~~~~~~~~~~~~~~~~~~~
+**************************************  
+******** Wecome to BlackChat! ********  
+**************************************  
+[Client Says]:  asdfjklasdlkfj sdklf    
+[Client Says]:                          
+[Client Says]:                          
+[Client Says]: a                        
+[Client Says]: sd fasdklfjasdklfj sdf   
+[Client Says]: as dfkjasdfkl jasdf      
+[Client Says]:  ajsdfklasdjfklsdjaklfkasdlf                                     
+[Client Says]: asf kjasdfklsd           
+[Client Says]:                          
+[Client Says]:                          
+[Client Says]: as dfkldfjklasdfsdf      
+[Client Says]:  asdlkfjasdklf j         
+[Client Says]: asdkl fjasdklfjs         
+[Client Says]: a sdfjklasdklfj          
+[Client Says]:                          
+[Client Says]:  asdfjasdfkjlsd          
  > ... recived quit signal from client
  > ... [ending transcript]
  > ... freeing resources

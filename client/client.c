@@ -6,6 +6,7 @@
  */
 
 
+#include <signal.h>
 #include <unistd.h>
 #include <stdio.h>
 #include <ctype.h>
@@ -76,9 +77,8 @@ static void refresh_other_windows();
 /* -------------------------- */
 static void refresh_all_windows(int is_lurking)
 {
-
         refresh_other_windows();
-	wrefresh(transcript_window);
+        wrefresh(transcript_window);
 
         if(!is_lurking)
 	    wrefresh(client_chat_window);
@@ -144,7 +144,6 @@ void window_page_down(WINDOW *win, int *line, int max_columns, char *buffer)
 
         wclear(win);
         start = i + num_bold_chars;
-        using_bold = 0;
 
 
 	/* Now write our buffer to the window. */
@@ -212,7 +211,6 @@ void window_page_up(WINDOW *win, int *line, int max_columns, char *buffer)
 
         wclear(win);
         start = i + num_bold_chars;
-        using_bold = 0;
 
 
 	/* Now write our buffer to the window. */
@@ -288,7 +286,6 @@ static void print_buffer_to_window(WINDOW *win, int max_chars, int max_columns, 
 
         /* Reset vars. */
         i = i + num_bold_chars;
-        using_bold = 0;
 
 	/* Now write our buffer to the window. */
 	for(i; i <= buf_len; i ++) {
@@ -591,11 +588,11 @@ static void write_to_ts_win(char *str)
 
 	/* Pad out the string so it takes up the whole line. */
 	while( strlen(text) % TRANSCRIPT_MAX_COLUMNS != 0 ) {
-		strcat(text, "~");
+		strcat(text, " ");
 	}
 	/* ---- */
 	for(i = 0; i < s_strlen(text); i ++) {
-		strcat(text, "~");
+		strcat(text, " ");
 	}
 
 
@@ -664,6 +661,16 @@ void write_to_transcript_window(char *str)
 }
 
 
+/**************************************************************************/
+/* This is called 5 seconds after we try to scroll the transcript window. */
+void scroll_ended_handler(int x)
+{
+    user_is_scrolling = 0;
+    print_transcript_chat_buffer();
+    wrefresh(transcript_window);
+}
+
+
 
 int main(int argc, char* argv[])
 {
@@ -677,6 +684,8 @@ int main(int argc, char* argv[])
 	log_init();
 	log_writeln(" --------------------------- ");
 	log_writeln(" > Starting BlackChat");
+
+        signal(SIGALRM, scroll_ended_handler);
 
 	transcript_buffer = (char*)malloc(sizeof(char)*transcript_buffer_size);
         memset(client_buffer, '\0', sizeof(client_buffer));
@@ -738,64 +747,64 @@ int main(int argc, char* argv[])
 		write_to_transcript_window(buf);
   */                                      //end get char
 
-	/* Check if were in "Lurk" mode. */
-        if(is_lurking) {
-        	switch(ch) {
-                case 12: /* lurk-off */
-                    is_lurking = 0;
+            /* Check if were in "Lurk" mode. */
+            if(is_lurking) {
+                    switch(ch) {
+                    case 12: /* lurk-off */
+                        is_lurking = 0;
+                        redrawwin(client_chat_window);
+                        wrefresh(client_chat_window);
+                        break;
+                    case 17: /* lurk-quit */
+                        is_running = 0;
+                        break;
+                    default:
+                        redrawwin(lurk_win);
+                        wrefresh(lurk_win);
+                }
+            }
+            /* Check if were yelling. */
+            else if(is_yelling) {
+                // redrawwin(yell_win);
+                // wrefresh(yell_win);
+
+                switch(ch) {
+                case 97: /* a - agree */
+                    write_to_transcript_window("DITTO!!!");
+                    is_yelling = 0;
                     redrawwin(client_chat_window);
                     wrefresh(client_chat_window);
+                    wrefresh(transcript_window);
                     break;
-                case 17: /* lurk-quit */
-                    is_running = 0;
+                case 98: /* b -disagree */
+                    write_to_transcript_window("NO-WAY!!!");
+                    is_yelling = 0;
+                    redrawwin(client_chat_window);
+                    wrefresh(client_chat_window);
+                    wrefresh(transcript_window);
                     break;
-                default:
-                    redrawwin(lurk_win);
-                    wrefresh(lurk_win);
-            }
-        }
-        else if(is_yelling) {
-           // redrawwin(yell_win);
-           // wrefresh(yell_win);
-
-            switch(ch) {
-            case 97: /* a - agree */
-                write_to_transcript_window("DITTO!!!");
-                is_yelling = 0;
-                redrawwin(client_chat_window);
-                wrefresh(client_chat_window);
-                wrefresh(transcript_window);
-                break;
-            case 98: /* b -disagree */
-                write_to_transcript_window("NO-WAY!!!");
-                is_yelling = 0;
-                redrawwin(client_chat_window);
-                wrefresh(client_chat_window);
-                wrefresh(transcript_window);
-                break;
-            case 99: /* c - what's up? */
-                write_to_transcript_window("What's up?");
-                is_yelling = 0;
-                redrawwin(client_chat_window);
-                wrefresh(client_chat_window);
-                wrefresh(transcript_window);
-                break;
-            case 100: /* d - tricky tricky*/
-                write_to_transcript_window("BlackChat pwnd me!");
-                is_yelling = 0;
-                redrawwin(client_chat_window);
-                wrefresh(client_chat_window);
-                wrefresh(transcript_window);
-                break;
-            default: /* Exits the YELL window */
-                is_yelling = 0;
-                redrawwin(client_chat_window);
-                wrefresh(client_chat_window);
-                redrawwin(transcript_window);
-                wrefresh(transcript_window);
-            }
-        }
-        else {
+                case 99: /* c - what's up? */
+                    write_to_transcript_window("What's up?");
+                    is_yelling = 0;
+                    redrawwin(client_chat_window);
+                    wrefresh(client_chat_window);
+                    wrefresh(transcript_window);
+                    break;
+                case 100: /* d - tricky tricky*/
+                    write_to_transcript_window("BlackChat pwnd me!");
+                    is_yelling = 0;
+                    redrawwin(client_chat_window);
+                    wrefresh(client_chat_window);
+                    wrefresh(transcript_window);
+                    break;
+                default: /* Exits the YELL window */
+                    is_yelling = 0;
+                    redrawwin(client_chat_window);
+                    wrefresh(client_chat_window);
+                    redrawwin(transcript_window);
+                    wrefresh(transcript_window);
+                }
+            } else {
 		/* Check what keys we pressed. */
 		switch(ch) {
 			/*
@@ -813,7 +822,7 @@ int main(int argc, char* argv[])
 					print_client_chat_buffer();
 					break;
 
-					    case 127:/* Backsapce Key (grok hack) */
+				case 127:/* Backsapce Key (grok hack) */
 				case 8:  /* CTRL-H */
 					client_buffer[ strlen(client_buffer)-1 ] = '\0';
 					print_client_chat_buffer();
@@ -827,6 +836,7 @@ int main(int argc, char* argv[])
 						/* If we had gaudy mode on, we need to disable it. */
 						if(gaudy_mode_on) {
 							client_buffer[ client_cursor_position++ ] = 3;
+                                                	client_buffer[ client_cursor_position++ ] = ' ';
 							gaudy_mode_on = 0;
 						}
 
@@ -861,6 +871,7 @@ int main(int argc, char* argv[])
 						    break;
 
 				case 14: /* CTRL-N */
+                                        alarm(5);
 					user_is_scrolling = 1;
 					transcript_current_line ++;
 
@@ -870,6 +881,7 @@ int main(int argc, char* argv[])
 							  transcript_buffer );
 					break;
 				case 16: /* CTRL-P */
+                                        alarm(5);
 					user_is_scrolling = 1;
 					transcript_current_line --;
 
@@ -906,14 +918,15 @@ int main(int argc, char* argv[])
                                         }
                                         break;
 				case 29: /* CTRL-] */
+                                        alarm(0);
 					user_is_scrolling = 0;
 					print_transcript_chat_buffer();
 					break;
 
-		    /*
-		     * If we encountered an unkown escape charcter, break out of here so we don't
-		     * print it. */
-		    break;              /* TODO: Fix me! */
+                                /*
+                                 * If we encountered an unkown escape charcter, break out of here so we don't
+                                 * print it. */
+                                break;              /* TODO: Fix me! */
 			}
 
 			/* Scroll the clients typing window down. */
@@ -977,7 +990,7 @@ int main(int argc, char* argv[])
         	/* Read from the server. */
 /*      	read_from_server(client_id); */
 
-        	refresh_all_windows(is_lurking | is_yelling);
+        	refresh_all_windows(is_lurking);
 	}
 
 	log_writeln(" > ... [ending transcript]");

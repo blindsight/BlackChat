@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <strings.h>
+#include <string.h>
 #include "blackchat.h"
 
 char *cmd_type[] = {"text","window","vote","userlist","error"};
