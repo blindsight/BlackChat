@@ -40,4 +40,3 @@ cmd:userlist(3) type:1 uid:58 offset:10 uid:56 name:Timothy offset:8 uid:567 nam
 cmd:userlist(3) type:2 uid:67 offset:10 uid:56 name:Timothy
 0401
 cmd:error(4) type:1
-
