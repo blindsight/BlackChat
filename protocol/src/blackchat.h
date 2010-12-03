@@ -25,6 +25,7 @@
 #define TYP_INPUT	4
 #define TYP_DISPLAY	5
 
+#define VOTE			0
 #define VOTE_ACCEPTED		1
 #define VOTE_NOT_ACCEPTED	2
 
@@ -35,6 +36,8 @@
 #define USER_NAME_LEN	20	//this is code points not chars
 				/* which means any char that uses this will need
 				to times this by 4 for the max size */
+				
+#define UID_LEN	3
 
 typedef struct protocol_command {
 
@@ -68,6 +71,7 @@ int get_type_from_message(const char *message);
 //text
 int get_text_type_from_message(const char *message);
 void get_text_from_message(char *message, char *result);
+void create_text_message(int text_type, int uid, char *message, char *result);
 
 //window
 int get_window_type_from_message(const char *message);
@@ -78,16 +82,26 @@ int get_window_w_from_message(const char *message);
 int get_window_h_from_message(const char *message);
 int get_window_id_from_message(const char *message);
 void get_window_from_message(const char *message, WIN_OBJ window);
+void create_window_message(WIN_OBJ win, char *result);
 
+//user list functions
 int get_userlist_type_from_message(const char *message);
+int get_next_user(int offset, const char *message, UR_OBJ user);
+int get_first_user(const char *message, UR_OBJ user);
+void create_first_user(int user_list_type, int from_uid, UR_OBJ user, char *result);
+void create_next_user(UR_OBJ user, char *result);
 
+//voting functions
 int get_vote_type_from_message(const char *message);
 int get_voted_for_uid_from_message(const char *message);
+void create_vote_message(int vote_type, int uid, int uid_vote, char *result);
+
+
 
 int get_user_from_message(const char *message);
 int get_from_user_from_message(const char *message);
 
+//error functions
 int get_error_type_from_message(const char *message);
 
-int get_next_user(int offset, const char *message, UR_OBJ user);
-int get_first_user(const char *message, UR_OBJ user);
+
