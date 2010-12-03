@@ -98,5 +98,3 @@ int get_error_type_from_message(const char *message);
 
 int get_next_user(int offset, const char *message, UR_OBJ user);
 int get_first_user(const char *message, UR_OBJ user);
-
-#endif // _BLACKCHAT_H_

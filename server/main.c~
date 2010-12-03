@@ -160,10 +160,8 @@ void handle_messages(SERVER_OBJ* server, SERVER_QUEUE_OBJ* messages){
       switch(user_type){
       
 	case USER_LIST_REQUEST:
-	  //TODO loop through user array and send to client
 	  break;
 	case USER_LIST_SIGN_OFF:
-	  //Prefer not to use this and would rather detect a read of 0 bytes from client to disconnect
 	  break;
 	default:
 	  //TODO send ERROR_UNKNOWN_MSG
