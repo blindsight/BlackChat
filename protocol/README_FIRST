@@ -1,0 +1,32 @@
++========={ Protocol General }=========+
+
+* User
+	user ids are 3 numbers only. So the max user id should be 999
+	uids should start at 1 NOT 0. 0 is reserved for errors
+	
+* Window 
+	window means a window object which is typedef as WIN_OBJ. 
+	
+	WIN_OBJ->type will correspond  directly to the defines of TYP_*.
+	TYP_STATUS	- a user status window. there could be many of theses
+	TYP_HELP - user help window
+	TYP_MAIN - main chat window
+	TYP_IM - Instant message window - there could be many of theses
+	TYP_INPUT - user's input window, there should be only 1 of theses
+	TYP_DISPLAY	- the extra information window at the top of the screen
+	
+* Error
+	ERROR_GENERAL - Some error from the server or client. When this error is received the connection is terminated. 
+	ERROR_CHAT_FULL - No more users allowed on the server at this time. The connection is terminated.
+	ERROR_NAME_LONG - When the user submits a name to the server and it is too long for the server. The connection is terminated
+	ERROR_CHAT_DOWN - The Chat is shutting down, thus the connection is terminated.
+
+* User List
+	USER_LIST_REQUEST - used when a client makes a request of the users current online
+	USER_LIST_USER_NAME - used when the client sends the server their current user name
+	USER_LIST_RECEIVE_UID - used when the server sends the client their user id.
+	USER_LIST_CURRENT - used when sending the client a user online list
+	USER_LIST_SIGN_OFF - used when sending a user(s) sign off list
+	
+	
+Next Read Server or Client readme
