@@ -48,5 +48,9 @@ void clear_user_window_text(int num);
 void set_yell_message(int index, char *message);
 
 
+/* Returns clients name. */
+char *get_client_name();
+
+
 #endif
 
