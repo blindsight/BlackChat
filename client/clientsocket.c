@@ -16,27 +16,20 @@
 #include "clientsocket.h"
 #include "../server/bc_network.h"
 //#include "../server/protocol.h"
-//#include "../protocol/src/blackchat.h"
+#include "../protocol/src/blackchat.h"
 
 UR_OBJ user_list[20];       //list of all users currently on server
 UR_OBJ curr_user;           //this client
+int uid = -1;               //user id for this client
 
 /* This function is called whenever we (the client)
  * press the enter key. */
 void write_out(int client_id)
 {
-    int type = 1;                    //set at 1 for testing (1: to transcript window)
-    int by_sent;                    //bytes sent total!
-    int from = client_id;           //being sent from.
-    int to = 11;                    //set at 11 for testing (11: send to server)
-    char *message = grab_text_from_client_typing_window();
-    char buffer[2000];
-    by_sent = 16 + sizeof(char)*strlen(message);        //total bytes 4*4 = 16 for the first 4 ints + string bytes
-    sprintf(buffer,"%d%d%d%d%s", type, by_sent, from, to, message);     //combine to make string = [(type)(bytes sent)(from)(to)(message . . .)]
-    if(write(client_id, buffer, by_sent) == -1) {
-        write_to_transcript_window("Error: Couldn't write to server!\n");
+//    if(write(client_id, buffer, by_sent) == -1) {
+  //      write_to_transcript_window("Error: Couldn't write to server!\n");
        // write_to_transcript_window(buffer); 
-    }
+   // }
 
     clear_text_from_client_typing_window();
 }
@@ -111,19 +104,24 @@ void read_from_server(int client_id)
             break;
             case CMD_USERLIST:
                 ul_type = get_userlist_type_from_message(servout);
-                if(ul_type == USER_LIST_CURRENT)        //This means we are getting the current user list from the server.
+                switch(ul_type)
                 {
-                    user_list[user_num] = (UR_OBJ)malloc(sizeof(struct user_obj));
-                    offset = get_first_user(servout, user_list[user_num]);
-
-                    do
-                    {
-                        user_num++;
+                    case USER_LIST_CURRENT || USER_LIST_SIGN_OFF:       //This means we are getting the current user list from the server.
                         user_list[user_num] = (UR_OBJ)malloc(sizeof(struct user_obj));
-                    }
-                    while((offset = get_next_user(offset,servout,user_list[user_num])) > 0);
-                }
-                //TODO: user list sign off if it is actually needed.
+                        offset = get_first_user(servout, user_list[user_num]);
+
+                        do
+                        {
+                            user_num++;
+                            user_list[user_num] = (UR_OBJ)malloc(sizeof(struct user_obj));
+                        }
+                        while((offset = get_next_user(offset,servout,user_list[user_num])) > 0);
+                    break;
+                    case USER_LIST_RECEIVE_UID:
+                        uid = get_user_from_message(servout);
+                        curr_user->uid = uid;
+                    break;
+                }  //TODO: user list sign off if it is actually needed.
             break;
             case CMD_ERROR:
                 err_type = get_error_type_from_message(servout);
@@ -145,11 +143,13 @@ void read_from_server(int client_id)
  * wchar_t wide character type. I also made the 
  * function return the file descriptor for the 
  * socket it creates. */
-int init_client(void)
+int init_client(char *name)
 {
     int client;
     struct sockaddr_in address;
-    char message[] = "This is the client!";
+    char *message = (char *)malloc(4096);
+    strcpy(curr_user->name, name);
+    create_user_name_message(name,message);
 
     client = socket(AF_INET, SOCK_STREAM, 0);   /* create the socket */
     if(client == -1)
@@ -169,12 +169,26 @@ int init_client(void)
         exit(1);
     }
 
-    if ( write(client, &message, sizeof(message)) == -1)
+    if ( write(client, message, strlen(message)*sizeof(char)) == -1)
     {
         perror("COULD NOT WRITE TO SERVER!");
         exit(1);
     }
     return client;
+}
+
+/* This is a function that is only used once in 
+ * the client to get the initial user list when
+ * the client connects to the server. */
+void init_user_list(int client_id)
+{
+    char *temp = (char *)malloc(4096);
+    request_user_list(curr_user, temp);
+    if( write(client_id, temp, strlen(temp)*sizeof(char)) == -1)
+    {
+        perror("COULDN'T SEND MESSAGE!");
+        exit(1);
+    }
 }
 
 /* This is a short function to close
