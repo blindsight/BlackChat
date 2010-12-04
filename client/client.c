@@ -522,8 +522,10 @@ static void delete_num_chars_behind_cursor(int ch)
 /* Set a yell message. */
 void set_yell_message(int index, char *message)
 {
-    memset(yell_messages[index], '\0', MAX_MESSAGE_LENGTH);
+    memset(yell_messages[index], '\0', MAX_MESSAGE_LENGTH * sizeof(char));
+    strcpy(yell_messages[index], message);
 }
+
 
 
 /* Set the window user name. */
@@ -689,14 +691,19 @@ int main(int argc, char* argv[])
 	int x_terminal_size, y_terminal_size;
         int is_lurking = 0;
         int is_yelling = 0;
+        int i;
 
-/*	int client_id = init_client();                   create a client. */
+/*	int client_id = init_client("Henry");                   create a client. */
 
 	log_init();
 	log_writeln(" --------------------------- ");
 	log_writeln(" > Starting BlackChat");
 
         signal(SIGALRM, scroll_ended_handler);
+
+        for(i = 0; i < 26; i ++) {   /* set our message to null */
+                memset(yell_messages[i], '\0', MAX_MESSAGE_LENGTH * sizeof(char)); 
+        }
 
 	transcript_buffer = (char*)malloc(sizeof(char)*transcript_buffer_size);
         memset(client_buffer, '\0', sizeof(client_buffer));
@@ -776,49 +783,25 @@ int main(int argc, char* argv[])
             }
             /* Check if were yelling. */
             else if(is_yelling) {
-                // redrawwin(yell_win);
-                // wrefresh(yell_win);
+                    // redrawwin(yell_win);
+                    // wrefresh(yell_win);
+                    int index = ch - 97;
+        
 
-                switch(ch) {
-                    case 97: /* a - agree */
-                        write_to_transcript_window("DITTO!!!");
-                        is_yelling = 0;
-                        redrawwin(client_chat_window);
-                        wrefresh(client_chat_window);
-                        wrefresh(transcript_window);
-                        break;
-                    case 98: /* b -disagree */
-                        write_to_transcript_window("NO-WAY!!!");
-                        is_yelling = 0;
-                        redrawwin(client_chat_window);
-                        wrefresh(client_chat_window);
-                        wrefresh(transcript_window);
-                        break;
-                    case 99: /* c - what's up? */
-                        write_to_transcript_window("What's up?");
-                        is_yelling = 0;
-                        redrawwin(client_chat_window);
-                        wrefresh(client_chat_window);
-                        wrefresh(transcript_window);
-                        break;
-                    case 100: /* d - tricky tricky*/
-                        write_to_transcript_window("BlackChat pwnd me!");
-                        is_yelling = 0;
-                        redrawwin(client_chat_window);
-                        wrefresh(client_chat_window);
-                        wrefresh(transcript_window);
-                        break;
-                    default: /* Exits the YELL window */
-                        is_yelling = 0;
-                        redrawwin(client_chat_window);
-                        wrefresh(client_chat_window);
-                        redrawwin(transcript_window);
-                        wrefresh(transcript_window);
-                }
+                    /* Write our comment to our transcript window.  */
+                    if(index >= 0 && index < 26) {
+                            write_to_transcript_window( yell_messages[index] );
+                    } else {
+                            is_yelling = 0;
+                            redrawwin(client_chat_window);
+                            wrefresh(client_chat_window);
+                            redrawwin(transcript_window);
+                            wrefresh(transcript_window);
+                    }
             } else {
 		/* Check what keys we pressed. */
 		switch(ch) {
-			/*
+		        /*
 			 * Check if we pressed a control key. */
 			if(iscntrl(ch)) {
 				case 7:  /* CTRL-G */
