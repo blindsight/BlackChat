@@ -120,4 +120,5 @@ void create_error_message(int error_type, char *result);
 
 void create_user_lurking(int uid, char *result);
 int get_user_lurking(const char *message);
-#endif _BLACKCHAT_H_
+#endif
+
