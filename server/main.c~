@@ -51,6 +51,9 @@ int main(int argc, char **argv) {
   signal(SIGTERM, cleanup);
   signal(SIGPIPE, SIG_IGN);
   signal(SIGALRM, update_time); 
+  #ifdef DEBUG
+    printf("start main");
+#endif
   
   bc_server = (SERVER_OBJ *)malloc(sizeof(SERVER_OBJ));
   memset(bc_server, 0, sizeof(SERVER_OBJ));

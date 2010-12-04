@@ -3,7 +3,7 @@
 #include "bc_network.h"
 #include <unistd.h>
 
-#define DEBUG 1
+
 
 SERVER_OBJ *bc_server;
 
