@@ -34,8 +34,8 @@ void cleanup(int sig){
 }
 
 void handle_messages(SERVER_OBJ *server, SERVER_QUEUE_OBJ *messages);
-int save_user_window(WIN_OBJ window, char *user);
-int get_user_window(WIN_OBJ window, char *user);
+int save_user_window(WIN_OBJ window, int user);
+int get_user_window(WIN_OBJ window, int user);
 void disconnect_user(int uid);
 
 int main(int argc, char **argv) {
@@ -64,6 +64,8 @@ int main(int argc, char **argv) {
   
   handle_messages(bc_server, messages);
   
+  exit(0);
+  
     
 }
 
@@ -71,15 +73,15 @@ void handle_messages(SERVER_OBJ* server, SERVER_QUEUE_OBJ* messages){
   
   int cmd_type;
   int text_type;
-  int window_type;
-  int vote_type;
+//  int window_type;
+//  int vote_type;
   int user_type;
   int error_type;
   char *message;
-  char *message_data;
+//  char *message_data;
   
   char *buff;
-  char *result;
+ char *result;
   
   if(isEmpty(messages)){
 	sem_wait(&messages_sem);
@@ -187,7 +189,7 @@ void handle_messages(SERVER_OBJ* server, SERVER_QUEUE_OBJ* messages){
       int voted_user = get_voted_for_uid_from_message(message);
       int user = get_from_user_from_message(message);
       int num_votes = 0;
-      bool is_vote_done = false;
+      //bool is_vote_done = false;
       buff = (char *)malloc(1024);
       
       if(server->clients[user]->user_data->vote != voted_user){
@@ -196,13 +198,13 @@ void handle_messages(SERVER_OBJ* server, SERVER_QUEUE_OBJ* messages){
 	
 	respond_vote_message(VOTE_ACCEPTED, user, voted_user, buff);
 	
-	broadcast_client(user, buff);
+	broadcast_client(server->clients[user], buff);
 	
       }
       else{
       
 	respond_vote_message(VOTE_NOT_ACCEPTED, user, voted_user, buff);
-	broadcast_client(user, buff);
+	broadcast_client(server->clients[user], buff);
 	
       }
       
@@ -220,7 +222,7 @@ void handle_messages(SERVER_OBJ* server, SERVER_QUEUE_OBJ* messages){
 	int votes[] = {-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 	int user_voted_off = 0;
 	
-	for(int i = -1; i < MAX_CONNECTIONS + 1; i++){
+	for(int i = 1; i < MAX_CONNECTIONS + 1; i++){
 	
 	  pthread_mutex_lock(&mutex);
 	  if(server->clients[i]->is_connected && server->clients[i]->user_data->vote != -1){	  
