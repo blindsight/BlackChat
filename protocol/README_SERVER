@@ -170,7 +170,7 @@ The following must be completed in the listed order
 			1. int of the user id who sent the message
 			2. int of the user id to send the message to
 			2. char pointer to the instant message
-			3. char pointer to what will be valid protocol information to send to each client//TODO
+			3. char pointer to what will be valid protocol information to send to each client
 		
 		Example:
 			create_im_message(974, 678, "Killer project man!", result);
