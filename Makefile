@@ -1,6 +1,7 @@
 # Blackchat
 #  --- Master Makefile
 #
+
 .PHONY: client server protocol tests clean
 
 all: client server protocol tests

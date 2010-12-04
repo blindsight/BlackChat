@@ -32,32 +32,26 @@ sem_t messages_sem;
 typedef struct server{
   
   int server_socket;
-  //int user_idle_time_max = MAX_IDLE_TIME;
+  int user_idle_time_max;
   int num_users_connected;
   
   
-/* char *yell_messages[] = { "DITTO!!!",
-			    "NO WAY!!!",
-			    "What's up?",
-			    "LET'S GO!!",
-			    "HURRY UP!",
-			    "I'M OUT!",
-			    "Give Blackchat an A!"};  //TODO add some easter eggs maybe */
+  //char *yell_messages[26]; 
   pthread_t listen_thread_id;
   
   
   
-  SERVER_QUEUE_OBJ *connected_clients;
-  SERVER_QUEUE_OBJ *unconnected_clients;
+  //SERVER_QUEUE_OBJ *connected_clients;
+  //SERVER_QUEUE_OBJ *unconnected_clients;
   
-  CLIENT_OBJ **clients;
+  CLIENT_OBJ* clients[11];
     
 } SERVER_OBJ;
 
 
 SERVER_OBJ *init_network(SERVER_QUEUE_OBJ *messages);
-void broadcast_all(SERVER_QUEUE_OBJ *clients); //TODO add message
-void broadcast_client(CLIENT_OBJ *client); //TODO add message
+void broadcast_all(CLIENT_OBJ *clients[], char *message); 
+void broadcast_client(CLIENT_OBJ *client, char *message); 
 
 
 #endif //BC_NETWORK_H_

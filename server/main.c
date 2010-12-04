@@ -34,6 +34,9 @@ void cleanup(int sig){
 }
 
 void handle_messages(SERVER_OBJ *server, SERVER_QUEUE_OBJ *messages);
+int save_user_window(WIN_OBJ window, char *user);
+int get_user_window(WIN_OBJ window, char *user);
+void disconnect_user(int uid);
 
 int main(int argc, char **argv) {
   
@@ -75,7 +78,16 @@ void handle_messages(SERVER_OBJ* server, SERVER_QUEUE_OBJ* messages){
   int error_type;
   char *message;
   char *message_data;
-  WIN_OBJ *window;
+  
+  char *buff;
+  
+  char *yells[] = { "a - DITTO!!!\n",
+			    "b - NO WAY!!!\n",
+			    "c - What's up?\n",
+			    "d - LET'S GO!!\n",
+			    "e - HURRY UP!\n",
+			    "f - I'M OUT!\n",
+			    "g - Give Blackchat an A!\n"};  //TODO add some easter eggs maybe */
   
   if(isEmpty(messages)){
 	sem_wait(&messages_sem);
@@ -93,6 +105,8 @@ void handle_messages(SERVER_OBJ* server, SERVER_QUEUE_OBJ* messages){
 	switch(text_type) {
 	
 	  case TEXT_MAIN_CHAT:
+	  {
+	    buff = (char *)malloc(1024 * 8);
 	    int user = get_from_user_from_message(message);
 	    HST_OBJ temp = server->clients[user]->user_data->history;
 	    
@@ -101,58 +115,144 @@ void handle_messages(SERVER_OBJ* server, SERVER_QUEUE_OBJ* messages){
 	    server->clients[user]->user_data->history->next = temp;
 	    //TODO update time
 	    
-	    //TODO broadcaast text to all users
+	    create_text_message(TEXT_MAIN_CHAT, user, server->clients[user]->user_data->history->line, buff);
 	    
+	    broadcast_all(server->clients, buff);
 	    
+	    free(buff);
+	    buff = NULL;
+	  }    
 	    break;
 	  case TEXT_YELL:
-	    //TODO Send message with server yells to client
+	  {
+	    int user = get_user_from_message(message);
+	    buff = (char *)malloc(512);
+	    
+	    create_text_message(TEXT_YELL, user, yells, buff);
+	    
+	    broadcast_client(server->clients[user], buff);
+	    
+	    free(buff);
+	    buff = NULL;
+	  }
 	    break;
 	  case TEXT_STATUS:
+	  {
 	    //The server should only get this if the client went into lurking mode
 	    int user = get_from_user_from_message(message);
 	    
 	    server->clients[user]->user_data->lurk = 1;
 	    
 	    //TODO maybe send lurking command to server to update status or send and entirely new status to client
+	  }
 	    break;
 	  case TEXT_IM:
+	  {
 	    int user = get_from_user_from_message(message);
 	    int to_user = get_user_from_message(message);
 	    HST_OBJ temp = server->clients[user]->user_data->im;
+	    buff = (char *)malloc(1024 * 8);
 	    
 	    server->clients[user]->user_data->im->line = get_text_from_message(message);
 	    server->clients[user]->user_data->im->from = NULL;
 	    server->clients[user]->user_data->im->next = temp;
 	    //TODO update time
 	    
-	    //TODO broadcaast text to IM user
+	    create_text_message(TEXT_IM, to_user, server->clients[user]->user_data->im->line, buff);
+	    
+	    broadcast_client(server->clients[to_user], buff);
+	    
+	    free(buff);
+	    buff = NULL;
+	  }
 	    break;
 	  default:
-	    //TODO Send ERROR_UNKNOWN_MSG
+	  {
+	    int user = get_from_user_from_message(message);
+	    char *temp = "Invalid Message Sent to Server!!\n";
+	    //TODO send error
+	    //create_text_message();
+	  }
 	    break;
 	  
 	}
       break;
     case CMD_WINDOW:
+    {
+      WIN_OBJ window = (WIN_OBJ)malloc(sizeof(struct window_obj));
       get_window_from_message(message, window);
       
+      save_user_window(window, get_from_user_from_message(message));
+    } 
       break;
     case CMD_VOTE:
-      int uid_vote;
+    {
+      int voted_user = get_voted_for_uid_from_message(message);
+      int user = get_from_user_from_message(message);
+      int num_votes = 0;
+      bool is_vote_done = false;
+      buff = (char *)malloc(1024);
       
-      vote_type = get_vote_type_from_message(message);
-      
-      switch(vote_type){
-      
-	case VOTE_ACCEPTED:
-	  break;
-	case VOTE_NOT_ACCEPTED:
-	  break;
-	default:
-	  //TODO Send list of connected users to vote off to client
-	  break;
+      if(server->clients[user]->user_data->vote != voted_user){
+	
+	server->clients[user]->user_data->vote = voted_user;
+	
+	create_vote_message(VOTE_ACCEPTED, user, voted_user, buff);
+	
+	broadcast_client(user, buff);
+	
       }
+      else{
+      
+	create_vote_message(VOTE_NOT_ACCEPTED, user, voted_user, buff);
+	broadcast_client(user, buff);
+	
+      }
+      
+      for(int i = 1; i < MAX_CONNECTIONS + 1; i++){
+      
+	pthread_mutex_lock(&mutex);
+	if(server->clients[i]->is_connected && server->clients[i]->user_data->vote != -1)
+	  num_votes++;
+	
+	pthread_mutex_unlock(&mutex);
+	
+      }
+      
+      if(num_votes == server->num_users_connected){
+	int votes[] = {-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int user_voted_off = 0;
+	
+	for(int i = -1; i < MAX_CONNECTIONS + 1; i++){
+	
+	  pthread_mutex_lock(&mutex);
+	  if(server->clients[i]->is_connected && server->clients[i]->user_data->vote != -1){	  
+	    votes[server->clients[i]->user_data->vote]++;	    
+	  }	  
+	  pthread_mutex_lock(&mutex);
+	  
+	}
+	
+	for(int i = 0; i < 11; i++){
+	
+	  if(votes[user_voted_off] > votes[i])
+	    user_voted_off = i;
+	  
+	}
+	
+	disconnect_user(user_voted_off);
+	
+	for(int i = 1; i < MAX_CONNECTIONS + 1; i++){
+	
+	  pthread_mutex_lock(&mutex);
+	  server->clients[i]->user_data->vote = -1;
+	  pthread_mutex_unlock(&mutex);
+	  
+	}
+	
+      }
+    }
+      
       break;
     case CMD_USERLIST:
       user_type = get_userlist_type_from_message(message);
@@ -186,6 +286,76 @@ void handle_messages(SERVER_OBJ* server, SERVER_QUEUE_OBJ* messages){
       //TODO send ERROR_UNKNOWN_MSG
     break;
   }
+}
+
+
+int save_user_window(WIN_OBJ window, char* user){
+  
+  char *file_to_open = (char *)malloc(1024);
+  FILE *file;
+  int written;
+  int *win[] = { window->h, window->w, window->x, window->y, window->z, window->type, window->wid};
+  sprintf(file_to_open, "./saved_sessions/%s/%d/%d", user, window->type, window->wid);
+  
+  file = fopen(file_to_open, "wb");
+  if(file == NULL)
+    return -1;
+    
+  written = fwrite(win, sizeof(int), 7, file);
+  
+  if(written != 7)
+    return -1;
+  
+  fclose(file);
+  free(file_to_open);
+  
+  return 0;
+
+}
+
+int get_user_window(WIN_OBJ window, char* user){  
+    
+  char *file_to_open = (char *)malloc(1024);
+  FILE *file;
+  int read;
+  int *win[] = { 0, 0, 0, 0, 0, 0, 0};
+  sprintf(file_to_open, "./saved_sessions/%s/%d/%d", user, window->type, window->wid);
+  
+  file = fopen(file_to_open, "rb");
+  if(file == NULL)
+    return -1;
+    
+  read = fread(win, sizeof(int), 7, file);
+  
+  if(read != 7)
+    return -1;
+  
+  window->h = win[0];
+  window->w = win[1];
+  window->x = win[2];
+  window->y = win[3];
+  window->z = win[4];
+  window->type = win[5];
+  window->wid = win[6];
+  
+  fclose(file);
+  free(file_to_open);
+  
+  return 0;
+
+}
+
+
+void disconnect_user(int uid){
+  CLIENT_OBJ *temp = bc_server->clients[uid];
+  pthread_mutex_lock(&mutex);
+  
+  pthread_cancel(temp->client_thread_id);
+  temp->bytes_from = 0;
+  temp->bytes_to = 0;
+  temp->is_connected = false;
+  close(temp->client_socket);
+  pthread_mutex_unlock(&mutex);
 }
 
 
