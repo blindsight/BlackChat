@@ -291,7 +291,7 @@ static void print_buffer_to_window(WINDOW *win, int max_chars, int max_columns, 
         i = i + num_bold_chars;
 
 	/* Now write our buffer to the window. */
-	for(i; i <= buf_len; i ++) {
+	for(; i <= buf_len; i ++) {
 		/* Check if we found the start of a gaudy character. */
 		if( buffer[i] == 2 ) {
 			using_bold = 1;
@@ -522,10 +522,26 @@ static void delete_num_chars_behind_cursor(int ch)
 /* Set a yell message. */
 void set_yell_message(int index, char *message)
 {
-    memset(yell_messages[index], '\0', MAX_MESSAGE_LENGTH * sizeof(char));
-    strcpy(yell_messages[index], message);
+        int i;
+
+        memset(yell_messages[index], '\0', MAX_MESSAGE_LENGTH * sizeof(char));
+        strcpy(yell_messages[index], message);
+        wclear(yell_win);
+
+        /* Print what to say to yell window. */
+        for(i = 0; i < 26; i ++) {
+                if( yell_messages[i] != '\0' ) {
+                        wprintw(yell_win, "%c | %s\n", i+97, yell_messages[i]);
+                }
+        }
+        wprintw(yell_win, "\nHit any other key to exit.");
 }
 
+/* Returns the clients name. */
+char *get_client_name()
+{
+    return "Henry";
+}
 
 
 /* Set the window user name. */
@@ -733,12 +749,16 @@ int main(int argc, char* argv[])
         yell_win           = newwin(23,40,0,0);
         box(yell_win, '|', '-');
 
+        set_yell_message(0, "Hello World");
+        set_yell_message(1, "Yo dog!");
+        set_yell_message(2, "Hey everyone!");
+        set_yell_message(3, "Whats up?");
+
         wcolor_set(lurk_win,           4, NULL);
         wcolor_set(transcript_window,  3, NULL);
         wcolor_set(client_chat_window, 4, NULL);
         wcolor_set(yell_win,           2, NULL);
         wprintw(lurk_win, "Lurking... Use CTRL-L to unLurk or CTRL-Q to quit.");
-        wprintw(yell_win, "|Yell! :\n|'a' - DITTO!!!\n|'b' - NO WAY!!!\n|'c' - What's up?\n|'d' - BlackChat sucks!\n\n|Hit any other key to exit.");
 	log_writeln(" > ... creating other 9 windows");
 	init_other_windows();
 
@@ -790,7 +810,9 @@ int main(int argc, char* argv[])
 
                     /* Write our comment to our transcript window.  */
                     if(index >= 0 && index < 26) {
-                            write_to_transcript_window( yell_messages[index] );
+                            if( yell_messages[index] != '\0' ) {
+                                    write_to_transcript_window( yell_messages[index] );
+                            }
                     } else {
                             is_yelling = 0;
                             redrawwin(client_chat_window);

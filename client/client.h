@@ -40,5 +40,17 @@ void append_text_to_window(int num, char *text);
  */
 void clear_user_window_text(int num);
 
+
+/* This sets the yell message at the given index.
+ * @param index   - Should be a number 0-25, where 0=A, 1=B, 2=C, ... 25=Z
+ * @param message - The message to be associted with this index/letter.
+ * */
+void set_yell_message(int index, char *message);
+
+
+/* Returns clients name. */
+char *get_client_name();
+
+
 #endif
 
