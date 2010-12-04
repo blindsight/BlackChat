@@ -64,10 +64,10 @@ typedef struct history_obj {
 typedef struct user_obj {
 	int lurk;
 	int vote; //id of user to vote off
-	HST_OBJ *history;
+	HST_OBJ history;
 	int uid;
 	char name[USER_NAME_LEN*4];	//alpha num + foreign chars
-	HST_OBJ *im;
+	HST_OBJ im;
 } *UR_OBJ;
 			
 int get_type_from_message(const char *message);

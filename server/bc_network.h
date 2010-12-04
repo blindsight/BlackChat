@@ -53,5 +53,6 @@ SERVER_OBJ *init_network(SERVER_QUEUE_OBJ *messages);
 void broadcast_all(CLIENT_OBJ *clients[], char *message); 
 void broadcast_client(CLIENT_OBJ *client, char *message); 
 
+void *client_thread(void *args);
 
 #endif //BC_NETWORK_H_
