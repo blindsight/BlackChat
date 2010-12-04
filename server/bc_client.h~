@@ -13,7 +13,6 @@ typedef struct client {
     unsigned int bytes_to;
     unsigned int bytes_from;
     unsigned int seconds_connected;
-    bool is_connected;
     struct server_queue *messages;
     pthread_t client_thread_id;
 

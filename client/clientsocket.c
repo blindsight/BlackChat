@@ -15,8 +15,11 @@
 #include "client.h"
 #include "clientsocket.h"
 #include "../server/bc_network.h"
-#include "../server/protocol.h"
+//#include "../server/protocol.h"
+//#include "../protocol/src/blackchat.h"
 
+UR_OBJ user_list[20];       //list of all users currently on server
+UR_OBJ curr_user;           //this client
 
 /* This function is called whenever we (the client)
  * press the enter key. */
@@ -40,7 +43,22 @@ void write_out(int client_id)
 
 void read_from_server(int client_id)
 {
-    char servout[2000];
+    WIN_OBJ window;
+
+    int cmd_type = -1;
+    int user = -1;
+    int text_type = -1;
+    int from_user = -1;
+    int vote_type = -1;
+    int ul_type = -1;
+    int user_num = 0;
+    int offset = 0;
+    int err_type = -1;
+
+    char *output = (char *)malloc(4096);
+    char *text = (char *)malloc(4096);
+    char *servout = (char *)malloc(4096);
+
     fd_set servs;
     FD_ZERO(&servs);
     FD_SET(client_id, &servs);
@@ -58,9 +76,65 @@ void read_from_server(int client_id)
     default:
         if(read(client_id, servout, sizeof(servout)) > 0)
         {
-            write_to_transcript_window(servout);
-        }
+            cmd_type = get_type_from_message(servout);
+            user = get_user_from_message(servout);
 
+            switch(cmd_type)
+            {
+            case CMD_TEXT:
+                get_text_from_message(servout, text);
+                text[strlen(text)-1] = '\0';
+                text_type = get_text_type_from_message(servout);
+                if(text_type == TEXT_IM)        //send to IM window
+                {
+                    from_user = get_from_user_from_message(servout);
+                    //TODO: write to IM window
+                }
+                else                            //send to transcript window
+                {
+                    sprintf(output, "%d says: %s", user, text);
+                    write_to_transcript_window(output);
+                }
+            break;
+            case CMD_WINDOW:
+                window = (WIN_OBJ)malloc(sizeof(struct window_obj));
+
+                get_window_from_message(servout, window);
+                //TODO: wrtie out window somehow?
+                free(window);
+            break;
+            case CMD_VOTE:
+                from_user = get_voted_for_uid_from_message(servout);
+                vote_type = get_vote_type_from_message(servout);
+                //TODO: possibly print out who user voted for?
+
+            break;
+            case CMD_USERLIST:
+                ul_type = get_userlist_type_from_message(servout);
+                if(ul_type == USER_LIST_CURRENT)        //This means we are getting the current user list from the server.
+                {
+                    user_list[user_num] = (UR_OBJ)malloc(sizeof(struct user_obj));
+                    offset = get_first_user(servout, user_list[user_num]);
+
+                    do
+                    {
+                        user_num++;
+                        user_list[user_num] = (UR_OBJ)malloc(sizeof(struct user_obj));
+                    }
+                    while((offset = get_next_user(offset,servout,user_list[user_num])) > 0);
+                }
+                //TODO: user list sign off if it is actually needed.
+            break;
+            case CMD_ERROR:
+                err_type = get_error_type_from_message(servout);
+                //TODO: process error?
+            break;
+            default:
+                write_to_transcript_window("INVALID CMD_TYPE FROM SERVER!");
+            break;
+            }
+
+         }
     }
 }
 

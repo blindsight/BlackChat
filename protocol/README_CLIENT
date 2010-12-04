@@ -1,0 +1,330 @@
+Read the README FIRST, first. It contains general information about the protocol.
+
++========={ Protocol Usage for client }=========+
+
+stage 1 must be completed before anything else can happen. 
+An error message can be received at any time
+
+General note all messages have a type. 
+Use get_type_from_message(const char *message) to find out the message type before assuming
+what type of message it is. The type return will be one of the CMD_*. Example CMD_TEXT
+
+* stage 1:
+	The following must sent in the listed order
+	
+** Send User Name:
+	Description: This is the first thing that is sent when a client connects to the server.
+
+	Arguments:
+		1. char pointer to the user name.
+		2. char pointer to the place where the valid protocol information to be sent to
+		
+	Example:
+		create_user_name_message("Timothy", result);
+
+	Note: 
+		A Message will be received back that is the user id, so you will know your own uid.
+		
+** Receive User Id:
+	Description:
+		Once the client has made a request for a username they will be given a uid. 
+		Remember to make sure this is a text message and has the type of USER_LIST_RECEIVE_UID
+		
+	Arguments:
+		1. Char pointer to information received from the server. 
+		
+	Example:
+		int uid = get_user_from_message(input);
+
+** Request User List:
+	Description:  (only for sign on users)
+		When a client is ready to get a list of the users currently on the chat they send a user list request.
+		This is just a client function. This request is only made once. The Rest of the time the server will
+		send a user list when a user signs off or on but only of the user or users signing off or on. The server
+		won't send a complete user list everytime.
+		
+	Arguments:
+		1. pointer to UR_OBJ currently using the client.
+		2. char pointer to fill up with the protocol valid information
+	
+	Example:
+		request_user_list(user, result);
+		
+** Received User List:
+	Description:
+		This can happen any time during the session but the first time needs to happen before the window list is received
+		so the client can associate the uids with the right windows. The User list type for this is either USER_LIST_CURRENT
+		or USER_LIST_SIGN_OFF.
+	
+	Arguments:
+		1. char pointer received from the server that contains a user list.
+		2. UR_OBJ pointer to be filled up with the uid and username data
+		
+	Return:
+		int offset of the next username
+		
+	offset = get_first_user(input, user_list[user_num]);
+	
+	Note:
+		when getting a user list the get_first_user is always used first then get_next_user is used next.
+	
+	Arguments:
+		1. int offset for the next uid and username
+		2. char pointer received from the server that contains a user list.
+		3. UR_OBJ pointer to be filled up with the uid and username data
+		
+	Return:
+		int offset of the next username
+	
+	offset = get_next_user(offset,input, user_list[user_num])
+	
+	
+	Example: 
+	
+		UR_OBJ user_list[20];
+		UR_OBJ curr_user;
+		
+			user_list[user_num] = (UR_OBJ)malloc(sizeof(struct user_obj));
+
+			offset = get_first_user(input, user_list[user_num]);	
+			
+			do {	
+				user_num++;
+				user_list[user_num] = (UR_OBJ)malloc(sizeof(struct user_obj));
+			}
+			while((offset = get_next_user(offset,input, user_list[user_num])) > 0);
+			
+			for(i=0; i<user_num; i++) {
+				curr_user = user_list[i];
+				
+				sprintf(temp_buff," offset:%d uid:%d name:%s", (int)strlen(curr_user->name)+3,curr_user->uid, curr_user->name);
+				strcat(output, temp_buff);
+				
+				free(curr_user);
+			}
+			
+			printf(output,"", user list);
+			
+		
+Window list is sent from the server after the client requests a current user list. However if the client doesn't receive one
+then the client will just draw the default window configuration. 
+	
+* stage 2:
+
+** Send Message:
+	Description:
+		Sending text to the server is done in a few different functions depending on what kind of text you want to send.
+		
+*** Send Main Chat Message:
+	Arguments:
+		1. int to user id of the current user of the client.
+		2. char pointer to the text meant to be send to the main chat of the server
+		3. char pointer to what will be valid protocol information to send to the server
+		
+	Example: 
+		void create_main_chat_message(34, "Ghostly Wishes", result);
+		
+*** Send Status Message:
+	Description: 
+		This is your current status message. The status message to be displayed is completely send.
+		so if the status windows are 20 Characters wide then your 20 last characters are sent everytime.
+		Status are not synchronous they are asynchronous.
+
+	Arguments:
+		1. int to user id of the current user of the client.
+		2. char pointer to the client's current text to be sent as the status message.
+		3. char pointer to what will be valid protocol information to send to the server
+	
+	Example:
+		void create_status_message(456, "ishes", char *result);
+
+*** Send Yell:
+		Description:
+			Yell messages are predefined thus they can be predefined in the client.
+		
+		Arguments:
+			1. int to user id of the current user of the client.
+			2. char pointer to the client's yell message that wish to send
+			3. char pointer to what will be valid protocol information to send to the server
+		
+		Example:
+			create_yell_message(896, "yelled something not PG!", result);
+
+*** Send Instant Message:
+	Description:
+		Instant messages are private messages sent to a user. 
+		
+		Arguments:
+			1. int to user id of the current user of the client.
+			2. int of the user id to send the message to
+			2. char pointer to the instant message
+			3. char pointer to what will be valid protocol information to send to the server
+		
+		Example:
+			create_im_message(974, 678, message, result);
+
+** Receive Message:
+	Description:
+		Once a client is in stage 2 then they can receive a message at anytime.
+		All Text types have a message that is printed out.
+		
+*** General Information About Messages
+		Argument:
+			1. char pointer to a protocol valid information.
+		
+		Return:
+			int. Which will map to TEXT_*
+		
+			int get_text_type_from_message(input);
+		
+		Arguments:
+			1. char pointer to a protocol valid information.
+			2. char pointer to the place where the message will be stored
+		Return:
+			void get_text_from_message(message, result)
+		
+		Notes:		
+			for status information the whole thing is just replaced to the window each time.
+			Main text is always just appended to the current window.
+			Yell is just appended to the main window with whatever formating, bold? italics?
+		
+*** Receive Instant Message
+		Description:
+			Everything about general messages applies here, but there is an extra function to use. 
+			
+		Argument:
+			1. char pointer to a protocol valid information.
+			
+		Return:
+			int. valid user id that is in your user list. The id is 3 numbers long
+		
+		Example:
+			int from_user = get_from_user_from_message(input);
+			
+			printf("received a message from %d", from_user);
+		
+** Send vote:
+	Description:
+		Votes can only be made for the user list that the client currently has. 
+	
+	Arguments: 
+		1. int is the user id that the vote is from.
+		2. int is the user id that it is to vote for.
+		3. Char pointer to be filled up with the protocol data. 
+		
+		after this function input can be passed to the write network function
+		
+	example: 
+		create_vote_message(34, 456, input);
+
+** Response Vote:
+	Description: 
+		The Server responses if this was a valid vote. Invalid times could be if you have
+		already voted or votes aren't currently being taken.
+		
+	Arguments:
+		1. message pointer to the message that was received from network. 
+		
+	Returns: int, the int will be either VOTE_ACCEPTED or VOTE_NOT_ACCEPTED
+	
+	Example:
+		int type = get_vote_type_from_message(input);
+	
+		switch(type) {
+			case VOTE_ACCEPTED:
+				printf("your vote was accepted by the server!");
+			break;
+			case VOTE_NOT_ACCEPTED:
+				printf("your vote was denied by the server!");
+			break;
+		}
+
+** User lurking:
+	Description:
+		A user lurking message is sent when ever the user sets themselves as lurking. When the server receives this
+		the server must inform all connected users that the user is lurking.
+		
+	Argument:
+		1. char pointer to valid user lurk message
+		
+	Return: 
+		int of user lurking
+	
+	Example:	
+		int uid = get_user_lurking(input);
+	
+		printf("user with the id of %d is lurking", uid);
+	
+	Argument:
+		1. id of user lurking
+		2. char pointer to where the valid protocol information will be put
+		
+	Example:
+		create_user_lurking(467, result);
+		
+		write_server(socket, result);
+
+** Send Window session:
+	Descriptions:
+		This function is used once per window. Each window is stored in a WIN_OBJ struct.
+		Each window is sent by itself when it is saved. Before a client quits it must send
+		the current window specs. 
+		
+	Arguments:
+		1. pointer to a WIN_OBJ struct
+		2. result char pointer to where the protocol valid information will be stored. 
+	
+	Example:
+		WIN_OBJ window = (WIN_OBJ)malloc(sizeof(struct window_obj));
+	
+		window->type = TYP_INPUT;
+		window->wid = 45;
+		window->x = 456;
+		window->y = 4520;
+		window->z = 45;
+		window->h = 563;
+		window->w = 3985;
+	 
+		create_window_message(WIN_OBJ win, char *result);
+	
+** Received Window session:
+	Description:
+		Just like when a window is sent, when it is received, each window is sent one at a time.
+		When the client receives this then it either creates or modifies the size of the window. 
+		A Client should gets this when they sign onto the chat but after the type in their user
+		name.
+		
+		Arguments:
+			1. protocol valid char pointer that was received from the server
+			2. Pointer to a Window object that will be filled up with the data.
+			
+		Example:
+			WIN_OBJ window = (WIN_OBJ)malloc(sizeof(struct window_obj));
+			
+			
+			get_window_from_message(message, window);
+			
+			printf("Window Specs type:%d wid:%d x:%d y:%d z:%d w:%d h:%d",window->type, window->wid, window->x, window->y, window->z, window->w, window->h);
+			
+			
+* Error Messages
+	Description:
+		An Error Message can be received at anytime.
+		
+	Arguments:
+		1. char pointer to valid protocol information.
+		
+	Return:
+		int. Error code which will correspond to a define ERROR_*
+		
+	Example:
+	
+		int error_type = get_error_type_from_message(input);
+		
+		if(error_type == ERROR_CHAT_FULL) {
+			printf("sorry, you aren't welcome here.");
+		}
+		
+
+	
+		

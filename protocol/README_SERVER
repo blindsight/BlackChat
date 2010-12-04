@@ -1,0 +1,280 @@
+Read the README FIRST, first. It contains general information about the protocol.
+
++========={ Protocol Usage for Server }=========+
+A User must be in Stage 1 must be completed before any commands in stage 2 are accepted 
+
+General note all messages have a type. 
+Use get_type_from_message(const char *message) to find out the message type before assuming
+what type of message it is. The type return will be one of the CMD_*. Example CMD_TEXT
+
+* Stage 1
+The following must be completed in the listed order
+
+** Get User name message:
+	Description:
+		Get user name sent when a client signs on or wishes to change their name
+	
+	Arguments:
+		1. Protocol valid information to be parsed
+		2. char pointer to fill up with the user's name
+
+	Example:
+		get_user_name_message(message, username);
+		
+		printf("socket 2156 is known as %s", username);
+
+** Server Sends uid
+	Description:
+		The server response to the user name message, if this is a new sign on with their uid.
+
+	Arguments: 
+		1. int of the user id
+		2. char pointer to fill up with protocol valid information
+		
+	Example:
+
+		create_uid_message(435, result);
+		
+		write(socket, result);
+
+** Client requests online users
+	Description:
+		After the uids are sent the client requests currently online users. 
+		which is a userlist message with the type of USER_LIST_REQUEST.
+		
+	Arguments:
+		1. int of user list type the type will be USER_LIST_CURRENT
+		2. the from_uid is who the list is going to
+		3. UR_OBJ of the first user on the list.
+		4. char pointer where the valid protocol information will be placed.
+	
+		void create_first_user(int user_list_type, int from_uid, UR_OBJ user, char *result);
+
+	Note: 
+		After using the create_first_user command the create_next_user is used to add the next
+		users to the char pointer
+		
+	Arguments:
+		1. UR_OBJ of the next user
+		4. char pointer where the valid protocol information will be placed.
+		
+		void create_next_user(UR_OBJ user, char *result);
+
+	Example:
+	
+		create_first_user(USER_LIST_CURRENT, 456, user, result);
+		
+		for(int i = 0; i<users_online; i++) {
+			create_next_user(user_list[i], result);
+		}
+		
+		write(socket, result);
+
+
+** Send last window session
+	Description: 
+		if the user has connected before the send then their last window session.
+
+	Arguments:
+		1. Window pointer 
+		2. char pointer to where the protocol valid information will be placed.
+		
+		void create_window_message(WIN_OBJ win, char *result);
+	
+	Example:
+		
+		for(i =0 ; i< user_windows; i++) {
+			create_window_message(user_window[i], result);
+			write(socket, result);
+			result[0]='\0';
+		}
+		
+
+	At this point sent the current transcript of the main chat room to the server. 
+* Stage 2
+
+** Receive Status
+	Description:
+		This information will be sent to everyone but the original user.
+	
+	Arguments:
+		1. int of user id that the status message is about
+		2. char pointer to the status message to be sent to the client
+		3. char pointer to what will be valid protocol information to send to the server
+	Example:
+	
+		int type = get_text_type_from_message(input)
+	
+		if(type == TEXT_STATUS) {
+			create_status_message(456, "ishes", result);
+		
+			for(i=0;i<users_online; i++) {
+				if(user_list[i] != user_sent_message) {
+					write(socket,result);
+				}
+			}
+		}
+		
+		
+** Receive Main Chat message
+	Description:
+		This information should be sent to everyone, but for the user that sent it their name should be changed to "You"
+		Next to you should say "say" i.e. "You say: hey!" When a message is received put it in the user's 
+		history object.
+		
+	Arguments:
+		1. int user id who sent the main chat message
+		2. char pointer to the text meant to be sent to all clients
+		3. char pointer to what will be valid protocol information to send to the server
+
+	Example: 
+		
+		create_main_chat_message(34, "Ghostly Wishes", result);
+	
+		for(i=0;i<users_online; i++) {
+			if(user_list[i] != user_sent_message) {
+				write(socket,result);
+			}
+		}
+		
+		
+** Receive Yell
+	Description:
+		Everyone should receive this message. Yell messages are predefined thus they can be 
+		predefined in the client. When a message is received put it in the user's 
+		history object.
+		
+		Arguments:
+			1. int uid of the user who sent the Yell
+			2. char pointer to the client's yell message that was sent
+			3. char pointer to what will be valid protocol information to send to the server
+		
+		Example:
+			
+			create_yell_message(896, "yelled something not PG!", result);
+			
+			for(i=0;i<users_online; i++) {
+				if(user_list[i] != user_sent_message) {
+					write(socket,result);
+				}
+			}
+			
+		
+** Receive Instant Message
+	Description:
+		only the user who this message is for should see this message. Instant messages are private
+		messages sent to a user.  When a message is received put it in the user's 
+		im history object.
+		
+		Arguments:
+			1. int of the user id who sent the message
+			2. int of the user id to send the message to
+			2. char pointer to the instant message
+			3. char pointer to what will be valid protocol information to send to each client//TODO
+		
+		Example:
+			create_im_message(974, 678, "Killer project man!", result);
+			
+			for(i=0;i<users_online; i++) {
+				if(user_list[i] != user_sent_message) {
+					write(socket,result);
+				}
+			}
+
+** User lurking:
+	Description:
+		A user lurking message is sent when ever the user sets themselves as lurking. When the server receives this
+		the server must inform all connected users that the user is lurking.
+
+	Argument:
+		1. char pointer to valid user lurk message
+
+	Return: 
+		int of user lurking
+
+	Example:	
+		int uid = get_user_lurking(input);
+
+		printf("user with the id of %d is lurking", uid);
+
+	Argument:
+		1. id of user lurking
+		2. char pointer to where the valid protocol information will be put
+
+	Example:
+		create_user_lurking(467, result);
+
+		for(i=0;i<users_online; i++) {
+			if(user_list[i] != user_sent_message) {
+				write(socket,result);
+			}
+		}
+					
+** User vote:
+	Description:
+		When a vote is received from the client the server must send an accepted or not accepted message.
+
+	Arguments:
+		1. char pointer to a valid protocol data for a vote message
+		
+		voted_user = get_voted_for_uid_from_message(input);
+		type = get_vote_type_from_message(input);
+		
+		printf("%s was voted against", voted_user);
+		
+** Respond to a client vote:
+	Arguments: 
+		1.	int of the vote type "VOTE_ACCEPTED" or "VOTE_NOT_ACCEPTED"
+		2. int of user doing the voting
+		3. int of user to be voted for
+		4. char pointer to a location where the valid protocol data will be stored
+	
+	Example:
+		respond_vote_message(VOTE_ACCEPTED, 45, 678, result);
+	
+		write(socket, result);
+
+
+** Save Window session
+	Description:
+		When a message of type window is sent by the client it is saved by the server.
+		The server assigns the window ids and window types. 
+		If there are existing sessions then find the window id for that user and save over that information.
+		Window ids are only unique by user not server wide. 
+		
+	Argument:
+		1. char pointer to a valid protocol window
+		2. WIN_OBJ to be filled up
+		
+	Example:
+	
+		WIN_OBJ window = (WIN_OBJ)malloc(sizeof(struct window_obj));
+		
+		get_window_from_message(input, window);
+		
+		save_window_for_user(window); // this function doesn't exist, it is something you have to write
+	
+
+** When a user signs off
+	Description:
+		follow the same procedure as "client requests online users" but the user list type is "USER_LIST_SIGN_OFF"
+		This should be a full list of users just signed off.
+** When a user signs on
+	Description:
+		follow the same procedure as "client requests online users" except the user doesn't request this. This
+		list should be of only the users who just signed on not a full list on the server.
+	
+* Error Messages 
+	Description: 
+		error messages can be sent at anytime
+		
+	Arguments:
+		1. int error message which will be one of the ERROR_* defines
+		2. char pointer to fill up with protocol valid data
+	
+	Example:
+		create_error_message(ERROR_CHAT_FULL, result);
+		
+		write(socket,result);
+	
+	

@@ -242,14 +242,6 @@ void handle_messages(SERVER_OBJ* server, SERVER_QUEUE_OBJ* messages){
 	
 	disconnect_user(user_voted_off);
 	
-	for(int i = 1; i < MAX_CONNECTIONS + 1; i++){
-	
-	  pthread_mutex_lock(&mutex);
-	  server->clients[i]->user_data->vote = -1;
-	  pthread_mutex_unlock(&mutex);
-	  
-	}
-	
       }
     }
       

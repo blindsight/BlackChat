@@ -22,6 +22,7 @@
 
 #define MAX_USER_NAME_LENGTH				21
 #define OTHER_WINDOW_BUFFER_SIZE			256
+#define MAX_MESSAGE_LENGTH                              128
 
 
 #define MAX_ROWS					1
@@ -41,6 +42,8 @@ int client_cursor_position = 0;
 char *transcript_buffer;
 int transcript_buffer_size = 256;
 int transcript_current_line = 0;
+
+char yell_messages[26][MAX_MESSAGE_LENGTH];
 
 WINDOW *transcript_window;
 WINDOW *client_chat_window;
@@ -516,6 +519,13 @@ static void delete_num_chars_behind_cursor(int ch)
  =================================================================
  */
 
+/* Set a yell message. */
+void set_yell_message(int index, char *message)
+{
+    memset(yell_messages[index], '\0', MAX_MESSAGE_LENGTH);
+}
+
+
 /* Set the window user name. */
 void set_window_user_name(int num, char *name)
 {
@@ -669,6 +679,7 @@ void scroll_ended_handler(int x)
     print_transcript_chat_buffer();
     wrefresh(transcript_window);
 }
+/**************************************************************************/
 
 
 
@@ -769,40 +780,40 @@ int main(int argc, char* argv[])
                 // wrefresh(yell_win);
 
                 switch(ch) {
-                case 97: /* a - agree */
-                    write_to_transcript_window("DITTO!!!");
-                    is_yelling = 0;
-                    redrawwin(client_chat_window);
-                    wrefresh(client_chat_window);
-                    wrefresh(transcript_window);
-                    break;
-                case 98: /* b -disagree */
-                    write_to_transcript_window("NO-WAY!!!");
-                    is_yelling = 0;
-                    redrawwin(client_chat_window);
-                    wrefresh(client_chat_window);
-                    wrefresh(transcript_window);
-                    break;
-                case 99: /* c - what's up? */
-                    write_to_transcript_window("What's up?");
-                    is_yelling = 0;
-                    redrawwin(client_chat_window);
-                    wrefresh(client_chat_window);
-                    wrefresh(transcript_window);
-                    break;
-                case 100: /* d - tricky tricky*/
-                    write_to_transcript_window("BlackChat pwnd me!");
-                    is_yelling = 0;
-                    redrawwin(client_chat_window);
-                    wrefresh(client_chat_window);
-                    wrefresh(transcript_window);
-                    break;
-                default: /* Exits the YELL window */
-                    is_yelling = 0;
-                    redrawwin(client_chat_window);
-                    wrefresh(client_chat_window);
-                    redrawwin(transcript_window);
-                    wrefresh(transcript_window);
+                    case 97: /* a - agree */
+                        write_to_transcript_window("DITTO!!!");
+                        is_yelling = 0;
+                        redrawwin(client_chat_window);
+                        wrefresh(client_chat_window);
+                        wrefresh(transcript_window);
+                        break;
+                    case 98: /* b -disagree */
+                        write_to_transcript_window("NO-WAY!!!");
+                        is_yelling = 0;
+                        redrawwin(client_chat_window);
+                        wrefresh(client_chat_window);
+                        wrefresh(transcript_window);
+                        break;
+                    case 99: /* c - what's up? */
+                        write_to_transcript_window("What's up?");
+                        is_yelling = 0;
+                        redrawwin(client_chat_window);
+                        wrefresh(client_chat_window);
+                        wrefresh(transcript_window);
+                        break;
+                    case 100: /* d - tricky tricky*/
+                        write_to_transcript_window("BlackChat pwnd me!");
+                        is_yelling = 0;
+                        redrawwin(client_chat_window);
+                        wrefresh(client_chat_window);
+                        wrefresh(transcript_window);
+                        break;
+                    default: /* Exits the YELL window */
+                        is_yelling = 0;
+                        redrawwin(client_chat_window);
+                        wrefresh(client_chat_window);
+                        redrawwin(transcript_window);
+                        wrefresh(transcript_window);
                 }
             } else {
 		/* Check what keys we pressed. */

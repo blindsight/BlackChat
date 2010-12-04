@@ -54,8 +54,49 @@ int main() {
 
 
 	fclose(tests);
+	
+	char *input = (char *)malloc(sizeof(line));
+	
+	result[0]='\0';
+	input[0]='\0';
+	
+	create_text_message(TEXT_MAIN_CHAT, 345, "this is a normal test\n", input);
+	
+	process_command(input, result);
+	printf("test: %s %s\n", input, result);
+	
+	result[0]='\0';
+	input[0]='\0';
+	
+	WIN_OBJ window = (WIN_OBJ)malloc(sizeof(struct window_obj));
+	
+	window->type = TYP_INPUT;
+	window->wid = 45;
+	window->x = 456;
+	window->y = 4520;
+	window->z = 45;
+	window->h = 563;
+	window->w = 3985;
+	
+	create_window_message(window, input);
+	process_command(input, result);
+	printf("test: %s %s\n", input, result);
+		
+	free(window);
+	
+	result[0]='\0';
+	input[0]='\0';
+	create_vote_message(VOTE, 34, 456, input);
+	process_command(input, result);
+	printf("test: %s %s\n", input, result);
+	
+	result[0]='\0';
+	
+//	create_first_user(int user_list_type, int from_uid, UR_OBJ user, char *result);
+//	create_next_user(UR_OBJ user, char *result);
+	
 	free(result);
-
+	
 	printf("Passed %d, Failed %d\n",passed, failed);
 	return 0;
 }
@@ -127,10 +168,12 @@ void process_command(char *input, char *output) {
 			
 				//printf("user num %d\n",user_num);
 				for(i=0; i<user_num; i++) {
-				curr_user = user_list[i];
+					curr_user = user_list[i];
 					
 					sprintf(temp_buff," offset:%d uid:%d name:%s", (int)strlen(curr_user->name)+3,curr_user->uid, curr_user->name);
 					strcat(output, temp_buff);
+					
+					free(curr_user); //we can get rid of the user since they aren't needed anymore
 				}
 			
 			} else {
