@@ -55,30 +55,186 @@ SERVER_OBJ *init_network(SERVER_QUEUE_OBJ *messages){
 
 void fill_queue(SERVER_OBJ *server, SERVER_QUEUE_OBJ *messages){
   
-  for(int i = 0; i < MAX_CONNECTIONS; i++){
+  server->clients[1] = (CLIENT_OBJ *)malloc(sizeof(CLIENT_OBJ));
+  memset(server->clients[1], 0, sizeof(CLIENT_OBJ));
     
-    CLIENT_OBJ *client = (CLIENT_OBJ *)malloc(sizeof(CLIENT_OBJ));
-    memset(client, 0, sizeof(CLIENT_OBJ));
+    server->clients[1]->bytes_from = 0;
+    server->clients[1]->bytes_to = 0;
+    server->clients[1]->user_data = (UR_OBJ)malloc(sizeof(struct user_obj));
+    server->clients[1]->user_data->history = (HST_OBJ)malloc(sizeof(struct history_obj));
+    server->clients[1]->user_data->im = (HST_OBJ)malloc(sizeof(struct history_obj));
+    server->clients[1]->user_data->history->next = NULL;
+    server->clients[1]->user_data->im->next = NULL;
+    server->clients[1]->user_data->lurk = 0;
+    server->clients[1]->user_data->uid = 1;
+    server->clients[1]->user_data->vote = -1;
+    snprintf(server->clients[1]->user_data->name, sizeof(server->clients[1]->user_data->name), "User%d", 1);
+    server->clients[1]->seconds_connected = 0;
+    server->clients[1]->messages = messages;
+    server->clients[1]->is_connected = false;
     
-    client->bytes_from = 0;
-    client->bytes_to = 0;
-    client->user_data = (UR_OBJ)malloc(sizeof(UR_OBJ));
-    client->user_data->history = (HST_OBJ)malloc(sizeof(HST_OBJ));
-    client->user_data->im = (HST_OBJ)malloc(sizeof(HST_OBJ));
-    client->user_data->history->next = NULL;
-    client->user_data->im->next = NULL;
-    client->user_data->lurk = 0;
-    client->user_data->uid = i + 1;
-    client->user_data->vote = -1;
-    snprintf(client->user_data->name, sizeof(client->user_data->name - 1), "User%d", i);
-    client->seconds_connected = 0;
-    client->messages = messages;
-    client->is_connected = false;
+  server->clients[2] = (CLIENT_OBJ *)malloc(sizeof(CLIENT_OBJ));
+  memset(server->clients[2], 0, sizeof(CLIENT_OBJ));
     
-    server->clients[i + 1] = client;
-        
+    server->clients[2]->bytes_from = 0;
+    server->clients[2]->bytes_to = 0;
+    server->clients[2]->user_data = (UR_OBJ)malloc(sizeof(struct user_obj));
+    server->clients[2]->user_data->history = (HST_OBJ)malloc(sizeof(struct history_obj));
+    server->clients[2]->user_data->im = (HST_OBJ)malloc(sizeof(struct history_obj));
+    server->clients[2]->user_data->history->next = NULL;
+    server->clients[2]->user_data->im->next = NULL;
+    server->clients[2]->user_data->lurk = 0;
+    server->clients[2]->user_data->uid = 2;
+    server->clients[2]->user_data->vote = -1;
+    snprintf(server->clients[2]->user_data->name, sizeof(server->clients[2]->user_data->name), "User%d", 2);
+    server->clients[2]->seconds_connected = 0;
+    server->clients[2]->messages = messages;
+    server->clients[2]->is_connected = false;
     
-  }
+  server->clients[3] = (CLIENT_OBJ *)malloc(sizeof(CLIENT_OBJ));
+      memset(server->clients[3], 0, sizeof(CLIENT_OBJ));
+    
+    server->clients[3]->bytes_from = 0;
+    server->clients[3]->bytes_to = 0;
+    server->clients[3]->user_data = (UR_OBJ)malloc(sizeof(struct user_obj));
+    server->clients[3]->user_data->history = (HST_OBJ)malloc(sizeof(struct history_obj));
+    server->clients[3]->user_data->im = (HST_OBJ)malloc(sizeof(struct history_obj));
+    server->clients[3]->user_data->history->next = NULL;
+    server->clients[3]->user_data->im->next = NULL;
+    server->clients[3]->user_data->lurk = 0;
+    server->clients[3]->user_data->uid = 3;
+    server->clients[3]->user_data->vote = -1;
+    snprintf(server->clients[3]->user_data->name, sizeof(server->clients[3]->user_data->name), "User%d", 3);
+    server->clients[3]->seconds_connected = 0;
+    server->clients[3]->messages = messages;
+    server->clients[3]->is_connected = false;
+    
+  server->clients[4] = (CLIENT_OBJ *)malloc(sizeof(CLIENT_OBJ));
+      memset(server->clients[4], 0, sizeof(CLIENT_OBJ));
+    
+    server->clients[4]->bytes_from = 0;
+    server->clients[4]->bytes_to = 0;
+    server->clients[4]->user_data = (UR_OBJ)malloc(sizeof(struct user_obj));
+    server->clients[4]->user_data->history = (HST_OBJ)malloc(sizeof(struct history_obj));
+    server->clients[4]->user_data->im = (HST_OBJ)malloc(sizeof(struct history_obj));
+    server->clients[4]->user_data->history->next = NULL;
+    server->clients[4]->user_data->im->next = NULL;
+    server->clients[4]->user_data->lurk = 0;
+    server->clients[4]->user_data->uid = 4;
+    server->clients[4]->user_data->vote = -1;
+    snprintf(server->clients[4]->user_data->name, sizeof(server->clients[4]->user_data->name), "User%d", 4);
+    server->clients[4]->seconds_connected = 0;
+    server->clients[4]->messages = messages;
+    server->clients[4]->is_connected = false;
+    
+  server->clients[5] = (CLIENT_OBJ *)malloc(sizeof(CLIENT_OBJ));
+      memset(server->clients[5], 0, sizeof(CLIENT_OBJ));
+    
+    server->clients[5]->bytes_from = 0;
+    server->clients[5]->bytes_to = 0;
+    server->clients[5]->user_data = (UR_OBJ)malloc(sizeof(struct user_obj));
+    server->clients[5]->user_data->history = (HST_OBJ)malloc(sizeof(struct history_obj));
+    server->clients[5]->user_data->im = (HST_OBJ)malloc(sizeof(struct history_obj));
+    server->clients[5]->user_data->history->next = NULL;
+    server->clients[5]->user_data->im->next = NULL;
+    server->clients[5]->user_data->lurk = 0;
+    server->clients[5]->user_data->uid = 5;
+    server->clients[5]->user_data->vote = -1;
+    snprintf(server->clients[5]->user_data->name, sizeof(server->clients[5]->user_data->name), "User%d", 5);
+    server->clients[5]->seconds_connected = 0;
+    server->clients[5]->messages = messages;
+    server->clients[5]->is_connected = false;
+    
+  server->clients[6] = (CLIENT_OBJ *)malloc(sizeof(CLIENT_OBJ));
+        memset(server->clients[6], 0, sizeof(CLIENT_OBJ));
+    
+    server->clients[6]->bytes_from = 0;
+    server->clients[6]->bytes_to = 0;
+    server->clients[6]->user_data = (UR_OBJ)malloc(sizeof(struct user_obj));
+    server->clients[6]->user_data->history = (HST_OBJ)malloc(sizeof(struct history_obj));
+    server->clients[6]->user_data->im = (HST_OBJ)malloc(sizeof(struct history_obj));
+    server->clients[6]->user_data->history->next = NULL;
+    server->clients[6]->user_data->im->next = NULL;
+    server->clients[6]->user_data->lurk = 0;
+    server->clients[6]->user_data->uid = 6;
+    server->clients[6]->user_data->vote = -1;
+    snprintf(server->clients[6]->user_data->name, sizeof(server->clients[6]->user_data->name), "User%d", 6);
+    server->clients[6]->seconds_connected = 0;
+    server->clients[6]->messages = messages;
+    server->clients[6]->is_connected = false;
+    
+  server->clients[7] = (CLIENT_OBJ *)malloc(sizeof(CLIENT_OBJ));
+        memset(server->clients[7], 0, sizeof(CLIENT_OBJ));
+    
+    server->clients[7]->bytes_from = 0;
+    server->clients[7]->bytes_to = 0;
+    server->clients[7]->user_data = (UR_OBJ)malloc(sizeof(struct user_obj));
+    server->clients[7]->user_data->history = (HST_OBJ)malloc(sizeof(struct history_obj));
+    server->clients[7]->user_data->im = (HST_OBJ)malloc(sizeof(struct history_obj));
+    server->clients[7]->user_data->history->next = NULL;
+    server->clients[7]->user_data->im->next = NULL;
+    server->clients[7]->user_data->lurk = 0;
+    server->clients[7]->user_data->uid = 7;
+    server->clients[7]->user_data->vote = -1;
+    snprintf(server->clients[7]->user_data->name, sizeof(server->clients[7]->user_data->name), "User%d", 7);
+    server->clients[7]->seconds_connected = 0;
+    server->clients[7]->messages = messages;
+    server->clients[7]->is_connected = false;
+    
+  server->clients[8] = (CLIENT_OBJ *)malloc(sizeof(CLIENT_OBJ));
+        memset(server->clients[8], 0, sizeof(CLIENT_OBJ));
+    
+    server->clients[8]->bytes_from = 0;
+    server->clients[8]->bytes_to = 0;
+    server->clients[8]->user_data = (UR_OBJ)malloc(sizeof(struct user_obj));
+    server->clients[8]->user_data->history = (HST_OBJ)malloc(sizeof(struct history_obj));
+    server->clients[8]->user_data->im = (HST_OBJ)malloc(sizeof(struct history_obj));
+    server->clients[8]->user_data->history->next = NULL;
+    server->clients[8]->user_data->im->next = NULL;
+    server->clients[8]->user_data->lurk = 0;
+    server->clients[8]->user_data->uid = 8;
+    server->clients[8]->user_data->vote = -1;
+    snprintf(server->clients[8]->user_data->name, sizeof(server->clients[8]->user_data->name), "User%d", 8);
+    server->clients[8]->seconds_connected = 0;
+    server->clients[8]->messages = messages;
+    server->clients[8]->is_connected = false;
+    
+  server->clients[9] = (CLIENT_OBJ *)malloc(sizeof(CLIENT_OBJ));
+        memset(server->clients[9], 0, sizeof(CLIENT_OBJ));
+    
+    server->clients[9]->bytes_from = 0;
+    server->clients[9]->bytes_to = 0;
+    server->clients[9]->user_data = (UR_OBJ)malloc(sizeof(struct user_obj));
+    server->clients[9]->user_data->history = (HST_OBJ)malloc(sizeof(struct history_obj));
+    server->clients[9]->user_data->im = (HST_OBJ)malloc(sizeof(struct history_obj));
+    server->clients[9]->user_data->history->next = NULL;
+    server->clients[9]->user_data->im->next = NULL;
+    server->clients[9]->user_data->lurk = 0;
+    server->clients[9]->user_data->uid = 9;
+    server->clients[9]->user_data->vote = -1;
+    snprintf(server->clients[9]->user_data->name, sizeof(server->clients[9]->user_data->name), "User%d", 9);
+    server->clients[9]->seconds_connected = 0;
+    server->clients[9]->messages = messages;
+    server->clients[9]->is_connected = false;
+    
+  server->clients[10] = (CLIENT_OBJ *)malloc(sizeof(CLIENT_OBJ));
+        memset(server->clients[10], 0, sizeof(CLIENT_OBJ));
+    
+    server->clients[10]->bytes_from = 0;
+    server->clients[10]->bytes_to = 0;
+    server->clients[10]->user_data = (UR_OBJ)malloc(sizeof(struct user_obj));
+    server->clients[10]->user_data->history = (HST_OBJ)malloc(sizeof(struct history_obj));
+    server->clients[10]->user_data->im = (HST_OBJ)malloc(sizeof(struct history_obj));
+    server->clients[10]->user_data->history->next = NULL;
+    server->clients[10]->user_data->im->next = NULL;
+    server->clients[10]->user_data->lurk = 0;
+    server->clients[10]->user_data->uid = 10;
+    server->clients[10]->user_data->vote = -1;
+    snprintf(server->clients[10]->user_data->name, sizeof(server->clients[5]->user_data->name), "User%d", 10);
+    server->clients[10]->seconds_connected = 0;
+    server->clients[10]->messages = messages;
+    server->clients[10]->is_connected = false;  
+
 }
 void *listen_thread(void *args){
   
