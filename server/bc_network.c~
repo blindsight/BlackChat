@@ -36,7 +36,7 @@ SERVER_OBJ *init_network(SERVER_QUEUE_OBJ *messages){
     
   server->num_users_connected = 0;
   server->user_idle_time_max = 1800; //30 mins
-  server->clients = (CLIENT_OBJ *)malloc(sizeof(CLIENT_OBJ) * 11); //Make room for 10 clients
+  //server->clients = (CLIENT_OBJ *)malloc(sizeof(CLIENT_OBJ) * 11); //Make room for 10 clients
   memset(server->clients, 0, sizeof(CLIENT_OBJ));
     
   pthread_mutex_lock(&mutex);  
@@ -69,6 +69,7 @@ void fill_queue(SERVER_OBJ *server, SERVER_QUEUE_OBJ *messages){
     client->user_data->im = (HST_OBJ)malloc(sizeof(HST_OBJ));
     client->user_data->lurk = 0;
     client->user_data->uid = i + 1;
+    client->user_data->vote = -1;
     snprintf(client->user_data->name, sizeof(client->user_data->name - 1), "User%d", i);
     client->seconds_connected = 0;
     client->messages = messages;

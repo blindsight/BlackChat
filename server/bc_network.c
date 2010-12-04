@@ -36,7 +36,7 @@ SERVER_OBJ *init_network(SERVER_QUEUE_OBJ *messages){
     
   server->num_users_connected = 0;
   server->user_idle_time_max = 1800; //30 mins
-  server->clients = (CLIENT_OBJ *)malloc(sizeof(CLIENT_OBJ) * 11); //Make room for 10 clients
+  //server->clients = (CLIENT_OBJ *)malloc(sizeof(CLIENT_OBJ) * 11); //Make room for 10 clients
   memset(server->clients, 0, sizeof(CLIENT_OBJ));
     
   pthread_mutex_lock(&mutex);  

@@ -44,7 +44,7 @@ typedef struct server{
   //SERVER_QUEUE_OBJ *connected_clients;
   //SERVER_QUEUE_OBJ *unconnected_clients;
   
-  CLIENT_OBJ *clients[];
+  CLIENT_OBJ* clients[11];
     
 } SERVER_OBJ;
 
