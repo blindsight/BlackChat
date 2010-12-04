@@ -26,14 +26,75 @@ int uid = -1;               //user id for this client
  * press the enter key. */
 void write_out(int client_id)
 {
-//    if(write(client_id, buffer, by_sent) == -1) {
-  //      write_to_transcript_window("Error: Couldn't write to server!\n");
-       // write_to_transcript_window(buffer); 
-   // }
+    char *buffer = (char *)malloc(4096);
+    char *status = (char *)malloc(4096);
+    create_main_chat_message(uid,grab_text_from_client_typing_window(),buffer);
+    create_status_message(uid,grab_text_from_client_typing_window(),status);
 
+    if(write(client_id, buffer, strlen(buffer)*sizeof(char)) == -1) {
+        write_to_transcript_window("Error: Couldn't write to server main chat message!\n");
+       // write_to_transcript_window(buffer); 
+    }
+    if(write(client_id, status, strlen(status)*sizeof(char)) == -1) {
+        write_to_transcript_window("Error: Couldn't write to server status message!\n");
+       // write_to_transcript_window(buffer); 
+    }
+    clear_user_window_text(1);       //TODO: add window number
     clear_text_from_client_typing_window();
+    free(buffer);
+    free(status);
 }
 
+void write_yell(int client_id)
+{
+//TODO: there seems to be a discrepency between who actually keeps the yell message
+}
+
+void write_im(int client_id, int to_user)
+{
+    char *message = (char *)malloc(4096);
+    //create_im_message(uid, #to_user, ...usertext ..., message);
+    
+    if(write(client_id, message, strlen(message)*sizeof(char)) == -1) {
+        write_to_transcript_window("Error: Couldn't write to server for yell message!\n");
+       // write_to_transcript_window(buffer); 
+    }
+    free(message);
+   //TODO: finish IM message, clear text being written from user window 
+}
+
+void write_vote(int client_id)
+{   
+    char *vote_message = (char *)malloc(4096);
+    //create_vote_message(uid, #for_user, vote_message);
+    
+    if(write(client_id, vote_message, strlen(vote_message)*sizeof(char)) == -1) {
+        write_to_transcript_window("Error: Couldn't write to server for vote message!\n");
+       // write_to_transcript_window(buffer); 
+    }
+    free(vote_message);
+//TODO: clear transcript for vote?
+}
+
+void write_lurk(int client_id)
+{
+    char *lurk_result = (char *)malloc(4096);
+    create_user_lurking(uid,lurk_result);
+
+    if(write(client_id, lurk_result, strlen(lurk_result)*sizeof(char)) == -1) {
+        write_to_transcript_window("Error: Couldn't write to server that client is lurking!\n");
+       // write_to_transcript_window(buffer); 
+    }
+    free(lurk_result);
+}
+
+void write_window_session(int client_id)
+{
+    WIN_OBJ curr_window = (WIN_OBJ)malloc(sizeof(struct window_obj));
+
+    free(curr_window);
+    //TODO: finish this
+}
 void read_from_server(int client_id)
 {
     WIN_OBJ window;
@@ -47,6 +108,7 @@ void read_from_server(int client_id)
     int user_num = 0;
     int offset = 0;
     int err_type = -1;
+    int user_lurk = -1;
 
     char *output = (char *)malloc(4096);
     char *text = (char *)malloc(4096);
@@ -87,6 +149,8 @@ void read_from_server(int client_id)
                 {
                     sprintf(output, "%d says: %s", user, text);
                     write_to_transcript_window(output);
+                   // set_window_user_name( #win_number, char name);
+                   // TODO: get the window numbers and name.
                 }
             break;
             case CMD_WINDOW:
@@ -99,8 +163,26 @@ void read_from_server(int client_id)
             case CMD_VOTE:
                 from_user = get_voted_for_uid_from_message(servout);
                 vote_type = get_vote_type_from_message(servout);
-                //TODO: possibly print out who user voted for?
+                char *vote_response = (char *)malloc(200);
 
+                switch(vote_type)
+                {
+                case VOTE_ACCEPTED:
+                    sprintf(vote_response, "%d vote accepted", user);
+                    write_to_transcript_window(vote_response);
+                break;
+                case VOTE_NOT_ACCEPTED:
+                    sprintf(vote_response, "%d vote NOT accepted", user);
+                    write_to_transcript_window(vote_response);
+                }
+                free(vote_response);
+            break;
+            case CMD_LURK:
+                user_lurk = get_user_lurking(servout);
+                char *lurk_message = (char *)malloc(4096);
+
+                sprintf(lurk_message, "user with id: %d is currently lurking", user_lurk);
+                write_to_transcript_window(lurk_message);
             break;
             case CMD_USERLIST:
                 ul_type = get_userlist_type_from_message(servout);
@@ -125,7 +207,11 @@ void read_from_server(int client_id)
             break;
             case CMD_ERROR:
                 err_type = get_error_type_from_message(servout);
-                //TODO: process error?
+
+              /*  if(err_type == ERROR_CHAT_FULL)
+                {
+                    write_to_transcript_window("Sorry chat is full.");
+                }*/
             break;
             default:
                 write_to_transcript_window("INVALID CMD_TYPE FROM SERVER!");
@@ -134,6 +220,9 @@ void read_from_server(int client_id)
 
          }
     }
+free(output);
+free(text);
+free(servout);
 }
 
 

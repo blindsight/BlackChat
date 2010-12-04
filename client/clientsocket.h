@@ -15,8 +15,17 @@ void init_user_list(int client_id);
 /* Closes a client socket.  You must pass in the file descriptor created by init_client */
 void close_client(int client_id);
 
-/* Received enter key from client. */
-void write_out();
+/* Received enter key from client. ONLY WRITES TEXT FROM MAIN CHAT WINDOW!!!*/
+void write_out(int client_id);
+
+/*recieved yell! message from client*/
+void write_yell(int client_id);
+
+/* recieved vote from client */
+void write_vote(int client_id);
+
+/* recieved lurking key from client */
+void write_lurk(int client_id);
 
 /* Read from server. */
 void read_from_server(int client_id);
