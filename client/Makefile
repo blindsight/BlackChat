@@ -4,8 +4,8 @@
 .PHONY: clean
 
 CC = gcc
-CFLAGS = -Wall -O3
-LIBS = -lncurses ../bin/lib/libbcprotocol.so.1.0.1
+CFLAGS = -Wall -O3 
+LIBS = ../bin/lib/libncursesw.a ../bin/lib/libbcprotocol.so.1.0.1
 BUILD_DIR = ../bin
 OBJS = logger.o client.o clientsocket.o
 

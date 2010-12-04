@@ -32,7 +32,7 @@ note:
 
 REQUIRED COMMAND KEYS
 
-    Ctrl-^: (Ctrl-6) deep-six!
+*    Ctrl-^: (Ctrl-6) deep-six!
 >    Ctrl-]: resume transcript at end
 >    Ctrl-G: gaudy! toggle gaudy (emphasized) text
 >    Ctrl-H: (BKSP) delete previous char
@@ -44,7 +44,17 @@ REQUIRED COMMAND KEYS
 >    Ctrl-Q: quit the program
 >    Ctrl-U: delete to beginning of text
 >    Ctrl-W: delete previous word (including any trailing spaces)
-*    Ctrl-Y: yell!
+>    Ctrl-Y: yell!
+
+Extra Required Keys (and features):
+    CTRL-I: Instant Message
+    CTRL-T: Transcript Max/Min
+
+    256 Colors
+    Unicode
+
+
+
 
 OPTIONAL EDITING KEYS
 

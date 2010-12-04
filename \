@@ -49,7 +49,6 @@ WINDOW *transcript_window;
 WINDOW *client_chat_window;
 WINDOW *lurk_win;
 WINDOW *yell_win;
-WINDOW *deepsix_win;
 
 typedef struct other_window_t
 {
@@ -542,6 +541,8 @@ void set_yell_message(int index, char *message)
         for(i = 0; i < 26; i ++) {
                 if( yell_messages[i][0] != '\0' ) {
                         wprintw(yell_win, "%c | %s\n", i+97, yell_messages[i]);
+                } else {
+                        break;
                 }
         }
         wprintw(yell_win, "\nHit any other key to exit.");
@@ -717,11 +718,9 @@ int main(int argc, char* argv[])
 	int x_terminal_size, y_terminal_size;
         int is_lurking = 0;
         int is_yelling = 0;
-        int in_deepsix = 0;
         int i;
 
 /*	int client_id = init_client("Henry");                   create a client. */
-/*      init_user_list(client_id);                      init the client size user list. */
 
 	log_init();
 	log_writeln(" --------------------------- ");
@@ -757,16 +756,14 @@ int main(int argc, char* argv[])
 	log_writeln(" > ... creating transcript and client window");
 	transcript_window  = newwin(23,40,0,0);
 	client_chat_window = newwin(MAX_ROWS,MAX_COLUMNS,24,0);
-        lurk_win           = newwin(MAX_ROWS,MAX_COLUMNS,24,0);
+        lurk_win           = newwin(MAX_ROWS, MAX_COLUMNS, 24, 0);
         yell_win           = newwin(23,40,0,0);
-        deepsix_win        = newwin(23,40,0,0);
         box(yell_win, '|', '-');
 
         set_yell_message(0, "Hello World");
         set_yell_message(1, "Yo dog!");
         set_yell_message(2, "Hey everyone!");
         set_yell_message(3, "Whats up?");
-        set_yell_message(12,"I agree.");
 
         wcolor_set(lurk_win,           4, NULL);
         wcolor_set(transcript_window,  3, NULL);
@@ -797,30 +794,23 @@ int main(int argc, char* argv[])
 
 		sprintf(buf, "key pressed: '%c'  int value: %d\n", ch, ch);
 		write_to_transcript_window(buf);
-                                        //end get char
-*/
+  */                                      //end get char
+
             /* Check if were in "Lurk" mode. */
             if(is_lurking) {
                     switch(ch) {
-                            case 12: /* lurk-off */
-                                    is_lurking = 0;
-                                    redrawwin(client_chat_window);
-                                    wrefresh(client_chat_window);
-                                    break;
-                            case 17: /* lurk-quit */
-                                    is_running = 0;
-                                    break;
-                            default:
-                                    redrawwin(lurk_win);
-                                    wrefresh(lurk_win);
-                    }
-            }
-            /* Check if were in deepsix mode. */
-            else if(in_deepsix) {
-                    switch(ch) {
-                            case KEY_UP:
-                                    break;
-                    }
+                    case 12: /* lurk-off */
+                        is_lurking = 0;
+                        redrawwin(client_chat_window);
+                        wrefresh(client_chat_window);
+                        break;
+                    case 17: /* lurk-quit */
+                        is_running = 0;
+                        break;
+                    default:
+                        redrawwin(lurk_win);
+                        wrefresh(lurk_win);
+                }
             }
             /* Check if were yelling. */
             else if(is_yelling) {
@@ -953,29 +943,19 @@ int main(int argc, char* argv[])
                                                 is_yelling = 1;
                                             }
                                         }
-                                        break; 
+                                        break;
 				case 29: /* CTRL-] */
                                         alarm(0);
 					user_is_scrolling = 0;
 					print_transcript_chat_buffer();
 					break;
-                                case 30: /* CTRL-6 */
-                                        {
-                                            if(!in_deepsix)
-                                            {
-                                                redrawwin(deepsix_win);
-                                                wrefresh(deepsix_win);
-                                                in_deepsix = 1;
-                                            }
-                                        }
-                                        break;
 
                                 /*
                                  * If we encountered an unkown escape charcter, break out of here so we don't
                                  * print it. */
                                 break;              /* TODO: Fix me! */
 			}
-#if 0
+
 			/* Scroll the clients typing window down. */
 			case KEY_DOWN:
 				client_current_line ++;
@@ -992,7 +972,7 @@ int main(int argc, char* argv[])
 					    wclear(client_chat_window);
 					    wprintw(client_chat_window, &client_buffer[client_current_line*MAX_COLUMNS]);
 					    break;
-#endif
+
 			/* Delete the previous chracter. */
 			case KEY_BACKSPACE:
 				/* Check if were deleting the last character. */
