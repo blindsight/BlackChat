@@ -106,5 +106,4 @@ int get_from_user_from_message(const char *message);
 //error functions
 int get_error_type_from_message(const char *message);
 
-#endif //_BLACKCHAT_H_
 
