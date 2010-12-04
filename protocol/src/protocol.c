@@ -40,6 +40,21 @@ void create_text_message(int text_type, int uid, char *message, char *result) {
 	sprintf(result,"%02d%02d%03d%s",CMD_TEXT, text_type, uid, message);
 }
 
+void create_main_chat_message(int uid, char *message, char *result) {
+	sprintf(result,"%02d%02d%03d%s",CMD_TEXT, TEXT_MAIN_CHAT, uid, message);
+}
+void create_im_message(int uid, int to_uid, char *message, char *result) {
+	sprintf(result,"%02d%02d%03d%s",CMD_TEXT, TEXT_IM, uid, message);
+}
+
+void create_status_message(int uid, char *message, char *result) {
+	sprintf(result,"%02d%02d%03d%s",CMD_TEXT, TEXT_STATUS, uid, message);
+}
+
+void create_yell_message(int uid, char *message, char *result) {
+	sprintf(result,"%02d%02d%03d%s",CMD_TEXT, TEXT_YELL, uid, message);
+}
+
 //windows type functions
 int get_window_type_from_message(const char *message) {
 	char result[2];
@@ -145,14 +160,16 @@ int get_voted_for_uid_from_message(const char *message) {
 	return atoi(result);	
 }
 
-void create_vote_message(int vote_type, int uid, int uid_vote, char *result) {
-	if(vote_type == VOTE) {
-		sprintf(result,"%02d%02d%03d%03d",CMD_VOTE, vote_type, uid, uid_vote);
-	} else {
-		sprintf(result,"%02d%02d%03d%03d",CMD_VOTE, vote_type, uid, uid_vote);
-	}
+void create_vote_message(int uid, int uid_vote, char *result) {
+	sprintf(result,"%02d%02d%03d%03d",CMD_VOTE, VOTE, uid, uid_vote);
 }
 
+void respond_vote_message(int vote_type, int uid, int uid_vote, char *result) {
+	sprintf(result,"%02d%02d%03d%03d",CMD_VOTE, vote_type, uid, uid_vote);
+}
+
+
+//user list functions
 int get_userlist_type_from_message(const char *message) {
 	char result[2];
 
@@ -180,14 +197,6 @@ int get_from_user_from_message(const char *message) {
 	return atoi(result);
 }
 
-int get_error_type_from_message(const char *message) {
-	char result[2]; 
-	
- 	strncpy(result, message+2,2);
-	result[2]='\0';
-	return atoi(result);	
-}
-
 int get_first_user(const char *message, UR_OBJ user)  {
 	char result[3];
 	int index = 7;
@@ -195,9 +204,7 @@ int get_first_user(const char *message, UR_OBJ user)  {
 	int name_len = 0;
 	char uid[3];
 	
-//	printf("result: %s mess %s m7: %s\n", result, message, message+7);
 	strncpy(result, message+7, 3);
-//	printf("result: %s mess %s m7: %s\n", result, message, message+7);
 
 	offset = atoi(result);
 	
@@ -214,7 +221,6 @@ int get_first_user(const char *message, UR_OBJ user)  {
 	
 	index = index + 3 + offset;
 	
-//	printf("in:%d off:%d uid:%s user:%s len:%d", index, offset, uid, user->name, name_len);
 	return index;
 }
 
@@ -251,6 +257,24 @@ int get_next_user(int offset, const char *message, UR_OBJ user) {
 	return index;
 }
 
+void get_user_name_message(const char *message, char *username) {
+	int length = strlen(message);
+	
+	strncpy(username,message+4,length-4);
+}
+
+void create_uid_message(int uid, char *message) {
+	sprintf(message,"%02d%02d%03d", CMD_USERLIST, USER_LIST_USER_NAME, USER_LIST_RECEIVE_UID);
+}
+
+void create_user_name_message(char *username, char *result) {
+	sprintf(result,"%02d%02d%s", CMD_USERLIST, USER_LIST_USER_NAME, username);
+}
+
+void request_user_list(UR_OBJ user, char *result) {
+	sprintf(result,"%02d%02d%03d", CMD_USERLIST, USER_LIST_REQUEST, user->uid);
+}
+
 void create_first_user(int user_list_type, int from_uid, UR_OBJ user, char *result) {
 	int offset = strlen(user->name) + UID_LEN;
 	
@@ -260,4 +284,28 @@ void create_first_user(int user_list_type, int from_uid, UR_OBJ user, char *resu
 void create_next_user(UR_OBJ user, char *result) {
 	int offset = strlen(user->name) + UID_LEN;
 	sprintf(result,"%s%03d%03d%s", result, offset, user->uid, user->name);	
+}
+
+int get_error_type_from_message(const char *message) {
+	char result[2]; 
+	
+ 	strncpy(result, message+2,2);
+	result[2]='\0';
+	return atoi(result);	
+}
+
+void create_error_message(int error_type, char *result) {
+	sprintf(result,"%02d%02d", CMD_USERLIST, error_type);
+}
+
+void create_user_lurking(int uid, char *result) {
+	sprintf(result,"%02d%03d", CMD_LURK, uid);	
+}
+
+int get_user_lurking(const char *message) {
+	char uid[UID_LEN];
+	
+	strncpy(uid, message+2, 3);
+	
+	return atoi(uid);
 }

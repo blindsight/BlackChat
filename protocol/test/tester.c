@@ -85,7 +85,7 @@ int main() {
 	
 	result[0]='\0';
 	input[0]='\0';
-	create_vote_message(VOTE, 34, 456, input);
+	create_vote_message(34, 456, input);
 	process_command(input, result);
 	printf("test: %s %s\n", input, result);
 	
