@@ -3,12 +3,18 @@
 #include "bc_network.h"
 #include <unistd.h>
 
+
+
 SERVER_OBJ *bc_server;
 
 void update_time(int sig){
     pthread_mutex_lock(&mutex);
     int num_clients = bc_server->num_users_connected;
     pthread_mutex_unlock(&mutex);
+    
+#ifdef DEBUG
+    printf("UpdateTime");
+#endif
 
     for(int i = 0; i < num_clients; i++){
       
@@ -23,6 +29,9 @@ void update_time(int sig){
 
 void cleanup(int sig){
 
+  #ifdef DEBUG
+    printf("cleanup");
+#endif
   //TODO add cleanup code
   close(bc_server->server_socket);
   free(bc_server->clients);
@@ -42,6 +51,9 @@ int main(int argc, char **argv) {
   signal(SIGTERM, cleanup);
   signal(SIGPIPE, SIG_IGN);
   signal(SIGALRM, update_time); 
+  #ifdef DEBUG
+    printf("start main");
+#endif
   
   bc_server = (SERVER_OBJ *)malloc(sizeof(SERVER_OBJ));
   memset(bc_server, 0, sizeof(SERVER_OBJ));
@@ -61,6 +73,9 @@ int main(int argc, char **argv) {
   }
   
   //Once here I need to start handling messages
+  #ifdef DEBUG
+    printf("before handle messages");
+#endif
   
   handle_messages(bc_server, messages);
   
@@ -78,11 +93,8 @@ void handle_messages(SERVER_OBJ* server, SERVER_QUEUE_OBJ* messages){
   int user_type;
   int error_type;
   char *message;
-//  char *message_data;
-  
-  char *buff;
- char *result;
-  
+//  char *message_data; 
+    
   if(isEmpty(messages)){
 	sem_wait(&messages_sem);
   }
@@ -100,7 +112,7 @@ void handle_messages(SERVER_OBJ* server, SERVER_QUEUE_OBJ* messages){
 	
 	  case TEXT_MAIN_CHAT:
 	  {
-	    buff = (char *)malloc(1024 * 8);
+	    char *buff = (char *)malloc(1024 * 8);
 	    int user = get_from_user_from_message(message);
 	    HST_OBJ temp = server->clients[user]->user_data->history;
 	    
@@ -113,15 +125,14 @@ void handle_messages(SERVER_OBJ* server, SERVER_QUEUE_OBJ* messages){
 	    
 	    broadcast_all(server->clients, buff);
 	    
-	    free(buff);
-	    buff = NULL;
+	    free(buff);	    
 	  }    
 	    break;
 	  case TEXT_YELL:
 	  {
 	    int user = get_user_from_message(message);
-	    buff = (char *)malloc(512);
-	    result = (char *)malloc(512);
+	    char *result = (char *)malloc(1024 * 8);
+	    char *buff = (char *)malloc(1024 * 8);
 	    get_text_from_message(message,result);
 	
 	    create_yell_message(user, result, buff);
@@ -129,8 +140,7 @@ void handle_messages(SERVER_OBJ* server, SERVER_QUEUE_OBJ* messages){
 	    broadcast_client(server->clients[user], buff);
 	    
 	    free(buff);
-	    buff = NULL;
-	  }
+	   }
 	    break;
 	  case TEXT_STATUS:
 	  {
@@ -147,7 +157,7 @@ void handle_messages(SERVER_OBJ* server, SERVER_QUEUE_OBJ* messages){
 	    int user = get_from_user_from_message(message);
 	    int to_user = get_user_from_message(message);
 	    HST_OBJ temp = server->clients[user]->user_data->im;
-	    buff = (char *)malloc(1024 * 8);
+	    char *buff = (char *)malloc(1024 * 8);
 	    
 	    get_text_from_message(message, server->clients[user]->user_data->im->line);
 	    server->clients[user]->user_data->im->from = NULL;
@@ -159,7 +169,7 @@ void handle_messages(SERVER_OBJ* server, SERVER_QUEUE_OBJ* messages){
 	    broadcast_client(server->clients[to_user], buff);
 	    
 	    free(buff);
-	    buff = NULL;
+	    
 	  }
 	    break;
 	  default:
@@ -190,7 +200,7 @@ void handle_messages(SERVER_OBJ* server, SERVER_QUEUE_OBJ* messages){
       int user = get_from_user_from_message(message);
       int num_votes = 0;
       //bool is_vote_done = false;
-      buff = (char *)malloc(1024);
+      char *buff = (char *)malloc(1024 * 8);
       
       if(server->clients[user]->user_data->vote != voted_user){
 	
@@ -250,6 +260,7 @@ void handle_messages(SERVER_OBJ* server, SERVER_QUEUE_OBJ* messages){
 	}
 	
       }
+      free(buff);
     }
       
       break;
@@ -286,7 +297,6 @@ void handle_messages(SERVER_OBJ* server, SERVER_QUEUE_OBJ* messages){
     break;
   }
 
-	free(result);
 }
 
 
@@ -295,7 +305,7 @@ int save_user_window(WIN_OBJ window, int user){
   char *file_to_open = (char *)malloc(1024);
   FILE *file;
   int written;
-  int *win[] = { window->h, window->w, window->x, window->y, window->z, window->type, window->wid};
+  int win[] = { window->h, window->w, window->x, window->y, window->z, window->type, window->wid};
   sprintf(file_to_open, "./saved_sessions/%d/%d/%d", user, window->type, window->wid);
   
   file = fopen(file_to_open, "wb");
@@ -319,7 +329,7 @@ int get_user_window(WIN_OBJ window, int user){
   char *file_to_open = (char *)malloc(1024);
   FILE *file;
   int read;
-  int *win[] = { 0, 0, 0, 0, 0, 0, 0};
+  int win[] = { 0, 0, 0, 0, 0, 0, 0};
   sprintf(file_to_open, "./saved_sessions/%d/%d/%d", user, window->type, window->wid);
   
   file = fopen(file_to_open, "rb");
