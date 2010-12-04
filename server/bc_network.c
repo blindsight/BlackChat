@@ -77,7 +77,7 @@ void fill_queue(SERVER_OBJ *server, SERVER_QUEUE_OBJ *messages){
     
     server->clients[i + 1] = client;
         
-    client = NULL;
+    
   }
 }
 void *listen_thread(void *args){
@@ -128,7 +128,7 @@ void *listen_thread(void *args){
       close(temp_client);      
     }
   }
-return NULL;
+pthread_exit(0);
 }
 
 void *client_thread(void *args){
@@ -184,7 +184,7 @@ void *client_thread(void *args){
   pthread_exit(0);
   
   }
-return NULL;
+pthread_exit(0);
 }
 
 void broadcast_all(CLIENT_OBJ* clients[], char* message){
