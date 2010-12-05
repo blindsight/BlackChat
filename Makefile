@@ -4,7 +4,7 @@
   
 .PHONY: client server protocol tests clean
   
-all: client server protocol tests
+all: protocol client server tests
   
 client:
 	cd client; make client

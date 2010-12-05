@@ -56,6 +56,8 @@ typedef struct other_window_t
 	WINDOW *window;
 	char userName[MAX_USER_NAME_LENGTH];
 	char buffer[OTHER_WINDOW_BUFFER_SIZE];
+	char status;
+	int  canDeepSix;
 } other_window;
 
 other_window *other_chat_windows;
@@ -84,9 +86,9 @@ static void refresh_all_windows(int is_lurking)
         refresh_other_windows();
         wrefresh(transcript_window);
 
-        if(!is_lurking)
-	    wrefresh(client_chat_window);
-
+        if(!is_lurking) {
+	    	wrefresh(client_chat_window);
+		}
 }
 
 /* Get number of lines in buffer. */
@@ -413,7 +415,9 @@ static void init_other_windows()
 	for(i = 0; i < 10; i ++) {	
 		other_chat_windows[i].window = newwin(2,20,yPos,xPos);
 		memset(other_chat_windows[i].userName, '\0', sizeof(other_chat_windows[i].userName));
-		memset(other_chat_windows[i].buffer, '\0', sizeof(other_chat_windows[i].buffer));
+		memset(other_chat_windows[i].buffer,   '\0', sizeof(other_chat_windows[i].buffer));
+		other_chat_windows[i].canDeepSix = 1;
+		other_chat_windows[i].status     = ' ';
 
 		/* Move window to new location. */
 		if(i % 2 == 0) {
@@ -453,6 +457,7 @@ static void free_other_windows()
 	free(other_chat_windows);
 }
 
+
 /* Draw other windows. */
 static void refresh_other_windows()
 {
@@ -486,7 +491,12 @@ static void refresh_other_windows()
                 memset(nameToPrint, '\0', sizeof(other_chat_windows[i].userName));
                 strcpy(nameToPrint, other_chat_windows[i].userName);
                 for(j = strlen(nameToPrint); j < 20; j ++) {
-                        strcat(nameToPrint, " ");
+                		if(j < 19) {
+                        	strcat(nameToPrint, " ");
+                        } else {
+                        	nameToPrint[j]   = other_chat_windows[i].status;
+                        	nameToPrint[j+1] = '\0';
+                        }
                 }
  
 
@@ -502,6 +512,27 @@ static void refresh_other_windows()
 }
 
 
+/* Draw user names that we can deepsix. */
+static void draw_deepsix_window()
+{
+	int i;
+	wclear(deepsix_win);
+
+	/* Show user names in deepsix window. */
+	for(i = 0; i < 10; i ++) {
+		if(other_chat_windows[i].userName[0] != '\0' && other_chat_windows[i].canDeepSix == 1) {
+			wprintw(deepsix_win, "%d | %s\n", i, other_chat_windows[i].userName);
+		} else {
+			wprintw(deepsix_win, "%d | ------------\n", i);
+		}
+	}
+	wprintw(deepsix_win, "\nPress any other key to exit.");
+	
+
+	/* redraw the deepsix window. */
+//	redrawwin(deepsix_win);
+	wrefresh(deepsix_win);
+}
 
 
 /* Delete the specified number of characters behind the current cursor position. */
@@ -572,7 +603,31 @@ void clear_user_window_text(int num)
         memset(other_chat_windows[num].buffer, '\0', sizeof(other_chat_windows[num].buffer));
 }
 
+/* Allow/disallow us to deepsix a user. */
+void can_deepsix_user(int num, int can_vote)
+{
+	other_chat_windows[num].canDeepSix = can_vote;
+}
 
+/* Visually set user status. */
+void set_user_status(int num, char status)
+{
+	other_chat_windows[num].status = status;
+}
+
+/* Visually removes the user from the chat */
+void remove_user_from_window(int num)
+{
+	if(num < 0 || num > 9) {
+		log_writeln("WARNING: Cannot remove user at index[%d] because it is not a valid index.  (valid index are 0-9).", num);
+		return;
+	}
+	
+	
+	wclear(other_chat_windows[num].window);
+	memset(other_chat_windows[num].userName, '\0', sizeof(other_chat_windows[num].userName));
+	memset(other_chat_windows[num].buffer, 	 '\0', sizeof(other_chat_windows[num].buffer));
+}
 
 
 /* Get the text inside our chat window. */
@@ -720,6 +775,8 @@ int main(int argc, char* argv[])
         int in_deepsix = 0;
         int i;
 
+	/* josh-note:
+			These need to be uncommented for the client connection to work. */
 /*	int client_id = init_client("Henry");                   create a client. */
 /*      init_user_list(client_id);                      init the client size user list. */
 
@@ -742,7 +799,7 @@ int main(int argc, char* argv[])
 
 	log_writeln(" > ... initializing ncurses screen in raw mode");
 	initscr();
-	start_color();
+//	start_color();
 	init_pair(0, COLOR_WHITE,   COLOR_BLACK);
 	init_pair(1, COLOR_GREEN,   COLOR_BLACK);
 	init_pair(2, COLOR_YELLOW,  COLOR_BLACK);
@@ -790,6 +847,10 @@ int main(int argc, char* argv[])
 	append_text_to_window(2, "hey, my name is Dan!");
 	append_text_to_window(3, "Hey!?");
 
+	can_deepsix_user(0, 0);
+	set_user_status(1, 'L');
+	set_user_status(2, 'L');
+	
 
 	while(is_running) {
 		int ch = getch();
@@ -804,10 +865,9 @@ int main(int argc, char* argv[])
                     switch(ch) {
                             case 12: /* lurk-off */
                                     is_lurking = 0;
-                                    redrawwin(client_chat_window);
-                                    wrefresh(client_chat_window);
+                                    print_client_chat_buffer();
                                     break;
-                            case 17: /* lurk-quit */
+                            case 17: /* quit */
                                     is_running = 0;
                                     break;
                             default:
@@ -817,10 +877,22 @@ int main(int argc, char* argv[])
             }
             /* Check if were in deepsix mode. */
             else if(in_deepsix) {
-                    switch(ch) {
-                            case KEY_UP:
-                                    break;
+            		/* kick user */
+            		if(ch >= 48 && ch <= 57) {
+            				/* josh-note:
+            					Have josh make a "kick_user(ch-48)" command. 
+            					Also, have josh keep track of who user voted for and display message on transcript as to how user voted
+            					and/or if they already voted for the user. */		
+            		}
+            
+            		/* quit */
+                    if(ch == 17) {
+                    		is_running = 0;
                     }
+                    
+                    /* exit deep six if we pressed any other key */
+                    in_deepsix = 0;
+                    window_page_up(transcript_window, &transcript_current_line, TRANSCRIPT_MAX_COLUMNS, transcript_buffer);
             }
             /* Check if were yelling. */
             else if(is_yelling) {
@@ -897,14 +969,11 @@ int main(int argc, char* argv[])
 					break;
 
 					    case 12: /* CTRL-L */
-						    {
-							if(!is_lurking){
-
+							if(!is_lurking) {
 							    redrawwin(lurk_win);
 							    wrefresh(lurk_win);
 							    is_lurking = 1;
 							}
-						    }
 						    break;
 
 				case 14: /* CTRL-N */
@@ -960,13 +1029,10 @@ int main(int argc, char* argv[])
 					print_transcript_chat_buffer();
 					break;
                                 case 30: /* CTRL-6 */
+                                        if(!in_deepsix)
                                         {
-                                            if(!in_deepsix)
-                                            {
-                                                redrawwin(deepsix_win);
-                                                wrefresh(deepsix_win);
-                                                in_deepsix = 1;
-                                            }
+                                            draw_deepsix_window();
+                                            in_deepsix = 1;
                                         }
                                         break;
 
@@ -1035,6 +1101,8 @@ int main(int argc, char* argv[])
 		}
 
         	/* Read from the server. */
+        	/* josh-note
+        			Uncomment this! */
 /*      	read_from_server(client_id); */
 
         	refresh_all_windows(is_lurking);
@@ -1049,6 +1117,8 @@ int main(int argc, char* argv[])
 	delwin(client_chat_window);
 	endwin();
         
+    /* josh-note
+    		This should be uncommented to close down the client socket. */
 /*  close_client(client_id); */
 
 	log_writeln(" > ... closing client log");
