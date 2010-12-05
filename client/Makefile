@@ -4,8 +4,8 @@
 .PHONY: clean
 
 CC = gcc
-CFLAGS = -Wall -O3 -I../protocol/include -Iinclude -I../server/include
-LIBS = ../bin/lib/libncursesw.a ../bin/lib/libbcprotocol.so.1.0.1
+CFLAGS = -Wall -O3 -I../protocol/include -Iinclude -I../server/include -I../ncurses/include
+LIBS = ../bin/lib/libncursesw.a ../bin/lib/libbcprotocol.a
 BUILD_DIR = ../bin
 OBJS = logger.o client.o clientsocket.o
 
@@ -19,3 +19,4 @@ client: $(OBJS)
 clean:
 	rm $(OBJS)
 	rm $(BUILD_DIR)/client
+	rm client.log

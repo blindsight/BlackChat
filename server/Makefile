@@ -4,7 +4,7 @@
 
 CC = gcc
 CFLAGS = -Wall -03 -std=c99 -I../protocol/include -Iinclude
-LIBS = -lpthread ../bin/lib/libbcprotocol.so.1.0.1
+LIBS = -lpthread ../bin/lib/libbcprotocol.a
 BUILD_DIR = ../bin
 OBJS = bc_network.o bc_server_queue.o main.o
 

@@ -1,11 +1,4 @@
  --------------------------- 
  > Starting BlackChat
- > ... detecting current terminal size xy:(180,46)
+ > ... detecting current terminal size xy:(100,44)
  > ... initializing ncurses screen in raw mode
- > ... creating transcript and client window
- > ... creating other 9 windows
- > ... [beginning transcript]
-**************************************  
-******** Wecome to BlackChat! ********  
-**************************************  
-[Client Says]:  asdfjasdfkljasdf        
