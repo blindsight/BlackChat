@@ -16,7 +16,7 @@ protocol:
 	cd protocol; make protocol 
 
 tests:
-	cd protocol; make tests
+	cd test; make tests
 
 runtests:
 	cd bin; ./runtests

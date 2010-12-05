@@ -2,7 +2,7 @@
 #include <strings.h>
 #include <string.h>
 #include <stdlib.h>
-#include "blackchat.h"
+#include "include/blackchat.h"
 
 
 //General type functions

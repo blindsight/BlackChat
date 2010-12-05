@@ -17,7 +17,7 @@
 #include <stdbool.h>
 #include "bc_server_queue.h"
 #include "bc_client.h"
-#include "../protocol/src/blackchat.h"
+#include "blackchat.h"
 
 #define SERVER_PORT 11380
 #define SERVER_IP "127.0.0.1"
@@ -44,7 +44,7 @@ typedef struct server{
   //SERVER_QUEUE_OBJ *connected_clients;
   //SERVER_QUEUE_OBJ *unconnected_clients;
   
-  CLIENT_OBJ (*clients)[11];
+  CLIENT_OBJ* clients[11];
     
 } SERVER_OBJ;
 
@@ -53,5 +53,6 @@ SERVER_OBJ *init_network(SERVER_QUEUE_OBJ *messages);
 void broadcast_all(CLIENT_OBJ *clients[], char *message); 
 void broadcast_client(CLIENT_OBJ *client, char *message); 
 
+void *client_thread(void *args);
 
 #endif //BC_NETWORK_H_

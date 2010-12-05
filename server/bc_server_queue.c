@@ -1,9 +1,4 @@
-
-
-
 #include "bc_server_queue.h"
-
-
 
 
 SERVER_QUEUE_OBJ* init_queue(int max_size) {

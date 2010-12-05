@@ -3,7 +3,7 @@
 #
 
 CC = gcc
-CFLAGS = -Wall -o3 -std=c99
+CFLAGS = -Wall -03 -std=c99 -I../protocol/include -Iinclude
 LIBS = -lpthread ../bin/lib/libbcprotocol.so.1.0.1
 BUILD_DIR = ../bin
 OBJS = bc_network.o bc_server_queue.o main.o
@@ -13,7 +13,7 @@ OBJS = bc_network.o bc_server_queue.o main.o
 all: server
 
 server: $(OBJS)
-	$(CC) $(CFLAGS) -I../protocol/src -o $(BUILD_DIR)/server $(OBJS) $(LIBS)
+	$(CC) $(CFLAGS)  -o $(BUILD_DIR)/server $(OBJS) $(LIBS)
 
 clean:
 	rm $(OBJS)

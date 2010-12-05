@@ -14,9 +14,8 @@
 #include <wchar.h>
 #include "client.h"
 #include "clientsocket.h"
-#include "../server/bc_network.h"
-//#include "../server/protocol.h"
-#include "../protocol/src/blackchat.h"
+#include "bc_network.h"
+#include "blackchat.h"
 
 UR_OBJ user_list[20];       //list of all users currently on server
 UR_OBJ curr_user;           //this client

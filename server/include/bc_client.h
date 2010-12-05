@@ -1,11 +1,9 @@
-
-
 #ifndef BC_CLIENT_H_
 #define BC_CLIENT_H_
 
 #include <pthread.h>
 #include "bc_server_queue.h"
-#include "../protocol/src/blackchat.h"
+#include "blackchat.h"
 
 typedef struct client {
 
