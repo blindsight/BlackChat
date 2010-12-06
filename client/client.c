@@ -36,16 +36,21 @@
 
 
 char client_buffer[1024];
-int client_current_line = 0;
-int client_cursor_position = 0;
+int  client_current_line = 0;
+int  client_cursor_position = 0;
 
 char *transcript_buffer;
-int transcript_buffer_size = 256;
-int transcript_current_line = 0;
+int   transcript_buffer_size = 256;
+int   transcript_current_line = 0;
+char *f_transcript_buffer;
+int   f_transcript_buffer_size = 256;
+//int   f_transcript_current_line = 0;
+
 
 char yell_messages[26][MAX_MESSAGE_LENGTH];
 
 WINDOW *transcript_window;
+WINDOW *fullscreen_transcript_window;
 WINDOW *client_chat_window;
 WINDOW *lurk_win;
 WINDOW *yell_win;
@@ -63,6 +68,7 @@ typedef struct other_window_t
 other_window *other_chat_windows;
 int user_is_scrolling = 0;
 int gaudy_mode_on     = 0;
+int transcript_maxed  = 0;
 
 
 /* Get the size of the current terminal window. */
@@ -83,8 +89,12 @@ static void refresh_other_windows();
 /* -------------------------- */
 static void refresh_all_windows(int is_lurking)
 {
-        refresh_other_windows();
-        wrefresh(transcript_window);
+		if(!transcript_maxed) {
+        	refresh_other_windows();
+        	wrefresh(transcript_window);
+        } else {
+        	wrefresh(fullscreen_transcript_window);
+        }
 
         if(!is_lurking) {
 	    	wrefresh(client_chat_window);
@@ -92,14 +102,14 @@ static void refresh_all_windows(int is_lurking)
 }
 
 /* Get number of lines in buffer. */
-static int str_get_num_lines(char *str)
+static int str_get_num_lines(char *str, int max_columns)
 {
         int i;
         int num_lines = 0;
 
         for(i = 0; i < strlen(str); i++) {
                 if( str[i] == '\n' || 
-		   (i % TRANSCRIPT_MAX_COLUMNS) == 0) {
+		   (i % max_columns) == 0) {
 			num_lines ++;
 		}
         }
@@ -116,7 +126,7 @@ void window_page_down(WINDOW *win, int *line, int max_columns, char *buffer)
         int start = 0;
         int using_bold = 0;
         int found_num_lines = 0;
-        int actual_number_of_lines = str_get_num_lines(buffer);
+        int actual_number_of_lines = str_get_num_lines(buffer, max_columns);
 
 
 	/* Make sure the user didn't pass to large of a value. */
@@ -141,7 +151,7 @@ void window_page_down(WINDOW *win, int *line, int max_columns, char *buffer)
                 }
  
 
-                if( (i % TRANSCRIPT_MAX_COLUMNS) == 0 ) found_num_lines ++;
+                if( (i % max_columns) == 0 ) found_num_lines ++;
                 if(found_num_lines >= (*line)) {
                         break;
                 }
@@ -208,7 +218,7 @@ void window_page_up(WINDOW *win, int *line, int max_columns, char *buffer)
                     using_bold = 0;
                 }
   
-                if( (i % TRANSCRIPT_MAX_COLUMNS) == 0 ) found_num_lines ++;
+                if( (i % max_columns) == 0 ) found_num_lines ++;
                 if(found_num_lines >= (*line)) {
                         break;
                 }
@@ -359,9 +369,15 @@ static void print_client_chat_buffer()
 static void print_transcript_chat_buffer()
 {
 	print_buffer_to_window( transcript_window, 
-				MAX_CHARS_IN_TRANSCRIPT_WINDOW,
+				TRANSCRIPT_MAX_ROWS * TRANSCRIPT_MAX_COLUMNS,
 				TRANSCRIPT_MAX_COLUMNS,
 				transcript_buffer,
+				&transcript_current_line );
+				
+	print_buffer_to_window( fullscreen_transcript_window, 
+				TRANSCRIPT_MAX_ROWS * (TRANSCRIPT_MAX_COLUMNS * 2),
+				TRANSCRIPT_MAX_COLUMNS * 2,
+				f_transcript_buffer,
 				&transcript_current_line );
 }
 
@@ -498,7 +514,7 @@ static void refresh_other_windows()
                         	nameToPrint[j+1] = '\0';
                         }
                 }
- 
+
 
                 /* Print */
 		mvwprintw(  other_chat_windows[i].window, 0,0, nameToPrint);
@@ -668,19 +684,19 @@ static int s_strlen(char *str)
 }
 
 /* Append the line to the transcript window. */
-static void write_to_ts_win(char *str)
+static char *write_to_ts_win(char *str, int max_col, int max_row, WINDOW *win, char *buffer, int *line, int *buffer_size)
 {
-	int   size = sizeof(char) * (strlen(str)+(TRANSCRIPT_MAX_ROWS*2));
+	int   size = sizeof(char) * (strlen(str)+(max_col*4));
 	char *text = (char*)malloc(size);
 	int   i;
 
 
 	/* Copy over string. */
 	memset(text, '\0', size);
-	strcpy(text,str);
+	strcpy(text, str);
 
 	/* Pad out the string so it takes up the whole line. */
-	while( strlen(text) % TRANSCRIPT_MAX_COLUMNS != 0 ) {
+	while( strlen(text) % max_col != 0 ) {
 		strcat(text, " ");
 	}
 	/* ---- */
@@ -690,36 +706,32 @@ static void write_to_ts_win(char *str)
 
 
         /* Deal with buffer over run for the transcript window. */
-	while( (strlen(transcript_buffer) + strlen(text)) > transcript_buffer_size ) {
+	while( (strlen(buffer) + strlen(text)) > *buffer_size ) {
 		int i = 0;
-		char *temp_buffer = (char*)malloc( sizeof(char) * (transcript_buffer_size*2) );
+		char *temp_buffer = (char*)malloc( sizeof(char) * (*buffer_size*2) );
 
 		/* Copy over old values. */
-		for(i = 0; i < strlen(transcript_buffer); i++) {
-			temp_buffer[i] = transcript_buffer[i];
+		for(i = 0; i < strlen(buffer); i++) {
+			temp_buffer[i] = buffer[i];
 		}
 
-		free(transcript_buffer);		/* Free old buffer. */
-		transcript_buffer_size *= 2;
-		transcript_buffer = temp_buffer;
-	}       
+		free(buffer);		/* Free old buffer. */
+		*buffer_size *= 2;
+		buffer = temp_buffer;
+	}
 
 
         /* Append text to transcript window. */
-	strcat(transcript_buffer, text);
+	strcat(buffer, text);
 	if(user_is_scrolling == 0) {
-		print_transcript_chat_buffer();
+		print_buffer_to_window(win, max_col*max_row, max_col, buffer, line);
 	} else {
-
-		window_page_up( transcript_window,
-			        &transcript_current_line,
-				TRANSCRIPT_MAX_COLUMNS,
-				transcript_buffer );
-
+		window_page_up(win, line, max_col, buffer);
 	}
 
 	log_writeln(text);
 	free(text);
+	return buffer;
 }
 
 /* add some text to our transcript window. */
@@ -745,7 +757,9 @@ void write_to_transcript_window(char *str)
 
 			s[s_index] = '\0';
 
-			write_to_ts_win(s);     /* Append the text to our transcript window. */
+			/* Append the text to our transcript window. */
+			transcript_buffer   = write_to_ts_win(s, TRANSCRIPT_MAX_COLUMNS,   TRANSCRIPT_MAX_ROWS, transcript_window, 			  transcript_buffer,   &transcript_current_line,   &transcript_buffer_size);
+			f_transcript_buffer = write_to_ts_win(s, TRANSCRIPT_MAX_COLUMNS*2, TRANSCRIPT_MAX_ROWS, fullscreen_transcript_window, f_transcript_buffer, &transcript_current_line, &f_transcript_buffer_size);
 			found_nl_index = i+1;   /* Increment our new line index. */
 
 			free(s);
@@ -790,8 +804,9 @@ int main(int argc, char* argv[])
                 memset(yell_messages[i], '\0', MAX_MESSAGE_LENGTH * sizeof(char)); 
         }
 
-	transcript_buffer = (char*)malloc(sizeof(char)*transcript_buffer_size);
-        memset(client_buffer, '\0', sizeof(client_buffer));
+	transcript_buffer   = (char*)malloc(sizeof(char)*transcript_buffer_size);
+	f_transcript_buffer = (char*)malloc(sizeof(char)*f_transcript_buffer_size);
+    memset(client_buffer, '\0', sizeof(client_buffer));
 	memset(transcript_buffer, '\0', sizeof(transcript_buffer));
 
 	get_terminal_size(&x_terminal_size, &y_terminal_size);
@@ -812,11 +827,12 @@ int main(int argc, char* argv[])
 	color_set(0, NULL);
 	
 	log_writeln(" > ... creating transcript and client window");
-	transcript_window  = newwin(23,40,0,0);
-	client_chat_window = newwin(MAX_ROWS,MAX_COLUMNS,24,0);
-        lurk_win           = newwin(MAX_ROWS,MAX_COLUMNS,24,0);
-        yell_win           = newwin(23,40,0,0);
-        deepsix_win        = newwin(23,40,0,0);
+	transcript_window  				= newwin(TRANSCRIPT_MAX_ROWS,TRANSCRIPT_MAX_COLUMNS,   0,0);
+	fullscreen_transcript_window	= newwin(TRANSCRIPT_MAX_ROWS,TRANSCRIPT_MAX_COLUMNS*2, 0,0);
+	client_chat_window 				= newwin(MAX_ROWS,MAX_COLUMNS,24,0);
+        lurk_win           			= newwin(MAX_ROWS,MAX_COLUMNS,24,0);
+        yell_win           			= newwin(23,40,0,0);
+        deepsix_win        			= newwin(23,40,0,0);
         box(yell_win, '|', '-');
 
         set_yell_message(0, "Hello World");
@@ -892,7 +908,8 @@ int main(int argc, char* argv[])
                     
                     /* exit deep six if we pressed any other key */
                     in_deepsix = 0;
-                    window_page_up(transcript_window, &transcript_current_line, TRANSCRIPT_MAX_COLUMNS, transcript_buffer);
+                    window_page_up(transcript_window,            &transcript_current_line, TRANSCRIPT_MAX_COLUMNS,   transcript_buffer);
+                    window_page_up(fullscreen_transcript_window, &transcript_current_line, TRANSCRIPT_MAX_COLUMNS*2, f_transcript_buffer);
             }
             /* Check if were yelling. */
             else if(is_yelling) {
@@ -985,6 +1002,11 @@ int main(int argc, char* argv[])
 							  &transcript_current_line,
 							  TRANSCRIPT_MAX_COLUMNS,
 							  transcript_buffer );
+							  
+					window_page_down( fullscreen_transcript_window,
+							  &transcript_current_line,
+							  TRANSCRIPT_MAX_COLUMNS*2,
+							  f_transcript_buffer );
 					break;
 				case 16: /* CTRL-P */
                                         alarm(5);
@@ -995,11 +1017,30 @@ int main(int argc, char* argv[])
 						    	&transcript_current_line,
 							TRANSCRIPT_MAX_COLUMNS,
 							transcript_buffer );
+							
+					window_page_up( fullscreen_transcript_window,
+							  &transcript_current_line,
+							  TRANSCRIPT_MAX_COLUMNS*2,
+							  f_transcript_buffer );
 					break;
 		
 				case 17: /* CTRL-Q */ 
 					log_writeln(" > ... recived quit signal from client");
 					is_running = 0;
+					break;
+		
+				case 20: /* CTRL-T */
+					if(transcript_maxed) {
+						transcript_maxed = 0;
+						window_page_up(transcript_window, &transcript_current_line, TRANSCRIPT_MAX_COLUMNS, transcript_buffer);
+						wclear(fullscreen_transcript_window);
+						wrefresh(fullscreen_transcript_window);
+					} else {
+						transcript_maxed = 1;
+						window_page_up(fullscreen_transcript_window, &transcript_current_line, TRANSCRIPT_MAX_COLUMNS*2, f_transcript_buffer);
+						wclear(transcript_window);
+						wrefresh(transcript_window);
+					}
 					break;
 		
 				case 21: /* CTRL-U */
@@ -1114,6 +1155,7 @@ int main(int argc, char* argv[])
 	free(transcript_buffer);
 
 	delwin(transcript_window);
+	delwin(fullscreen_transcript_window);
 	delwin(client_chat_window);
 	endwin();
         

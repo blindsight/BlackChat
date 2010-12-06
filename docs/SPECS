@@ -48,7 +48,7 @@ REQUIRED COMMAND KEYS
 
 Extra Required Keys (and features):
     CTRL-I: Instant Message
-    CTRL-T: Transcript Max/Min
+>    CTRL-T: Transcript Max/Min
 
     256 Colors
     Unicode
