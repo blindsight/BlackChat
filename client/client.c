@@ -44,7 +44,6 @@ int   transcript_buffer_size = 256;
 int   transcript_current_line = 0;
 char *f_transcript_buffer;
 int   f_transcript_buffer_size = 256;
-//int   f_transcript_current_line = 0;
 
 
 char yell_messages[26][MAX_MESSAGE_LENGTH];
@@ -55,6 +54,8 @@ WINDOW *client_chat_window;
 WINDOW *lurk_win;
 WINDOW *yell_win;
 WINDOW *deepsix_win;
+WINDOW *deepsix_win;
+WINDOW *im_win;
 
 typedef struct other_window_t
 {
@@ -528,6 +529,29 @@ static void refresh_other_windows()
 }
 
 
+/* Draw user names that we can IM. */
+static void draw_im_window()
+{
+	int i;
+	wclear(im_win);
+
+	/* Show user names in im window. */
+	for(i = 0; i < 10; i ++) {
+		if(other_chat_windows[i].userName[0] != '\0') {
+			wprintw(im_win, "%d | %s\n", i, other_chat_windows[i].userName);
+		} else {
+			wprintw(im_win, "%d | ------------\n", i);
+		}
+	}
+	wprintw(im_win, "\nPress number associated with the user to send them an IM.\n");
+	wprintw(im_win, "Press any other key to exit.");
+	
+
+	/* redraw the im window. */
+	wrefresh(im_win);
+}
+
+
 /* Draw user names that we can deepsix. */
 static void draw_deepsix_window()
 {
@@ -787,6 +811,7 @@ int main(int argc, char* argv[])
         int is_lurking = 0;
         int is_yelling = 0;
         int in_deepsix = 0;
+        int sending_im = 0;
         int i;
 
 	/* josh-note:
@@ -833,7 +858,8 @@ int main(int argc, char* argv[])
         lurk_win           			= newwin(MAX_ROWS,MAX_COLUMNS,24,0);
         yell_win           			= newwin(23,40,0,0);
         deepsix_win        			= newwin(23,40,0,0);
-        box(yell_win, '|', '-');
+        im_win						= newwin(TRANSCRIPT_MAX_ROWS,TRANSCRIPT_MAX_COLUMNS,   0,0);
+   //     box(yell_win, '|', '-');
 
         set_yell_message(0, "Hello World");
         set_yell_message(1, "Yo dog!");
@@ -874,8 +900,8 @@ int main(int argc, char* argv[])
 
 		sprintf(buf, "key pressed: '%c'  int value: %d\n", ch, ch);
 		write_to_transcript_window(buf);
-                                        //end get char
-*/
+  */                                      //end get char
+
             /* Check if were in "Lurk" mode. */
             if(is_lurking) {
                     switch(ch) {
@@ -887,9 +913,31 @@ int main(int argc, char* argv[])
                                     is_running = 0;
                                     break;
                             default:
-                                    redrawwin(lurk_win);
                                     wrefresh(lurk_win);
                     }
+            }
+            /* Check if were in IM mode. */
+            else if(sending_im) {
+            		/*
+            		 TODO: Display list of users (like deepsix) to send IM to.
+            		 	All IM's will be displayed on the main transcript with some type of "marker"
+            		 	indicating that this was an IM.
+            		 */
+            		if(ch >= 48 && ch <= 57) {
+            				/* josh-note:
+            					Have josh send IM based on "ch" */
+            		}
+            
+            
+            		/* quit */
+                    if(ch == 17) {
+                    		is_running = 0;
+                    }
+                    
+                    /* exit IM */
+                    sending_im = 0;
+                    window_page_up(transcript_window,            &transcript_current_line, TRANSCRIPT_MAX_COLUMNS,   transcript_buffer);
+                    window_page_up(fullscreen_transcript_window, &transcript_current_line, TRANSCRIPT_MAX_COLUMNS*2, f_transcript_buffer);
             }
             /* Check if were in deepsix mode. */
             else if(in_deepsix) {
@@ -906,7 +954,7 @@ int main(int argc, char* argv[])
                     		is_running = 0;
                     }
                     
-                    /* exit deep six if we pressed any other key */
+                    /* exit deepsix */
                     in_deepsix = 0;
                     window_page_up(transcript_window,            &transcript_current_line, TRANSCRIPT_MAX_COLUMNS,   transcript_buffer);
                     window_page_up(fullscreen_transcript_window, &transcript_current_line, TRANSCRIPT_MAX_COLUMNS*2, f_transcript_buffer);
@@ -953,6 +1001,14 @@ int main(int argc, char* argv[])
 					client_buffer[ strlen(client_buffer)-1 ] = '\0';
 					print_client_chat_buffer();
 					break;
+					
+				case 9:  /* CTRL-I   /   TAB */
+					if(!sending_im) {
+						sending_im = 1;
+						draw_im_window();
+					}
+					break;
+					
 				case 10: /* CTRL-J and CTRL-M */
 		/* UNCOMMENT ME FOR USE WITH SERVER */
 					{
