@@ -12,9 +12,11 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
+#include <wchar.h>
 #include <errno.h>
 #include <sys/ioctl.h>
 #include <ncurses.h>
+#include <curses.h>
 #include "clientsocket.h"
 #include "client.h"
 #include "logger.h"
@@ -27,26 +29,26 @@
 
 #define MAX_ROWS					1
 #define MAX_COLUMNS 					80
-#define MAX_CHARS_IN_CLIENT_TYPING_WINDOW 	MAX_ROWS * MAX_COLUMNS
+#define MAX_wchar_tS_IN_CLIENT_TYPING_WINDOW 	MAX_ROWS * MAX_COLUMNS
 
 #define TRANSCRIPT_MAX_ROWS				23
 #define TRANSCRIPT_MAX_COLUMNS				40
-#define MAX_CHARS_IN_TRANSCRIPT_WINDOW		TRANSCRIPT_MAX_ROWS * TRANSCRIPT_MAX_COLUMNS
+#define MAX_wchar_tS_IN_TRANSCRIPT_WINDOW		TRANSCRIPT_MAX_ROWS * TRANSCRIPT_MAX_COLUMNS
 
 
 
-char client_buffer[1024];
+wchar_t client_buffer[1024];
 int  client_current_line = 0;
 int  client_cursor_position = 0;
 
-char *transcript_buffer;
+wchar_t *transcript_buffer;
 int   transcript_buffer_size = 256;
 int   transcript_current_line = 0;
-char *f_transcript_buffer;
+wchar_t *f_transcript_buffer;
 int   f_transcript_buffer_size = 256;
 
 
-char yell_messages[26][MAX_MESSAGE_LENGTH];
+wchar_t yell_messages[26][MAX_MESSAGE_LENGTH];
 
 WINDOW *transcript_window;
 WINDOW *fullscreen_transcript_window;
@@ -62,9 +64,9 @@ WINDOW *info_win;
 typedef struct other_window_t
 {
 	WINDOW *window;
-	char userName[MAX_USER_NAME_LENGTH];
-	char buffer[OTHER_WINDOW_BUFFER_SIZE];
-	char status;
+	wchar_t userName[MAX_USER_NAME_LENGTH];
+	wchar_t buffer[OTHER_WINDOW_BUFFER_SIZE];
+	wchar_t status;
 	int  canDeepSix;
 } other_window;
 
@@ -108,12 +110,12 @@ static void refresh_all_windows(int is_lurking)
 }
 
 /* Get number of lines in buffer. */
-static int str_get_num_lines(char *str, int max_columns)
+static int str_get_num_lines(wchar_t *str, int max_columns)
 {
         int i;
         int num_lines = 0;
 
-        for(i = 0; i < strlen(str); i++) {
+        for(i = 0; i < wcslen(str); i++) {
                 if( str[i] == '\n' || 
 		   (i % max_columns) == 0) {
 			num_lines ++;
@@ -125,10 +127,10 @@ static int str_get_num_lines(char *str, int max_columns)
 
 
 /* Page the specified window down by "line" number of lines. */
-void window_page_down(WINDOW *win, int *line, int max_columns, char *buffer)
+void window_page_down(WINDOW *win, int *line, int max_columns, wchar_t *buffer)
 {
         int i = 0;
-        int num_bold_chars = 0;
+        int num_bold_wchar_ts = 0;
         int start = 0;
         int using_bold = 0;
         int found_num_lines = 0;
@@ -143,16 +145,16 @@ void window_page_down(WINDOW *win, int *line, int max_columns, char *buffer)
 
 
 	/* Figure out where to start printing from. */
-        for(i = 0; i < strlen(buffer); i ++) {
+        for(i = 0; i < wcslen(buffer); i ++) {
                 /* --------- */
                 if(buffer[i] == 2) {
                     if(!using_bold) {
-                        num_bold_chars ++;
+                        num_bold_wchar_ts ++;
                     }
                     using_bold = 1;
                 /* --------- */
                 } else if(buffer[i] == 3) {
-                    num_bold_chars ++;
+                    num_bold_wchar_ts ++;
                     using_bold = 0;
                 }
  
@@ -165,18 +167,18 @@ void window_page_down(WINDOW *win, int *line, int max_columns, char *buffer)
 
 
         wclear(win);
-        start = i + num_bold_chars;
+        start = i + num_bold_wchar_ts;
 
 
 	/* Now write our buffer to the window. */
-	for(i = start; i <= strlen(buffer); i ++) {
-		/* Check if we found the start of a gaudy character. */
+	for(i = start; i <= wcslen(buffer); i ++) {
+		/* Check if we found the start of a gaudy wchar_tacter. */
 		if( buffer[i] == 2 ) {
 			using_bold = 1;
 		} else if(buffer[i] == 3) {
 			using_bold = 0;
 		} else {
-			/* Write the character to the window. */
+			/* Write the wchar_tacter to the window. */
 			if(using_bold) {
 				wattron(win, A_BOLD);
 				wprintw(win, "%c", buffer[i]);
@@ -193,10 +195,10 @@ void window_page_down(WINDOW *win, int *line, int max_columns, char *buffer)
 }
 
 /* Page the specified window up by "line" number of lines. */
-void window_page_up(WINDOW *win, int *line, int max_columns, char *buffer)
+void window_page_up(WINDOW *win, int *line, int max_columns, wchar_t *buffer)
 {
 	int i = 0;
-        int num_bold_chars = 0;
+        int num_bold_wchar_ts = 0;
         int found_num_lines = 0;
         int start = 0;
         int using_bold = 0;
@@ -211,16 +213,16 @@ void window_page_up(WINDOW *win, int *line, int max_columns, char *buffer)
 
 	/* Start counting the number of lines and figure out where the (*line) number
 	 * we want to print from starts. */
-        for(i = 0; i < strlen(buffer); i ++) {
+        for(i = 0; i < wcslen(buffer); i ++) {
                 /* --------- */
                 if(buffer[i] == 2) {
                     if(!using_bold) {
-                        num_bold_chars ++;
+                        num_bold_wchar_ts ++;
                     }
                     using_bold = 1;
                 /* --------- */
                 } else if(buffer[i] == 3) {
-                    num_bold_chars ++;
+                    num_bold_wchar_ts ++;
                     using_bold = 0;
                 }
   
@@ -232,18 +234,18 @@ void window_page_up(WINDOW *win, int *line, int max_columns, char *buffer)
 
 
         wclear(win);
-        start = i + num_bold_chars;
+        start = i + num_bold_wchar_ts;
 
 
 	/* Now write our buffer to the window. */
-	for(i = start; i <= strlen(buffer); i ++) {
-		/* Check if we found the start of a gaudy character. */
+	for(i = start; i <= wcslen(buffer); i ++) {
+		/* Check if we found the start of a gaudy wchar_tacter. */
 		if( buffer[i] == 2 ) {
 			using_bold = 1;
 		} else if(buffer[i] == 3) {
 			using_bold = 0;
 		} else {
-			/* Write the character to the window. */
+			/* Write the wchar_tacter to the window. */
 			if(using_bold) {
 				wattron(win, A_BOLD);
 				wprintw(win, "%c", buffer[i]);
@@ -264,15 +266,15 @@ void window_page_up(WINDOW *win, int *line, int max_columns, char *buffer)
 /* Print out the current buffer into the specified window.
  *
  * win		 ~ The ncurses window to print to.
- * max_chars	 ~ The max number of characters that can appear in the windows view at any given time.
- * max_columns   ~ The max number of characters that can be in a given column.
- * buffer	 ~ The character buffer to write to the window.
+ * max_wchar_ts	 ~ The max number of wchar_tacters that can appear in the windows view at any given time.
+ * max_columns   ~ The max number of wchar_tacters that can be in a given column.
+ * buffer	 ~ The wchar_tacter buffer to write to the window.
  * curr_line	 ~ The current line the user is at in the window.
  */
-static void print_buffer_to_window(WINDOW *win, int max_chars, int max_columns, char *buffer, int *curr_line)
+static void print_buffer_to_window(WINDOW *win, int max_wchar_ts, int max_columns, wchar_t *buffer, int *curr_line)
 {
-	int buf_len        = strlen(buffer);
-        int num_bold_chars = 0;
+	int buf_len        = wcslen(buffer);
+        int num_bold_wchar_ts = 0;
 	int using_bold     = 0;
 	int i;
 
@@ -281,25 +283,25 @@ static void print_buffer_to_window(WINDOW *win, int max_chars, int max_columns, 
 	wclear(win);
 
 	/* Here, we need to figure out how much text is already in our chat window.
-	 * The reason is because every time we want to add a new character to our 
+	 * The reason is because every time we want to add a new wchar_tacter to our 
 	 * window, we don't want it to scroll to the top.  We want our window to stay
 	 * were it's at. */
-	int num_chars_off_screen =  buf_len - max_chars;
+	int num_wchar_ts_off_screen =  buf_len - max_wchar_ts;
 	(*curr_line) = 0;
-	while(num_chars_off_screen > 0) {
+	while(num_wchar_ts_off_screen > 0) {
 		(*curr_line) ++;
-		num_chars_off_screen -= max_columns;
+		num_wchar_ts_off_screen -= max_columns;
 	}
 
 
-        /* Figure out how many bold chars are above the current line where printing. */
+        /* Figure out how many bold wchar_ts are above the current line where printing. */
         for(i = 0; i < (*curr_line)*max_columns; i ++) {
                 /* --------- */
                 if(buffer[i] == 2) {
-                    num_bold_chars ++;
+                    num_bold_wchar_ts ++;
                     using_bold = 1;
                 } else if(buffer[i] == 3) {
-                    num_bold_chars ++;
+                    num_bold_wchar_ts ++;
                     using_bold = 0;
                 }
         }
@@ -307,17 +309,17 @@ static void print_buffer_to_window(WINDOW *win, int max_chars, int max_columns, 
 
 
         /* Reset vars. */
-        i = i + num_bold_chars;
+        i = i + num_bold_wchar_ts;
 
 	/* Now write our buffer to the window. */
 	for(; i <= buf_len; i ++) {
-		/* Check if we found the start of a gaudy character. */
+		/* Check if we found the start of a gaudy wchar_tacter. */
 		if( buffer[i] == 2 ) {
 			using_bold = 1;
 		} else if(buffer[i] == 3) {
 			using_bold = 0;
 		} else {
-			/* Write the character to the window. */
+			/* Write the wchar_tacter to the window. */
 			if(using_bold) {
 				wattron(win, A_BOLD);
 				wprintw(win, "%c", buffer[i]);
@@ -342,8 +344,8 @@ static void print_client_chat_buffer()
 
 	
 	/* Make sure the cursor position is valid. */
-	if(client_cursor_position > strlen(client_buffer)) {
-		client_cursor_position = strlen(client_buffer);
+	if(client_cursor_position > wcslen(client_buffer)) {
+		client_cursor_position = wcslen(client_buffer);
 	} else if(client_cursor_position < 0) {
 		client_cursor_position = 0;
 	}
@@ -351,7 +353,7 @@ static void print_client_chat_buffer()
 
 	/* Print the text to the client window. */
 	print_buffer_to_window( client_chat_window, 
-				MAX_CHARS_IN_CLIENT_TYPING_WINDOW,
+				MAX_wchar_tS_IN_CLIENT_TYPING_WINDOW,
 			/*	MAX_COLUMNS,	*/
 				1,
 				client_buffer,
@@ -359,7 +361,7 @@ static void print_client_chat_buffer()
 
 
 	/* Get the position the cursor in the client window. */
-	for(i = 0; i < strlen(client_buffer); i ++) {
+	for(i = 0; i < wcslen(client_buffer); i ++) {
 		if (client_buffer[i] != 2 && 
 		    client_buffer[i] != 3 ) {
 			xPos++;
@@ -388,9 +390,9 @@ static void print_transcript_chat_buffer()
 }
 
 /* Delete the last word in the specified buffer. */
-static void delete_last_word_in_buffer(char *buffer)
+static void delete_last_word_in_buffer(wchar_t *buffer)
 {
-	int word_end      = strlen(buffer);
+	int word_end      = wcslen(buffer);
 	int word_start    = word_end;
 	int did_find_word = 0;
 	int i;
@@ -483,8 +485,8 @@ static void free_other_windows()
 /* Draw other windows. */
 static void refresh_other_windows()
 {
-        char nameToPrint[MAX_USER_NAME_LENGTH];
-        char textToPrint[OTHER_WINDOW_BUFFER_SIZE];
+        wchar_t nameToPrint[MAX_USER_NAME_LENGTH];
+        wchar_t textToPrint[OTHER_WINDOW_BUFFER_SIZE];
 	int i, j, index;
 
 
@@ -495,26 +497,26 @@ static void refresh_other_windows()
                 /* Make sure we only print the end of the buffer AND/OR print white space so the
                  * color continues to the end of the window. */
                 memset(textToPrint, '\0', sizeof(other_chat_windows[i].buffer));
-                strcpy(textToPrint, other_chat_windows[i].buffer);
-                if( strlen(textToPrint) > 20 ) {
+                wcscpy(textToPrint, other_chat_windows[i].buffer);
+                if( wcslen(textToPrint) > 20 ) {
                         index = 20;
-                        for(j = strlen(textToPrint); index >= 0; j--) {
+                        for(j = wcslen(textToPrint); index >= 0; j--) {
                                 textToPrint[ index ] = other_chat_windows[i].buffer[j];
                                 index --;
                         }
                 } else {
-                        for(j = strlen(textToPrint); j < 20; j ++) {
-                            strcat(textToPrint, " ");
+                        for(j = wcslen(textToPrint); j < 20; j ++) {
+                            wcscat(textToPrint, L" ");
                         }
                 }
 
                 
                 /* Do the same thing but for the user name.*/
                 memset(nameToPrint, '\0', sizeof(other_chat_windows[i].userName));
-                strcpy(nameToPrint, other_chat_windows[i].userName);
-                for(j = strlen(nameToPrint); j < 20; j ++) {
+                wcscpy(nameToPrint, other_chat_windows[i].userName);
+                for(j = wcslen(nameToPrint); j < 20; j ++) {
                 		if(j < 19) {
-                        	strcat(nameToPrint, " ");
+                        	wcscat(nameToPrint, L" ");
                         } else {
                         	nameToPrint[j]   = other_chat_windows[i].status;
                         	nameToPrint[j+1] = '\0';
@@ -580,9 +582,9 @@ static void draw_deepsix_window()
 }
 
 
-/* Delete the specified number of characters behind the current cursor position. */
+/* Delete the specified number of wchar_tacters behind the current cursor position. */
 #if 0
-static void delete_num_chars_behind_cursor(int ch)
+static void delete_num_wchar_ts_behind_cursor(int ch)
 {
 	
 }
@@ -597,21 +599,21 @@ static void delete_num_chars_behind_cursor(int ch)
  */
 
 /* Set a yell message. */
-void set_yell_message(int index, char *message)
+void set_yell_message(int index, wchar_t *message)
 {
         int i;
         if(index < 0 || index > 25) {
                 log_writeln("WARNING: Can't set yell message because index is not between 0 and 25!");
                 return;
         }
-        if(strlen(message) >= MAX_MESSAGE_LENGTH) {
+        if(wcslen(message) >= MAX_MESSAGE_LENGTH) {
                 log_writeln("WARNING: Can't set yell message because message length is greater than MAX_MESSAGE_LENGTH!");
                 return;
         }
 
 
-        memset(yell_messages[index], '\0', MAX_MESSAGE_LENGTH * sizeof(char));
-        strcpy(yell_messages[index], message);
+        memset(yell_messages[index], '\0', MAX_MESSAGE_LENGTH * sizeof(wchar_t));
+        wcscpy(yell_messages[index], message);
         wclear(yell_win);
 
         /* Print what to say to yell window. */
@@ -624,22 +626,22 @@ void set_yell_message(int index, char *message)
 }
 
 /* Returns the clients name. */
-char *get_client_name()
+wchar_t *get_client_name()
 {
-    return "Henry";
+    return L"Henry";
 }
 
 
 /* Set the window user name. */
-void set_window_user_name(int num, char *name)
+void set_window_user_name(int num, wchar_t *name)
 {
-        strcpy(other_chat_windows[num].userName, name);
+        wcscpy(other_chat_windows[num].userName, name);
 }
 
 /* Append text to the specified user window. */
-void append_text_to_window(int num, char *text)
+void append_text_to_window(int num, wchar_t *text)
 {
-        strcat(other_chat_windows[num].buffer, text);
+        wcscat(other_chat_windows[num].buffer, text);
 }
 
 /* Clear the text from the specified user window. */
@@ -655,7 +657,7 @@ void can_deepsix_user(int num, int can_vote)
 }
 
 /* Visually set user status. */
-void set_user_status(int num, char status)
+void set_user_status(int num, wchar_t status)
 {
 	other_chat_windows[num].status = status;
 }
@@ -676,7 +678,7 @@ void remove_user_from_window(int num)
 
 
 /* Get the text inside our chat window. */
-char *grab_text_from_client_typing_window(void)
+wchar_t *grab_text_from_client_typing_window(void)
 {
 	return client_buffer;
 }
@@ -691,18 +693,18 @@ void clear_text_from_client_typing_window(void)
 }
 
 /* Put text in status window. */
-void set_text_in_status_window(char *text)
+void set_text_in_status_window(wchar_t *text)
 {
 	wclear(status_win);
 	wprintw(status_win, "%s", text);
 }
 
 
-/* This is a special strlen function for use in the function below it.
- * We need a special strlen to pick up the escape characters ^B and ^C. 
- * NOTE: This function basically returns how many of the "special" chars
+/* This is a special wcslen function for use in the function below it.
+ * We need a special wcslen to pick up the escape wchar_tacters ^B and ^C. 
+ * NOTE: This function basically returns how many of the "special" wchar_ts
  *       appear in the string. */
-static int s_strlen(char *str)
+static int s_wcslen(wchar_t *str)
 {
 	int index  = 0;
 	int length = 0;
@@ -720,34 +722,34 @@ static int s_strlen(char *str)
 }
 
 /* Append the line to the transcript window. */
-static char *write_to_ts_win(char *str, int max_col, int max_row, WINDOW *win, char *buffer, int *line, int *buffer_size)
+static wchar_t *write_to_ts_win(wchar_t *str, int max_col, int max_row, WINDOW *win, wchar_t *buffer, int *line, int *buffer_size)
 {
-	int   size = sizeof(char) * (strlen(str)+(max_col*4));
-	char *text = (char*)malloc(size);
+	int   size = sizeof(wchar_t) * (wcslen(str)+(max_col*4));
+	wchar_t *text = (wchar_t*)malloc(size);
 	int   i;
 
 
 	/* Copy over string. */
 	memset(text, '\0', size);
-	strcpy(text, str);
+	wcscpy(text, str);
 
 	/* Pad out the string so it takes up the whole line. */
-	while( strlen(text) % max_col != 0 ) {
-		strcat(text, " ");
+	while( wcslen(text) % max_col != 0 ) {
+		wcscat(text, L" ");
 	}
 	/* ---- */
-	for(i = 0; i < s_strlen(text); i ++) {
-		strcat(text, " ");
+	for(i = 0; i < s_wcslen(text); i ++) {
+		wcscat(text, L" ");
 	}
 
 
         /* Deal with buffer over run for the transcript window. */
-	while( (strlen(buffer) + strlen(text)) > *buffer_size ) {
+	while( (wcslen(buffer) + wcslen(text)) > *buffer_size ) {
 		int i = 0;
-		char *temp_buffer = (char*)malloc( sizeof(char) * (*buffer_size*2) );
+		wchar_t *temp_buffer = (wchar_t*)malloc( sizeof(wchar_t) * (*buffer_size*2) );
 
 		/* Copy over old values. */
-		for(i = 0; i < strlen(buffer); i++) {
+		for(i = 0; i < wcslen(buffer); i++) {
 			temp_buffer[i] = buffer[i];
 		}
 
@@ -758,22 +760,22 @@ static char *write_to_ts_win(char *str, int max_col, int max_row, WINDOW *win, c
 
 
         /* Append text to transcript window. */
-	strcat(buffer, text);
+	wcscat(buffer, text);
 	if(user_is_scrolling == 0) {
 		print_buffer_to_window(win, max_col*max_row, max_col, buffer, line);
 	} else {
 		window_page_up(win, line, max_col, buffer);
 	}
 
-	log_writeln(text);
+//	log_writeln(text);
 	free(text);
 	return buffer;
 }
 
 /* add some text to our transcript window. */
-void write_to_transcript_window(char *str)
+void write_to_transcript_window(wchar_t *str)
 {
-	int length = strlen(str);
+	int length = wcslen(str);
 	int i, j;
 	int found_nl_index = 0;
 
@@ -782,7 +784,7 @@ void write_to_transcript_window(char *str)
 	for(i = 0; i <= length; i ++) {
 		/* We found a new line. */
 		if(str[i] == '\n' || str[i] =='\0') {
-			char *s = (char*)malloc( sizeof(char) * (i+2) );
+			wchar_t *s = (wchar_t*)malloc( sizeof(wchar_t) * (i+2) );
 			int s_index = 0;
 
 			/* Copy over the string we found so far. */
@@ -838,11 +840,11 @@ int main(int argc, char* argv[])
         signal(SIGALRM, scroll_ended_handler);
 
         for(i = 0; i < 26; i ++) {   /* set our message to null */
-                memset(yell_messages[i], '\0', MAX_MESSAGE_LENGTH * sizeof(char)); 
+                memset(yell_messages[i], '\0', MAX_MESSAGE_LENGTH * sizeof(wchar_t)); 
         }
 
-	transcript_buffer   = (char*)malloc(sizeof(char)*transcript_buffer_size);
-	f_transcript_buffer = (char*)malloc(sizeof(char)*f_transcript_buffer_size);
+	transcript_buffer   = (wchar_t*)malloc(sizeof(wchar_t)*transcript_buffer_size);
+	f_transcript_buffer = (wchar_t*)malloc(sizeof(wchar_t)*f_transcript_buffer_size);
     memset(client_buffer, '\0', sizeof(client_buffer));
 	memset(transcript_buffer, '\0', sizeof(transcript_buffer));
 
@@ -875,11 +877,11 @@ int main(int argc, char* argv[])
         info_win					= newwin(3,40,0,40);
    //     box(yell_win, '|', '-');
 
-        set_yell_message(0, "Hello World");
-        set_yell_message(1, "Yo dog!");
-        set_yell_message(2, "Hey everyone!");
-        set_yell_message(3, "Whats up?");
-        set_yell_message(12,"I agree.");
+        set_yell_message(0, L"Hello World");
+        set_yell_message(1, L"Yo dog!");
+        set_yell_message(2, L"Hey everyone!");
+        set_yell_message(3, L"Whats up?");
+        set_yell_message(12,L"I agree.");
 
         wcolor_set(lurk_win,           4, NULL);
         wcolor_set(transcript_window,  3, NULL);
@@ -890,18 +892,18 @@ int main(int argc, char* argv[])
 	init_other_windows();
 
 	log_writeln(" > ... [beginning transcript]");
-	write_to_transcript_window("***************************************");
-	write_to_transcript_window("******** Wecome to BlackChat! *********");
-	write_to_transcript_window("***************************************");
+	write_to_transcript_window(L"***************************************");
+	write_to_transcript_window(L"******** Wecome to BlackChat! *********");
+	write_to_transcript_window(L"***************************************");
         
-	set_window_user_name(0, "chris");
-	set_window_user_name(1, "sue");
-	set_window_user_name(2, "dan");
-	set_window_user_name(3, "joe");
-	append_text_to_window(0, "Sup!");
-	append_text_to_window(1, "yo everyone, I'm in love with blackchat!");
-	append_text_to_window(2, "hey, my name is Dan!");
-	append_text_to_window(3, "Hey!?");
+	set_window_user_name(0, L"chris");
+	set_window_user_name(1, L"sue");
+	set_window_user_name(2, L"dan");
+	set_window_user_name(3, L"joe");
+	append_text_to_window(0, L"Sup!");
+	append_text_to_window(1, L"yo everyone, I'm in love with blackchat!");
+	append_text_to_window(2, L"hey, my name is Dan!");
+	append_text_to_window(3, L"Hey!?");
 
 	can_deepsix_user(0, 0);
 	set_user_status(1, 'L');
@@ -915,11 +917,11 @@ int main(int argc, char* argv[])
 
 	while(is_running) {
 		int ch = getch();
-/*		char buf[512];          //get chars
+/*		wchar_t buf[512];          //get wchar_ts
 
 		sprintf(buf, "key pressed: '%c'  int value: %d\n", ch, ch);
 		write_to_transcript_window(buf);
-  */                                      //end get char
+  */                                      //end get wchar_t
 
             /* Check if were in "Lurk" mode. */
             if(is_lurking) {
@@ -1017,7 +1019,7 @@ int main(int argc, char* argv[])
 
 				case 127:/* Backsapce Key (grok hack) */
 				case 8:  /* CTRL-H */
-					client_buffer[ strlen(client_buffer)-1 ] = '\0';
+					client_buffer[ wcslen(client_buffer)-1 ] = '\0';
 					print_client_chat_buffer();
 					break;
 					
@@ -1031,7 +1033,7 @@ int main(int argc, char* argv[])
 				case 10: /* CTRL-J and CTRL-M */
 		/* UNCOMMENT ME FOR USE WITH SERVER */
 					{
-						char *buf = NULL;
+						wchar_t *buf = NULL;
 
 
 						/* If we had gaudy mode on, we need to disable it. */
@@ -1043,9 +1045,12 @@ int main(int argc, char* argv[])
 
 
 						/* Get our buffer togther to write to the transcript window. */
-						buf = (char*)malloc( (strlen("[Client Says]: ")+strlen(client_buffer)+1) * sizeof(char) );
-						sprintf(buf, "[Client Says]: %s", client_buffer);
-						write_to_transcript_window(buf);
+						buf = (wchar_t*)malloc( (wcslen(L"[Client Says]: ")+wcslen(client_buffer)+1) * sizeof(wchar_t) );
+						write_to_transcript_window(L"[Client Says]: ");
+						write_to_transcript_window(client_buffer);
+						
+					//	sprintf(buf, "[Client Says]: %ls", client_buffer);
+					//	write_to_transcript_window(buf);
 					}
 					clear_text_from_client_typing_window();
 				/*	write_out(client_id);                    enter key is pressed so send a message to the server. */
@@ -1054,7 +1059,7 @@ int main(int argc, char* argv[])
 				case 11: /* CTRL-K */
 					{
 						int i;
-						for(i = client_cursor_position+1; i < strlen(client_buffer); i ++) {
+						for(i = client_cursor_position+1; i < wcslen(client_buffer); i ++) {
 							client_buffer[i] = '\0';
 						}
 					}
@@ -1121,7 +1126,7 @@ int main(int argc, char* argv[])
 				case 21: /* CTRL-U */
 					client_current_line = 0;
 					client_cursor_position = 0;
-					memset(client_buffer, '\0', strlen(client_buffer)+1);	
+					memset(client_buffer, '\0', wcslen(client_buffer)+1);	
 					print_client_chat_buffer();
 					break;
 
@@ -1153,7 +1158,7 @@ int main(int argc, char* argv[])
                                         break;
 
                                 /*
-                                 * If we encountered an unkown escape charcter, break out of here so we don't
+                                 * If we encountered an unkown escape wchar_tcter, break out of here so we don't
                                  * print it. */
                                 break;              /* TODO: Fix me! */
 			}
@@ -1161,7 +1166,7 @@ int main(int argc, char* argv[])
 			/* Scroll the clients typing window down. */
 			case KEY_DOWN:
 				client_current_line ++;
-				if(client_current_line*MAX_COLUMNS > strlen(client_buffer)) client_current_line --;
+				if(client_current_line*MAX_COLUMNS > wcslen(client_buffer)) client_current_line --;
 
 					    wclear(client_chat_window);
 					    wprintw(client_chat_window, &client_buffer[client_current_line*MAX_COLUMNS]);
@@ -1177,15 +1182,15 @@ int main(int argc, char* argv[])
 #endif
 			/* Delete the previous chracter. */
 			case KEY_BACKSPACE:
-				/* Check if were deleting the last character. */
-				if( client_cursor_position == strlen(client_buffer) ) {
+				/* Check if were deleting the last wchar_tacter. */
+				if( client_cursor_position == wcslen(client_buffer) ) {
 					client_buffer[ client_cursor_position-1 ] = '\0';
 					client_cursor_position --;
 					print_client_chat_buffer();
 				} else {
-					/* If were here, that means were NOT deleting the last character. */
+					/* If were here, that means were NOT deleting the last wchar_tacter. */
 					int i;
-					for(i = client_cursor_position-1; i < strlen(client_buffer); i ++) {
+					for(i = client_cursor_position-1; i < wcslen(client_buffer); i ++) {
 						client_buffer[i] = client_buffer[i+1];
 					}
 					client_cursor_position --;
@@ -1194,22 +1199,22 @@ int main(int argc, char* argv[])
 				break;
 
 			/* If were here, that means we didn't press any "special" keys so that means were
-			 * trying to write some generic characters to our chat window. */
+			 * trying to write some generic wchar_tacters to our chat window. */
 			default:
-				/* Make sure we don't print a control character. */
-				if(!iscntrl(ch) ) {
-					/* Check if were inserting a character before the end of our client
+				/* Make sure we don't print a control wchar_tacter. */
+				if(!iscntrl(ch)) {
+					/* Check if were inserting a wchar_tacter before the end of our client
 					 * typing buffer. */
-					if( client_cursor_position != strlen(client_buffer) ) {
+					if( client_cursor_position != wcslen(client_buffer) ) {
 	
-						/* Move all characters in front of the cursor up one. */
+						/* Move all wchar_tacters in front of the cursor up one. */
 						int i;
-						for(i = strlen(client_buffer)+1; i > client_cursor_position; i --) {
+						for(i = wcslen(client_buffer)+1; i > client_cursor_position; i --) {
 							client_buffer[i] = client_buffer[i-1];
 						}
 					}
 
-					/* Add the character to our buffer. */
+					/* Add the wchar_tacter to our buffer. */
 					client_buffer[ client_cursor_position++ ] = ch;
 
 					/* Print our new/updated buffer. */
