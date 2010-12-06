@@ -11,7 +11,7 @@
 
 
 /* Get the text inside our chat window. */
-char *grab_text_from_client_typing_window(void);
+wchar_t *grab_text_from_client_typing_window(void);
 
 
 /* Clear the text from our chat window. */
@@ -19,7 +19,7 @@ void clear_text_from_client_typing_window(void);
 
 
 /* Add some text to our transcript window. */
-void write_to_transcript_window(char *str);
+void write_to_transcript_window(wchar_t *str);
 
 
 
@@ -30,13 +30,13 @@ void write_to_transcript_window(char *str);
  * @param num  - The number of the window to set the name on.
  * @param name - The name of the person in the client window.
  */
-void set_window_user_name(int num, char *name);
+void set_window_user_name(int num, wchar_t *name);
 
 /* Adds the specified string to the specified chat window.
  * @param num  - The number of the window to append the text to.
  * @param text - The text to append to the chat window.
  */
-void append_text_to_window(int num, char *text);
+void append_text_to_window(int num, wchar_t *text);
 
 /* Clears the text from the specified user window. 
  * @param num  - The number of the window to clear the text from.
@@ -49,11 +49,11 @@ void clear_user_window_text(int num);
  */
 void can_deepsix_user(int num, int can_vote);
 
-/* Sets the status of this user (which appears as a single character after there username).
+/* Sets the status of this user (which appears as a single wchar_tacter after there username).
  * @param num     - The number of the window to clear the text from.
- * @param status  - The user's current status expressed as a character.
+ * @param status  - The user's current status expressed as a wchar_tacter.
  */
-void set_user_status(int num, char status);
+void set_user_status(int num, wchar_t status);
 
 /* Removes the current user from the chat window.  You should call this if the 
  * user disconnects from the server.
@@ -68,7 +68,7 @@ void remove_user_from_window(int num);
 /* Sets the text that will appear in the status window.
  * @text  - The text to appear in the status window.
  */
-void set_text_in_status_window(char *text);
+void set_text_in_status_window(wchar_t *text);
 
 
 
@@ -78,11 +78,11 @@ void set_text_in_status_window(char *text);
  * @param index   - Should be a number 0-25, where 0=A, 1=B, 2=C, ... 25=Z
  * @param message - The message to be associted with this index/letter.
  * */
-void set_yell_message(int index, char *message);
+void set_yell_message(int index, wchar_t *message);
 
 
 /* Returns clients name. */
-char *get_client_name();
+wchar_t *get_client_name();
 
 
 #endif

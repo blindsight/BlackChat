@@ -33,8 +33,10 @@ void write_out(int client_id)
 {
     char *buffer = (char *)malloc(4096);
     char *status = (char *)malloc(4096);
-    create_main_chat_message(uid,grab_text_from_client_typing_window(),buffer);
-    create_status_message(uid,grab_text_from_client_typing_window(),status);
+    char *user_text = grab_text_from_client_typing_window();
+
+    create_main_chat_message(uid,user_text,buffer);
+   // create_status_message(uid,user_text,status);
 
     if(write(client_id, buffer, strlen(buffer)*sizeof(char)) == -1) {
         write_to_transcript_window("Error: Couldn't write to server main chat message!\n");
@@ -44,7 +46,7 @@ void write_out(int client_id)
         write_to_transcript_window("Error: Couldn't write to server status message!\n");
        // write_to_transcript_window(buffer); 
     }
-    clear_user_window_text(1);       //TODO: add window number
+   // clear_user_window_text(1);       //TODO: add window number
     clear_text_from_client_typing_window();
     free(buffer);
     free(status);
@@ -58,14 +60,15 @@ void write_yell(int client_id)
 void write_im(int client_id, int to_user)
 {
     char *message = (char *)malloc(4096);
-    //create_im_message(uid, #to_user, ...usertext ..., message);
+    char *user_text = grab_text_from_client_typing_window();
+    create_im_message(uid, to_user, user_text, message);
     
     if(write(client_id, message, strlen(message)*sizeof(char)) == -1) {
-        write_to_transcript_window("Error: Couldn't write to server for yell message!\n");
+        write_to_transcript_window("Error: Couldn't write to server for IM message!\n");
        // write_to_transcript_window(buffer); 
     }
-    free(message);
-   //TODO: finish IM message, clear text being written from user window 
+    free(message); 
+    clear_text_from_client_typing_window();
 }
 
 void write_vote(int client_id)
@@ -104,16 +107,16 @@ void read_from_server(int client_id)
 {
     WIN_OBJ window;
 
-    int cmd_type = -1;
-    int user = -1;
-    int text_type = -1;
-    int from_user = -1;
-    int vote_type = -1;
-    int ul_type = -1;
-    int user_num = 0;
-    int offset = 0;
-    int err_type = -1;
-    int user_lurk = -1;
+    int cmd_type = -1;              //command type
+    int user = -1;                  //user who sent text
+    int text_type = -1;             //text message type
+    int from_user = -1;             //IM "from_user"
+    int vote_type = -1;             //vote type
+    int ul_type = -1;               //user list type
+    int user_num = 0;               //temp for userlists
+    int offset = 0;                 //temp for offset in user list
+    int err_type = -1;              //error type
+    int user_lurk = -1;             //user that is currently lurking
 
     char *output = (char *)malloc(4096);
     char *text = (char *)malloc(4096);
@@ -148,7 +151,7 @@ void read_from_server(int client_id)
                 if(text_type == TEXT_IM)        //send to IM window
                 {
                     from_user = get_from_user_from_message(servout);
-                    //TODO: write to IM window
+                    append_text_to_window(from_user,text);
                 }
                 else                            //send to transcript window
                 {
@@ -173,11 +176,11 @@ void read_from_server(int client_id)
                 switch(vote_type)
                 {
                 case VOTE_ACCEPTED:
-                    sprintf(vote_response, "%d vote accepted", user);
+                    sprintf(vote_response, "%s vote accepted",curr_user->name);
                     write_to_transcript_window(vote_response);
                 break;
                 case VOTE_NOT_ACCEPTED:
-                    sprintf(vote_response, "%d vote NOT accepted", user);
+                    sprintf(vote_response, "%s vote NOT accepted", curr_user->name);
                     write_to_transcript_window(vote_response);
                 }
                 free(vote_response);
@@ -190,6 +193,7 @@ void read_from_server(int client_id)
                 write_to_transcript_window(lurk_message);
             break;
             case CMD_USERLIST:
+            {
                 UR_OBJ user_list[10];       //list of all users currently on server
                 UR_OBJ temp_user;
                 ul_type = get_userlist_type_from_message(servout);
@@ -212,7 +216,8 @@ void read_from_server(int client_id)
                             online_user temp_o;
                             temp_user = user_list[i];
                             int temp_id = temp_user->uid;
-                            char temp_name[100] = temp_user->name;
+                            char temp_name[100];
+                            strcpy(temp_name, temp_user->name);
                             for(j=0; j<10; j++)
                             {
                                temp_o = online_list[j];
@@ -266,7 +271,7 @@ void read_from_server(int client_id)
                         curr_user->uid = uid;
                     break;
                 }  //TODO: user list sign off if it is actually needed.
-            break;
+            break;}
             case CMD_ERROR:
                 err_type = get_error_type_from_message(servout);
 
