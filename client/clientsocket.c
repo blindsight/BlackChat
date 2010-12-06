@@ -17,9 +17,15 @@
 #include "bc_network.h"
 #include "blackchat.h"
 
-UR_OBJ user_list[20];       //list of all users currently on server
 UR_OBJ curr_user;           //this client
 int uid = -1;               //user id for this client
+
+typedef struct {
+    int user_id;
+    char *name;
+} online_user;
+
+online_user online_list[10];
 
 /* This function is called whenever we (the client)
  * press the enter key. */
@@ -184,10 +190,13 @@ void read_from_server(int client_id)
                 write_to_transcript_window(lurk_message);
             break;
             case CMD_USERLIST:
+                UR_OBJ user_list[10];       //list of all users currently on server
+                UR_OBJ temp_user;
                 ul_type = get_userlist_type_from_message(servout);
+                int i, j;
                 switch(ul_type)
                 {
-                    case USER_LIST_CURRENT || USER_LIST_SIGN_OFF:       //This means we are getting the current user list from the server.
+                    case USER_LIST_CURRENT:       //This means we are getting the current user list from the server.
                         user_list[user_num] = (UR_OBJ)malloc(sizeof(struct user_obj));
                         offset = get_first_user(servout, user_list[user_num]);
 
@@ -197,7 +206,61 @@ void read_from_server(int client_id)
                             user_list[user_num] = (UR_OBJ)malloc(sizeof(struct user_obj));
                         }
                         while((offset = get_next_user(offset,servout,user_list[user_num])) > 0);
+                    
+                        for(i=0; i<user_num; i++)           //adds users received to my online user list
+                        {   
+                            online_user temp_o;
+                            temp_user = user_list[i];
+                            int temp_id = temp_user->uid;
+                            char temp_name[100] = temp_user->name;
+                            for(j=0; j<10; j++)
+                            {
+                               temp_o = online_list[j];
+                               if(temp_o.user_id == 0)
+                               {
+                                    temp_o.user_id = temp_id;
+                                    temp_o.name = temp_name;
+                                    break;
+                               }
+                            
+                            }
+                            free(temp_user);
+                        }
+                        //TODO: need seperate message for sign off in order to remove user from online_list
+                        //also need a quick function to return index in online_list for window number
                     break;
+                   /* case USER_LIST_SIGN_OFF:
+                        user_list[user_num] = (UR_OBJ)malloc(sizeof(struct user_obj));
+                        offset = get_first_user(servout, user_list[user_num]);
+
+                        do
+                        {
+                            user_num++;
+                            user_list[user_num] = (UR_OBJ)malloc(sizeof(struct user_obj));
+                        }
+                        while((offset = get_next_user(offset,servout,user_list[user_num])) > 0);
+                    
+                        for(i=0; i<user_num; i++)           //adds users received to my online user list
+                        {   
+                            online_user temp_o;
+                            temp_user = user_list[i];
+                            int temp_id = temp_user->uid;
+                            char temp_name[100] = temp_user->name;
+                            for(j=0; j<10; j++)
+                            {
+                               temp_o = online_list[j];
+                               if(temp_o.user_id == temp_id )
+                               {
+                                    temp_o.user_id = 0;
+                                   // temp_o.name = " ";
+                                    break;
+                               }
+                            
+                            }
+                            free(temp_o);
+                            free(temp_user);
+
+                    break; */
                     case USER_LIST_RECEIVE_UID:
                         uid = get_user_from_message(servout);
                         curr_user->uid = uid;
@@ -238,6 +301,12 @@ int init_client(char *name)
     char *message = (char *)malloc(4096);
     strcpy(curr_user->name, name);
     create_user_name_message(name,message);
+    int index_o;
+    for(index_o = 0; index_o < 10; index_o++)       //initialize all user_ids to 0
+    {
+        online_user temp = online_list[index_o];
+        temp.user_id = 0;
+    }
 
     client = socket(AF_INET, SOCK_STREAM, 0);   /* create the socket */
     if(client == -1)
