@@ -107,16 +107,16 @@ void read_from_server(int client_id)
 {
     WIN_OBJ window;
 
-    int cmd_type = -1;
-    int user = -1;
-    int text_type = -1;
-    int from_user = -1;
-    int vote_type = -1;
-    int ul_type = -1;
-    int user_num = 0;
-    int offset = 0;
-    int err_type = -1;
-    int user_lurk = -1;
+    int cmd_type = -1;              //command type
+    int user = -1;                  //user who sent text
+    int text_type = -1;             //text message type
+    int from_user = -1;             //IM "from_user"
+    int vote_type = -1;             //vote type
+    int ul_type = -1;               //user list type
+    int user_num = 0;               //temp for userlists
+    int offset = 0;                 //temp for offset in user list
+    int err_type = -1;              //error type
+    int user_lurk = -1;             //user that is currently lurking
 
     char *output = (char *)malloc(4096);
     char *text = (char *)malloc(4096);
