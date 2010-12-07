@@ -789,7 +789,7 @@ int main(int argc, char* argv[])
 	/* josh-note:
 			These need to be uncommented for the client connection to work. */
 	int client_id = init_client("Henry");         /*          create a client. */
-        init_user_list(client_id);                    /*  init the client size user list. */
+  //      init_user_list(client_id);                    /*  init the client size user list. */
 
 	log_init();
 	log_writeln(" --------------------------- ");
@@ -865,8 +865,8 @@ int main(int argc, char* argv[])
 	wprintw(info_win, "UI: Henry Stratmann|Client: Josh Hartman\n");
 	wprintw(info_win, "Server: Tyler Reid |Protocol: Tim Rhoads\n");
 
-       
-        refresh_all_windows(is_lurking);
+      
+        //  refresh_all_windows(is_lurking);
 
 
 	while(is_running) {
@@ -881,6 +881,7 @@ int main(int argc, char* argv[])
             if(is_lurking) {
                     switch(ch) {
                             case 12: /* lurk-off */
+                                    write_lurk(client_id);
                                     is_lurking = 0;
                                     print_client_chat_buffer();
                                     break;
@@ -1022,6 +1023,7 @@ int main(int argc, char* argv[])
 							    redrawwin(lurk_win);
 							    wrefresh(lurk_win);
 							    is_lurking = 1;
+                                                            write_lurk(client_id);
 							}
 						    break;
 
@@ -1142,7 +1144,7 @@ int main(int argc, char* argv[])
 				} else {
 					/* If were here, that means were NOT deleting the last character. */
 					int i;
-					for(i = client_cursor_position-1; i < strlen(client_buffer); i ++) {
+					for(i = client_cursor_position-2; i < strlen(client_buffer); i ++) {
 						client_buffer[i] = client_buffer[i+1];
 					}
 					client_cursor_position --;
@@ -1179,6 +1181,9 @@ int main(int argc, char* argv[])
         	/* Read from the server. */
         	/* josh-note
         			Uncomment this! */
+
+
+        	refresh_all_windows(is_lurking);
           	read_from_server(client_id);
         	refresh_all_windows(is_lurking);
 	}

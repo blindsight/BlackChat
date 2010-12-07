@@ -34,13 +34,13 @@ void write_out(int client_id)
     char *buffer = (char *)malloc(4096);
     char *status = (char *)malloc(4096);
     char *user_text = grab_text_from_client_typing_window();
-
+    
     create_main_chat_message(uid,user_text,buffer);
    // create_status_message(uid,user_text,status);
 
     if(write(client_id, buffer, strlen(buffer)*sizeof(char)) == -1) {
        write_to_transcript_window("Error: Couldn't write to server main chat message!\n");
-       // write_to_transcript_window(buffer); 
+       write_to_transcript_window(buffer); 
     }
     /*
     if(write(client_id, status, strlen(status)*sizeof(char)) == -1) {
@@ -100,9 +100,10 @@ void write_vote(int client_id)
 void write_lurk(int client_id)
 {
     char *lurk_result = (char *)malloc(4096);
+    memset(lurk_result, '\0', 4096);
     create_user_lurking(uid,lurk_result);
 
-    if(write(client_id, lurk_result, strlen(lurk_result)*sizeof(char)) == -1) {
+    if(write(client_id, lurk_result, 4096) == -1) {
         write_to_transcript_window("Error: Couldn't write to server that client is lurking!\n");
        // write_to_transcript_window(buffer); 
     }
@@ -140,7 +141,9 @@ void read_from_server(int client_id)
     FD_SET(client_id, &servs);
     struct timeval timeout = {0, 75000};
 
-    memset(servout, '\0', sizeof(servout));
+    memset(output,  '\0', 4096);
+    memset(text,    '\0', 4096);
+    memset(servout, '\0', 4096);
 
     switch(select(client_id +1, &servs, 0, 0, &timeout))
     {
@@ -150,16 +153,20 @@ void read_from_server(int client_id)
         write_to_transcript_window("Error: couldn't read from server!\n");
         break;
     default:
-        if(read(client_id, servout, sizeof(servout)) > 0)
+        if(read(client_id, servout, 4096) > 0)
         {
             cmd_type = get_type_from_message(servout);
             user = get_user_from_message(servout);
 
+//char buf[512];
+//sprintf(buf, "cmd_type: %d | servout: %s", cmd_type, servout);
+//write_to_transcript_window(buf);
             switch(cmd_type)
             {
             case CMD_TEXT:
+            //    write_to_transcript_window("Hello world!\n");
                 get_text_from_message(servout, text);
-                text[strlen(text)-1] = '\0';
+         //       text[strlen(text)-1] = '\0';
                 text_type = get_text_type_from_message(servout);
                 if(text_type == TEXT_IM)        //send to IM window
                 {
@@ -168,8 +175,8 @@ void read_from_server(int client_id)
                 }
                 else                            //send to transcript window
                 {
-                    sprintf(output, "%d says: %s", user, text);
-                    write_to_transcript_window(output);
+                   // sprintf(output, "%d says: %s", user, text);
+                    write_to_transcript_window(text);
                    // set_window_user_name( #win_number, char name);
                    // TODO: get the window numbers and name.
                 }
@@ -211,6 +218,9 @@ void read_from_server(int client_id)
                 UR_OBJ temp_user;
                 ul_type = get_userlist_type_from_message(servout);
                 int i, j;
+                char buf[512];
+                sprintf(buf, "ul_type %d", ul_type);
+                write_to_transcript_window(buf);
                 switch(ul_type)
                 {
                     case USER_LIST_CURRENT:       //This means we are getting the current user list from the server.
@@ -244,6 +254,7 @@ void read_from_server(int client_id)
                             
                             }
                             free(temp_user);
+                            write_to_transcript_window("have userlist");
                         }
                         //TODO: need seperate message for sign off in order to remove user from online_list
                         //also need a quick function to return index in online_list for window number
@@ -283,6 +294,7 @@ void read_from_server(int client_id)
                     case USER_LIST_RECEIVE_UID:
                         uid = get_user_from_message(servout);
                         curr_user->uid = uid;
+                       // init_user_list(client_id); 
                     break;
                 }  //TODO: user list sign off if it is actually needed.
             break;}
