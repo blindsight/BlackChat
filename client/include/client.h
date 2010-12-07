@@ -10,6 +10,18 @@
 #define __BCCLIENT__
 
 
+
+#define MAX_USER_NAME_LENGTH 21
+
+typedef struct user_stats_t
+{
+        char name[MAX_USER_NAME_LENGTH];
+        int  canDeepSix;
+} user_stats;
+
+
+
+
 /* Get the text inside our chat window. */
 char *grab_text_from_client_typing_window(void);
 
@@ -26,11 +38,6 @@ void write_to_transcript_window(char *str);
 
 
 
-/* This sets the name of one of the client windows.
- * @param num  - The number of the window to set the name on.
- * @param name - The name of the person in the client window.
- */
-void set_window_user_name(int num, char *name);
 
 /* Adds the specified string to the specified chat window.
  * @param num  - The number of the window to append the text to.
@@ -42,18 +49,6 @@ void append_text_to_window(int num, char *text);
  * @param num  - The number of the window to clear the text from.
  */
 void clear_user_window_text(int num);
-
-/* Enables/disables deep-six vote on the given user.
- * @param num       - The number of the window to clear the text from.
- * @param can_vote  - Boolean (true/false).  If true, than we can deep-six this user. If false, then we cannot.
- */
-void can_deepsix_user(int num, int can_vote);
-
-/* Sets the status of this user (which appears as a single character after there username).
- * @param num     - The number of the window to clear the text from.
- * @param status  - The user's current status expressed as a character.
- */
-void set_user_status(int num, char status);
 
 /* Removes the current user from the chat window.  You should call this if the 
  * user disconnects from the server.

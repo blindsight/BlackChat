@@ -15,12 +15,11 @@
 #include <errno.h>
 #include <sys/ioctl.h>
 #include <ncurses.h>
-#include "clientsocket.h"
-#include "client.h"
-#include "logger.h"
+#include "include/clientsocket.h"
+#include "include/client.h"
+#include "include/logger.h"
 
 
-#define MAX_USER_NAME_LENGTH				21
 #define OTHER_WINDOW_BUFFER_SIZE			256
 #define MAX_MESSAGE_LENGTH                              128
 
@@ -46,6 +45,7 @@ char *f_transcript_buffer;
 int   f_transcript_buffer_size = 256;
 
 
+user_stats user_info[10];
 char yell_messages[26][MAX_MESSAGE_LENGTH];
 
 WINDOW *transcript_window;
@@ -62,11 +62,9 @@ WINDOW *info_win;
 typedef struct other_window_t
 {
 	WINDOW *window;
-	char userName[MAX_USER_NAME_LENGTH];
 	char buffer[OTHER_WINDOW_BUFFER_SIZE];
-	char status;
-	int  canDeepSix;
 } other_window;
+
 
 other_window *other_chat_windows;
 int user_is_scrolling = 0;
@@ -436,10 +434,7 @@ static void init_other_windows()
 
 	for(i = 0; i < 10; i ++) {	
 		other_chat_windows[i].window = newwin(2,20,yPos,xPos);
-		memset(other_chat_windows[i].userName, '\0', sizeof(other_chat_windows[i].userName));
 		memset(other_chat_windows[i].buffer,   '\0', sizeof(other_chat_windows[i].buffer));
-		other_chat_windows[i].canDeepSix = 1;
-		other_chat_windows[i].status     = ' ';
 
 		/* Move window to new location. */
 		if(i % 2 == 0) {
@@ -483,7 +478,6 @@ static void free_other_windows()
 /* Draw other windows. */
 static void refresh_other_windows()
 {
-        char nameToPrint[MAX_USER_NAME_LENGTH];
         char textToPrint[OTHER_WINDOW_BUFFER_SIZE];
 	int i, j, index;
 
@@ -508,27 +502,11 @@ static void refresh_other_windows()
                         }
                 }
 
-                
-                /* Do the same thing but for the user name.*/
-                memset(nameToPrint, '\0', sizeof(other_chat_windows[i].userName));
-                strcpy(nameToPrint, other_chat_windows[i].userName);
-                for(j = strlen(nameToPrint); j < 20; j ++) {
-                		if(j < 19) {
-                        	strcat(nameToPrint, " ");
-                        } else {
-                        	nameToPrint[j]   = other_chat_windows[i].status;
-                        	nameToPrint[j+1] = '\0';
-                        }
-                }
-
+             
 
                 /* Print */
-		mvwprintw(  other_chat_windows[i].window, 0,0, nameToPrint);
-		mvwprintw(  other_chat_windows[i].window,
-                            1,
-                            0,
-                            textToPrint);
-
+                wclear(other_chat_windows[i].window);
+                wprintw(other_chat_windows[i].window, textToPrint);
 		wrefresh(other_chat_windows[i].window);
 	}
 }
@@ -542,8 +520,8 @@ static void draw_im_window()
 
 	/* Show user names in im window. */
 	for(i = 0; i < 10; i ++) {
-		if(other_chat_windows[i].userName[0] != '\0') {
-			wprintw(im_win, "%d | %s\n", i, other_chat_windows[i].userName);
+		if(user_info[i].name[0] != '\0') {
+			wprintw(im_win, "%d | %s\n", i, user_info[i].name);
 		} else {
 			wprintw(im_win, "%d | ------------\n", i);
 		}
@@ -565,8 +543,8 @@ static void draw_deepsix_window()
 
 	/* Show user names in deepsix window. */
 	for(i = 0; i < 10; i ++) {
-		if(other_chat_windows[i].userName[0] != '\0' && other_chat_windows[i].canDeepSix == 1) {
-			wprintw(deepsix_win, "%d | %s\n", i, other_chat_windows[i].userName);
+		if(user_info[i].name[0] != '\0' && user_info[i].canDeepSix == 1) {
+			wprintw(deepsix_win, "%d | %s\n", i, user_info[i].name);
 		} else {
 			wprintw(deepsix_win, "%d | ------------\n", i);
 		}
@@ -630,12 +608,6 @@ char *get_client_name()
 }
 
 
-/* Set the window user name. */
-void set_window_user_name(int num, char *name)
-{
-        strcpy(other_chat_windows[num].userName, name);
-}
-
 /* Append text to the specified user window. */
 void append_text_to_window(int num, char *text)
 {
@@ -648,18 +620,6 @@ void clear_user_window_text(int num)
         memset(other_chat_windows[num].buffer, '\0', sizeof(other_chat_windows[num].buffer));
 }
 
-/* Allow/disallow us to deepsix a user. */
-void can_deepsix_user(int num, int can_vote)
-{
-	other_chat_windows[num].canDeepSix = can_vote;
-}
-
-/* Visually set user status. */
-void set_user_status(int num, char status)
-{
-	other_chat_windows[num].status = status;
-}
-
 /* Visually removes the user from the chat */
 void remove_user_from_window(int num)
 {
@@ -670,8 +630,8 @@ void remove_user_from_window(int num)
 	
 	
 	wclear(other_chat_windows[num].window);
-	memset(other_chat_windows[num].userName, '\0', sizeof(other_chat_windows[num].userName));
-	memset(other_chat_windows[num].buffer, 	 '\0', sizeof(other_chat_windows[num].buffer));
+	memset(user_info[num].name,            '\0', sizeof(user_info[num].name));
+	memset(other_chat_windows[num].buffer, '\0', sizeof(other_chat_windows[num].buffer));
 }
 
 
@@ -828,8 +788,8 @@ int main(int argc, char* argv[])
 
 	/* josh-note:
 			These need to be uncommented for the client connection to work. */
-/*	int client_id = init_client("Henry");                   create a client. */
-/*      init_user_list(client_id);                      init the client size user list. */
+	int client_id = init_client("Henry");         /*          create a client. */
+        init_user_list(client_id);                    /*  init the client size user list. */
 
 	log_init();
 	log_writeln(" --------------------------- ");
@@ -851,7 +811,7 @@ int main(int argc, char* argv[])
 
 	log_writeln(" > ... initializing ncurses screen in raw mode");
 	initscr();
-//	start_color();
+	start_color();
 	init_pair(0, COLOR_WHITE,   COLOR_BLACK);
 	init_pair(1, COLOR_GREEN,   COLOR_BLACK);
 	init_pair(2, COLOR_YELLOW,  COLOR_BLACK);
@@ -894,18 +854,11 @@ int main(int argc, char* argv[])
 	write_to_transcript_window("******** Wecome to BlackChat! *********");
 	write_to_transcript_window("***************************************");
         
-	set_window_user_name(0, "chris");
-	set_window_user_name(1, "sue");
-	set_window_user_name(2, "dan");
-	set_window_user_name(3, "joe");
 	append_text_to_window(0, "Sup!");
 	append_text_to_window(1, "yo everyone, I'm in love with blackchat!");
 	append_text_to_window(2, "hey, my name is Dan!");
 	append_text_to_window(3, "Hey!?");
 
-	can_deepsix_user(0, 0);
-	set_user_status(1, 'L');
-	set_user_status(2, 'L');
 	
 	/* Set our info window text. */
 	wprintw(info_win, "       Black Chat  v1.0\n");
@@ -1244,7 +1197,7 @@ int main(int argc, char* argv[])
         
     /* josh-note
     		This should be uncommented to close down the client socket. */
-/*  close_client(client_id); */
+        close_client(client_id);
 
 	log_writeln(" > ... closing client log");
 	log_writeln(" > ... bye bye for now!");

@@ -230,7 +230,7 @@ void read_from_server(int client_id)
                             int temp_id = temp_user->uid;
                             char temp_name[100];
                             strcpy(temp_name, temp_user->name);
-                            set_window_user_name(i+1, temp_name);
+//                            set_window_user_name(i+1, temp_name);
                             for(j=0; j<10; j++)
                             {
                                temp_o = online_list[j];
@@ -318,6 +318,7 @@ int init_client(char *name)
     int client;
     struct sockaddr_in address;
     char *message = (char *)malloc(4096);
+    memset(curr_user->name, '\0', sizeof(curr_user->name));
     strcpy(curr_user->name, name);
     create_user_name_message(name,message);
     int index_o;

@@ -4,7 +4,7 @@
 .PHONY: clean
 
 CC = gcc
-CFLAGS = -Wall -O3 -I../protocol/include -Iinclude -I../server/include -I../ncurses/include
+CFLAGS = -Wall -g -I../protocol/include -Iinclude -I../server/include -I../ncurses/include
 # LIBS = ../bin/lib/libncursesw.a ../bin/lib/libbcprotocol.a
 LIBS = -lncurses ../bin/lib/libbcprotocol.a
 BUILD_DIR = ../bin
