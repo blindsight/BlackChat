@@ -1,18 +1,30 @@
  --------------------------- 
  > Starting BlackChat
- > ... detecting current terminal size xy:(93,53)
+ > ... detecting current terminal size xy:(118,33)
  > ... initializing ncurses screen in raw mode
  > ... creating transcript and client window
  > ... creating other 9 windows
  > ... [beginning transcript]
-**************************************  
-**************************************                                          
-******** Wecome to BlackChat! ********  
-******** Wecome to BlackChat! ********                                          
-**************************************  
-**************************************                                          
-[Client Says]: a sdfaksdfl; kdadfasdjfkl
-[Client Says]: a sdfaksdfl; kdadfasdjfkl                                        
+*************************************** 
+***************************************                                         
+******** Wecome to BlackChat! ********* 
+******** Wecome to BlackChat! *********                                         
+*************************************** 
+***************************************                                         
+[Client Says]:                          
+[Client Says]:                                                                  
+[Client Says]: fdgh                     
+[Client Says]: fdgh                                                             
+[Client Says]: dfg                      
+[Client Says]: dfg                                                              
+[Client Says]: dfg                      
+[Client Says]: dfg                                                              
+[Client Says]: df                       
+[Client Says]: df                                                               
+[Client Says]: g                        
+[Client Says]: g                                                                
+[Client Says]: df                       
+[Client Says]: df                                                               
  > ... recived quit signal from client
  > ... [ending transcript]
  > ... freeing resources

@@ -52,6 +52,18 @@ void write_out(int client_id)
     free(status);
 }
 
+/* writing character status message to server */
+void write_status(int client_id, int win_num, char *ch)
+{
+    char *message = (char *)malloc(10);
+    create_status_message(uid,ch,message);
+    if(write(client_id, message, strlen(message)*sizeof(char)) == -1) {
+        write_to_transcript_window("Error: Couldn't write to server for status  message!\n");
+       // write_to_transcript_window(buffer); 
+    }
+    
+}
+
 void write_yell(int client_id)
 {
 //TODO: there seems to be a discrepency between who actually keeps the yell message
@@ -218,6 +230,7 @@ void read_from_server(int client_id)
                             int temp_id = temp_user->uid;
                             char temp_name[100];
                             strcpy(temp_name, temp_user->name);
+                            set_window_user_name(i+1, temp_name);
                             for(j=0; j<10; j++)
                             {
                                temp_o = online_list[j];
