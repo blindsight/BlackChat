@@ -73,11 +73,12 @@ int main(int argc, char **argv) {
   }
   
   //Once here I need to start handling messages
-  #ifdef DEBUG
-    printf("before handle messages");
-#endif
-  
+    printf("before handle messages\n");
+
+ for(;;){ 
   handle_messages(bc_server, messages);
+ }
+  printf("After handle messages\n");
   
   exit(0);
   
@@ -98,9 +99,11 @@ void handle_messages(SERVER_OBJ* server, SERVER_QUEUE_OBJ* messages){
   if(isEmpty(messages)){
 	sem_wait(&messages_sem);
   }
+  printf("Before extracting message\n");
   pthread_mutex_lock(&mutex);
   message = dequeue(messages);	 
   pthread_mutex_unlock(&mutex);
+  printf("Message extracted: %s", message);
   
   cmd_type = get_type_from_message(message);
   

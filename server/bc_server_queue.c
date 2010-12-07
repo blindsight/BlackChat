@@ -11,7 +11,7 @@ SERVER_QUEUE_OBJ* init_queue(int max_size) {
     Q->size = 0;
 
     Q->head = (NODE_OBJ *)malloc(sizeof(struct node));
-    Q->tail = (NODE_OBJ *)malloc(sizeof(struct node));
+    Q->tail = Q->head;
 
     Q->head->data = NULL;
     Q->head->next = NULL;
@@ -27,7 +27,8 @@ void enqueue(SERVER_QUEUE_OBJ *q, void *data) {
       
       NODE_OBJ *temp = (NODE_OBJ *)malloc(sizeof(NODE_OBJ));
 
-        if (q->head == NULL) {
+
+        if (q->head == NULL || q->size == 0) {
             
             temp->data = data;
             temp->next = NULL;
@@ -62,11 +63,13 @@ void* dequeue(SERVER_QUEUE_OBJ* q){
     
     NODE_OBJ* temp = q->tail;
     q->tail = temp->prev;
+    if(q->tail == NULL)
+        q->tail = (struct node *)malloc(sizeof(struct node));
     q->tail->next = NULL;
     
     void* c = temp->data;
     
-    free(temp);
+   // free(temp);
     
     q->size--;
     
