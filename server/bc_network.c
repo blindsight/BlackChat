@@ -1,3 +1,5 @@
+#include <sys/stat.h>
+#include <sys/types.h>
 #include "bc_network.h"
 
 void fill_queue(SERVER_OBJ *server, SERVER_QUEUE_OBJ *messages);
@@ -237,6 +239,9 @@ void fill_queue(SERVER_OBJ *server, SERVER_QUEUE_OBJ *messages){
 
 }
 void *listen_thread(void *args){
+
+  printf("Listen thread spawned\n"); 
+  fflush(NULL);
   
   SERVER_OBJ *server = (SERVER_OBJ *)args;
      
@@ -248,7 +253,11 @@ void *listen_thread(void *args){
   
     client_len = sizeof(client_addr);
     
+if(listen(server->server_socket, LISTEN_QUEUE) == -1)
+
+    printf("Before client accept\n");
     temp_client = accept(server->server_socket, (struct sockaddr *)&client_addr, &client_len);
+    printf("Client accepted\n");
     
     pthread_mutex_lock(&mutex);
     num_connections = server->num_users_connected;
@@ -280,11 +289,11 @@ void *listen_thread(void *args){
           mkdir(path, 777);
           free(path);
 
+          printf("Before create client thread\n");  
+          if(pthread_create(&server->clients[i]->client_thread_id, NULL, client_thread, server->clients[i]) != 0)
+	    perror("Couldn't create client thread");
 
-
-	  
-	  if(pthread_create(&server->clients[i]->client_thread_id, NULL, client_thread, server->clients[i]) == -1)
-	    //TODO handle error
+          printf("After client accepted with thread id %d\n", server->clients[i]->client_thread_id);
 	  server->clients[i]->is_connected = true;
           server->clients[i]->time_connected = time(NULL);
           server->clients[i]->server = server;
@@ -292,11 +301,12 @@ void *listen_thread(void *args){
 	}
 	
 	pthread_mutex_unlock(&mutex);
+        break;
       }      
       
       server->num_users_connected += 1;
 
-      break;
+      
       
     }
     else{
@@ -312,19 +322,22 @@ pthread_exit(0);
 }
 
 void *client_thread(void *args){
-  
+
+  printf("Client connected\n");
+
   CLIENT_OBJ *client = (CLIENT_OBJ *)args;
   char *buff = (char *)malloc(1024 * 8);  //Read in 8k at a time should be more than enough
   int bytes_read;
   bool messages_empty;
  
-  printf("Client connected");
   for(;;){
+      printf("Begin client loop\n");
+
     pthread_testcancel();
     
     pthread_mutex_lock(&mutex);
     messages_empty = isEmpty(client->messages);
-    pthread_mutex_lock(&mutex);
+    pthread_mutex_unlock(&mutex);
     
     if(!messages_empty){
       
@@ -335,6 +348,8 @@ void *client_thread(void *args){
 	
 	break;
       }
+
+      printf("Adding To message queue: %s\n", buff);
       pthread_mutex_lock(&mutex);
       enqueue(client->messages, buff);
       pthread_mutex_unlock(&mutex);
@@ -346,6 +361,8 @@ void *client_thread(void *args){
       
       if(bytes_read == 0)
 	break;
+
+      printf("Adding to message queue in else block: %s\n", buff);
       pthread_mutex_lock(&mutex);
       enqueue(client->messages, buff);
       pthread_mutex_unlock(&mutex);
@@ -354,6 +371,11 @@ void *client_thread(void *args){
     
     } 
     
+   
+  
+  }
+
+  printf("Closing Client begin\n");
   pthread_mutex_lock(&mutex);
   client->bytes_from = 0;
   client->bytes_to = 0;
@@ -362,10 +384,9 @@ void *client_thread(void *args){
   close(client->client_socket);
   client->server->num_users_connected -= 1;
   pthread_mutex_unlock(&mutex);
- 
-  pthread_exit(0);
-  
-  }
+  printf("closing client end\n");
+
+
 pthread_exit(0);
 }
 
