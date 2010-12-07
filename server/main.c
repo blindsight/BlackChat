@@ -97,15 +97,20 @@ void handle_messages(SERVER_OBJ* server, SERVER_QUEUE_OBJ* messages){
 //  char *message_data; 
     
   if(isEmpty(messages)){
+      printf("Waiting on semaphore main thread\n");
 	sem_wait(&messages_sem);
+      printf("Done waiting on semaphore\n");  
   }
+
   printf("Before extracting message\n");
   pthread_mutex_lock(&mutex);
   message = dequeue(messages);	 
   pthread_mutex_unlock(&mutex);
-  printf("Message extracted: %s", message);
+  printf("Message extracted: %s\n", message);
   
   cmd_type = get_type_from_message(message);
+
+  printf("CMD_TYPE: %d\n", cmd_type);
   
   switch(cmd_type) {
   
@@ -116,15 +121,27 @@ void handle_messages(SERVER_OBJ* server, SERVER_QUEUE_OBJ* messages){
 	  case TEXT_MAIN_CHAT:
 	  {
 	    char *buff = (char *)malloc(1024 * 8);
-	    int user = get_from_user_from_message(message);
+            char *message_to_server = (char *)malloc(1024 * 8);
+            get_text_from_message(message, buff);
+
+            printf("Contents of Buff: %s\n", buff);
+
+            int user = get_user_from_message(message);
+
+            sprintf(message_to_server, "%s says: %s\n", server->clients[user]->user_data->name, buff);  
+            
+            printf("Message to Server: %s\n", message_to_server);
+	    
 	    HST_OBJ temp = server->clients[user]->user_data->history;
 	    
 	    
-	    server->clients[user]->user_data->history->from = NULL;
-	    server->clients[user]->user_data->history->next = temp;
+	    //server->clients[user]->user_data->history->from = NULL;
+	    //server->clients[user]->user_data->history->next = temp;
 	    //TODO update time
 	    
-	    create_text_message(TEXT_MAIN_CHAT, user, server->clients[user]->user_data->history->line, buff);
+	    create_text_message(TEXT_MAIN_CHAT, user, message_to_server, buff);
+
+            printf("Sending to client: %s\n", buff);
 	    
 	    broadcast_all(server->clients, buff);
 	    
@@ -149,7 +166,7 @@ void handle_messages(SERVER_OBJ* server, SERVER_QUEUE_OBJ* messages){
 	  case TEXT_STATUS:
 	  {
 	   
-	    int user = get_from_user_from_message(message);
+	    int user = get_user_from_message(message);
 	    char *buff = (char *)malloc(1024 * 8);
 
             create_status_message(user, message, buff);
@@ -168,8 +185,8 @@ void handle_messages(SERVER_OBJ* server, SERVER_QUEUE_OBJ* messages){
 	    char *buff = (char *)malloc(1024 * 8);
 	    
 	    get_text_from_message(message, server->clients[user]->user_data->im->line);
-	    server->clients[user]->user_data->im->from = NULL;
-	    server->clients[user]->user_data->im->next = temp;
+	    //server->clients[user]->user_data->im->from = NULL;
+	    //server->clients[user]->user_data->im->next = temp;
 	    //TODO update time
 	    
 	    create_im_message(user, to_user, server->clients[user]->user_data->im->line, buff);
@@ -197,7 +214,7 @@ void handle_messages(SERVER_OBJ* server, SERVER_QUEUE_OBJ* messages){
 
       get_window_from_message(message, window);
 
-      save_user_window(window, get_from_user_from_message(message));
+      save_user_window(window, get_user_from_message(message));
 
 	free(window);
     } 
@@ -205,7 +222,7 @@ void handle_messages(SERVER_OBJ* server, SERVER_QUEUE_OBJ* messages){
     case CMD_VOTE:
     {
       int voted_user = get_voted_for_uid_from_message(message);
-      int user = get_from_user_from_message(message);
+      int user = get_user_from_message(message);
       int num_votes = 0;
       //bool is_vote_done = false;
       char *buff = (char *)malloc(1024 * 8);
@@ -289,6 +306,33 @@ void handle_messages(SERVER_OBJ* server, SERVER_QUEUE_OBJ* messages){
 	  //TODO send ERROR_UNKNOWN_MSG
 	  break;
 	
+      }
+      break;
+    case CMD_LURK:
+      {
+          char *message_to_server = (char *)malloc(1024 * 8);
+          char *buff = (char *)malloc(1024 * 8);
+
+          int user = get_user_lurking(message);
+
+          if(server->clients[user]->user_data->lurk){
+              sprintf(message_to_server, "%s is no longer lurking!", server->clients[user]->user_data->name);
+              server->clients[user]->user_data->lurk = 0;
+          }
+          else
+          {
+              sprintf(message_to_server, "%s is Lurking!!!", server->clients[user]->user_data->name);
+              server->clients[user]->user_data->lurk = 1;
+
+          }
+
+          printf("Lurk message: %s\n", message_to_server);
+
+          create_text_message(TEXT_MAIN_CHAT, user, message_to_server, buff);
+
+          broadcast_all(server->clients, buff);
+          free(message_to_server);
+          free(buff);
       }
       break;
     case CMD_ERROR:

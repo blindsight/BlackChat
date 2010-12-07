@@ -24,13 +24,16 @@ SERVER_QUEUE_OBJ* init_queue(int max_size) {
 void enqueue(SERVER_QUEUE_OBJ *q, void *data) {
 
     if (!isFull(q)) {
-      
+
+      void* real_data = (void*)malloc(1024 * 8);
+      memcpy(real_data, data, 1024 * 8);
+
       NODE_OBJ *temp = (NODE_OBJ *)malloc(sizeof(NODE_OBJ));
 
 
         if (q->head == NULL || q->size == 0) {
             
-            temp->data = data;
+            temp->data = real_data;
             temp->next = NULL;
 	    temp->prev = NULL;
 
@@ -42,7 +45,8 @@ void enqueue(SERVER_QUEUE_OBJ *q, void *data) {
         }
         else {
             
-            temp->data = data;
+            
+            temp->data = real_data;
             temp->next = q->head;
 	    temp->prev = NULL;
 	    

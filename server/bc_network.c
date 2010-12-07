@@ -280,7 +280,9 @@ if(listen(server->server_socket, LISTEN_QUEUE) == -1)
           buff[0] = '\0';
           create_uid_message(i, buff);
 
-          write(temp_client, buff, sizeof(buff));
+          printf("UID MSG: %s", buff);
+
+          write(temp_client, buff, strlen(buff));
 
           free(buff);
 
@@ -340,7 +342,8 @@ void *client_thread(void *args){
     pthread_mutex_unlock(&mutex);
     
     if(!messages_empty){
-      
+
+      memset(buff, '\0', 1024 * 8);        
       bytes_read = read(client->client_socket, buff, 1024*8);
       client->bytes_from += bytes_read;
       
@@ -353,8 +356,12 @@ void *client_thread(void *args){
       pthread_mutex_lock(&mutex);
       enqueue(client->messages, buff);
       pthread_mutex_unlock(&mutex);
+      
+      sem_post(&messages_sem);
     }
     else{
+
+        memset(buff, '\0', 1024 * 8);
    
       bytes_read = read(client->client_socket, buff, 1024*8);
       client->bytes_from += bytes_read;
