@@ -39,13 +39,14 @@ void write_out(int client_id)
    // create_status_message(uid,user_text,status);
 
     if(write(client_id, buffer, strlen(buffer)*sizeof(char)) == -1) {
-        write_to_transcript_window("Error: Couldn't write to server main chat message!\n");
+       write_to_transcript_window("Error: Couldn't write to server main chat message!\n");
        // write_to_transcript_window(buffer); 
     }
+    /*
     if(write(client_id, status, strlen(status)*sizeof(char)) == -1) {
         write_to_transcript_window("Error: Couldn't write to server status message!\n");
        // write_to_transcript_window(buffer); 
-    }
+    }*/
    // clear_user_window_text(1);       //TODO: add window number
     clear_text_from_client_typing_window();
     free(buffer);
@@ -373,12 +374,14 @@ void init_user_list(int client_id)
  * file descriptor as input. */
 void close_client(int client_id)
 {
+#if 0
     /* send the server our 'quit' message. */
     if( write(client_id, "exit", sizeof("exit")) == -1 )
     {
         perror("COULDN'T SEND EXIT MESSAGE!");
         exit(1);
     }
+#endif
 
     if( close(client_id) == -1)      /* close the socket */
     {
