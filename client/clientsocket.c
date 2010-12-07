@@ -314,6 +314,7 @@ free(servout);
  * socket it creates. */
 int init_client(char *name)
 {
+    curr_user = (UR_OBJ)malloc(sizeof(struct user_obj));
     int client;
     struct sockaddr_in address;
     char *message = (char *)malloc(4096);
