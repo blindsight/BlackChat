@@ -983,8 +983,8 @@ int main(int argc, char* argv[])
 					
 				case 10: /* CTRL-J and CTRL-M */
 		/* UNCOMMENT ME FOR USE WITH SERVER */
-					{
-						char *buf = NULL;
+				//	{
+//						char *buf = NULL;
 
 
 						/* If we had gaudy mode on, we need to disable it. */
@@ -995,13 +995,14 @@ int main(int argc, char* argv[])
 						}
 
 
-						/* Get our buffer togther to write to the transcript window. */
+#if 0						/* Get our buffer togther to write to the transcript window. */
 						buf = (char*)malloc( (strlen("[Client Says]: ")+strlen(client_buffer)+1) * sizeof(char) );
 						sprintf(buf, "[Client Says]: %s", client_buffer);
 						write_to_transcript_window(buf);
 					}
 					clear_text_from_client_typing_window();
-				/*	write_out(client_id);                    enter key is pressed so send a message to the server. */
+#endif
+					write_out(client_id);                  /*  enter key is pressed so send a message to the server. */
 						    break;
 
 				case 11: /* CTRL-K */
@@ -1176,7 +1177,6 @@ int main(int argc, char* argv[])
         	/* josh-note
         			Uncomment this! */
           	read_from_server(client_id);
-
         	refresh_all_windows(is_lurking);
 	}
 
