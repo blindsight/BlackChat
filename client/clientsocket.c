@@ -374,12 +374,14 @@ void init_user_list(int client_id)
  * file descriptor as input. */
 void close_client(int client_id)
 {
+#if 0
     /* send the server our 'quit' message. */
     if( write(client_id, "exit", sizeof("exit")) == -1 )
     {
         perror("COULDN'T SEND EXIT MESSAGE!");
         exit(1);
     }
+#endif
 
     if( close(client_id) == -1)      /* close the socket */
     {

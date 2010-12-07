@@ -604,7 +604,7 @@ void set_yell_message(int index, char *message)
 /* Returns the clients name. */
 char *get_client_name()
 {
-    return "Henry";
+    return "H-Bomb";
 }
 
 
