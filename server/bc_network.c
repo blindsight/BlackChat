@@ -317,7 +317,8 @@ void *client_thread(void *args){
   char *buff = (char *)malloc(1024 * 8);  //Read in 8k at a time should be more than enough
   int bytes_read;
   bool messages_empty;
-  
+ 
+  printf("Client connected");
   for(;;){
     pthread_testcancel();
     

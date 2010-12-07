@@ -38,7 +38,7 @@ configure:1088: PATH=".;."; conftest.sh
 configure:1091: $? = 127
 configure:1104: checking for egrep
 configure:1114: result: grep -E
-configure:1128: result: Configuring NCURSES 5.7 ABI 5 (Mon Dec  6 13:28:48 CST 2010)
+configure:1128: result: Configuring NCURSES 5.7 ABI 5 (Mon Dec  6 19:01:39 CST 2010)
 configure:1233: checking build system type
 configure:1251: result: i686-pc-linux-gnu
 configure:1258: checking host system type
@@ -832,7 +832,7 @@ configure:11115: $? = 0
 configure:11125: result: yes
 configure:11193: checking if -lm needed for math functions
 configure:11215: gcc -o conftest -g -O2  -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64  -DNDEBUG  conftest.c  >&5
-/tmp/ccCbY7Q9.o: In function `main':
+/tmp/ccMqGj2l.o: In function `main':
 /home/yr/project/bc/ncurses/configure:11208: undefined reference to `sin'
 collect2: ld returned 1 exit status
 configure:11218: $? = 1
@@ -1068,7 +1068,7 @@ configure:12808: $? = 0
 configure:12818: result: yes
 configure:12762: checking for issetugid
 configure:12799: gcc -o conftest -g -O2  --param max-inline-insns-single=1200  -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64  -DNDEBUG  conftest.c  >&5
-/tmp/cccmOuOV.o: In function `main':
+/tmp/ccxSxjwQ.o: In function `main':
 /home/yr/project/bc/ncurses/configure:12790: undefined reference to `issetugid'
 collect2: ld returned 1 exit status
 configure:12802: $? = 1
@@ -1536,6 +1536,7 @@ config.status:17610: creating misc/run_tic.sh
 config.status:17610: creating misc/ncurses-config
 config.status:17610: creating Makefile
 config.status:17707: creating include/ncurses_cfg.h
+config.status:17789: include/ncurses_cfg.h is unchanged
 
 ## ----------------- ##
 ## Cache variables.  ##
@@ -1722,7 +1723,7 @@ cf_cv_struct_dirent64='no'
 cf_cv_subst_AR_OPTS='rv'
 cf_cv_sys_time_select='yes'
 cf_cv_system_name='linux-gnu'
-cf_cv_timestamp='Mon Dec  6 13:28:48 CST 2010'
+cf_cv_timestamp='Mon Dec  6 19:01:39 CST 2010'
 cf_cv_type_of_bool='unsigned char'
 cf_cv_type_sigaction='no'
 cf_cv_typeof_chtype='long'
