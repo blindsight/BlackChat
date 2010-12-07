@@ -725,7 +725,7 @@ static char *write_to_ts_win(char *str, int max_col, int max_row, WINDOW *win, c
 		window_page_up(win, line, max_col, buffer);
 	}
 
-	log_writeln(text);
+//	log_writeln(text);
 	free(text);
 	return buffer;
 }
@@ -864,7 +864,10 @@ int main(int argc, char* argv[])
 	wprintw(info_win, "       Black Chat  v1.0\n");
 	wprintw(info_win, "UI: Henry Stratmann|Client: Josh Hartman\n");
 	wprintw(info_win, "Server: Tyler Reid |Protocol: Tim Rhoads\n");
-	
+
+       
+        refresh_all_windows(is_lurking);
+
 
 	while(is_running) {
 		int ch = getch();
