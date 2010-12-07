@@ -2,6 +2,7 @@
 #define BC_CLIENT_H_
 
 #include <pthread.h>
+#include <time.h>
 #include "bc_server_queue.h"
 #include "blackchat.h"
 
@@ -10,8 +11,10 @@ typedef struct client {
     int client_socket;
     unsigned int bytes_to;
     unsigned int bytes_from;
-    unsigned int seconds_connected;
+    time_t time_connected;
+    time_t seconds_connected;
     bool is_connected;
+    struct server *server;
     struct server_queue *messages;
     pthread_t client_thread_id;
 

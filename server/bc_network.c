@@ -260,19 +260,43 @@ void *listen_thread(void *args){
       
 	pthread_mutex_lock(&mutex);
 	if(!server->clients[i]->is_connected){
+            char *buff = (char *)malloc(1024 * 8);
+            char *path = (char *)malloc(1024);
+                      
 	
 	  server->clients[i]->client_socket = temp_client;
+
+          read(temp_client, buff, USER_NAME_LEN * 4);
+          get_user_name_message(buff, server->clients[i]->user_data->name);
+          buff[0] = '\0';
+          create_uid_message(i, buff);
+
+          write(temp_client, buff, sizeof(buff));
+
+          free(buff);
+
+          sprintf(path, "./%s", server->clients[i]->user_data->name);
+
+          mkdir(path, 777);
+          free(path);
+
+
+
 	  
 	  if(pthread_create(&server->clients[i]->client_thread_id, NULL, client_thread, server->clients[i]) == -1)
 	    //TODO handle error
 	  server->clients[i]->is_connected = true;
+          server->clients[i]->time_connected = time(NULL);
+          server->clients[i]->server = server;
 	  
 	}
 	
 	pthread_mutex_unlock(&mutex);
       }      
       
-      server->num_users_connected += 1; 
+      server->num_users_connected += 1;
+
+      break;
       
     }
     else{
@@ -335,6 +359,7 @@ void *client_thread(void *args){
   client->is_connected = false;
   client->seconds_connected = 0;
   close(client->client_socket);
+  client->server->num_users_connected -= 1;
   pthread_mutex_unlock(&mutex);
  
   pthread_exit(0);

@@ -19,7 +19,7 @@ void update_time(int sig){
     for(int i = 0; i < num_clients; i++){
       
       if(bc_server->clients[i]->is_connected){
-	//TODO update the time 
+	bc_server->clients[i]->seconds_connected = time(NULL) - bc_server->clients[i]->time_connected;  
       }
 		     
     }
@@ -137,20 +137,25 @@ void handle_messages(SERVER_OBJ* server, SERVER_QUEUE_OBJ* messages){
 	
 	    create_yell_message(user, result, buff);
 	    
-	    broadcast_client(server->clients[user], buff);
-	    
+	    broadcast_all(server->clients, buff);
+            
+            free(result);
 	    free(buff);
 	   }
 	    break;
 	  case TEXT_STATUS:
 	  {
-	    //The server should only get this if the client went into lurking mode
+	   
 	    int user = get_from_user_from_message(message);
+	    char *buff = (char *)malloc(1024 * 8);
+
+            create_status_message(user, message, buff);
+
+            broadcast_all(server->clients, buff);
+
 	    
-	    server->clients[user]->user_data->lurk = 1;
 	    
-	    //TODO maybe send lurking command to server to update status or send and entirely new status to client
-	  }
+	}
 	    break;
 	  case TEXT_IM:
 	  {
@@ -232,7 +237,7 @@ void handle_messages(SERVER_OBJ* server, SERVER_QUEUE_OBJ* messages){
 	int votes[] = {-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 	int user_voted_off = 0;
 	
-	for(int i = 1; i < MAX_CONNECTIONS + 1; i++){
+	for(int i = 1; i < MAX_CONNECTIONS; i++){
 	
 	  pthread_mutex_lock(&mutex);
 	  if(server->clients[i]->is_connected && server->clients[i]->user_data->vote != -1){	  
@@ -250,8 +255,10 @@ void handle_messages(SERVER_OBJ* server, SERVER_QUEUE_OBJ* messages){
 	}
 	
 	disconnect_user(user_voted_off);
+        server->num_users_connected -= 1;
+        
 	
-	for(int i = 1; i < MAX_CONNECTIONS + 1; i++){
+	for(int i = 1; i <= MAX_CONNECTIONS; i++){
 	
 	  pthread_mutex_lock(&mutex);
 	  server->clients[i]->user_data->vote = -1;
