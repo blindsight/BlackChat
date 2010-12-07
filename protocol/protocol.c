@@ -265,7 +265,7 @@ void get_user_name_message(const char *message, char *username) {
 }
 
 void create_uid_message(int uid, char *message) {
-	sprintf(message,"%02d%02d%03d", CMD_USERLIST, USER_LIST_USER_NAME, USER_LIST_RECEIVE_UID);
+	sprintf(message,"%02d%02d%03d", CMD_USERLIST, USER_LIST_RECEIVE_UID, uid);
 }
 
 void create_user_name_message(char *username, char *result) {
