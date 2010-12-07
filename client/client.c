@@ -1175,7 +1175,7 @@ int main(int argc, char* argv[])
         	/* Read from the server. */
         	/* josh-note
         			Uncomment this! */
-/*      	read_from_server(client_id); */
+          	read_from_server(client_id);
 
         	refresh_all_windows(is_lurking);
 	}
