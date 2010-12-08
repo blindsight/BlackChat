@@ -23,6 +23,7 @@ int uid = -1;               //user id for this client
 int total_written = 0;
 int total_read = 0;
 int time_connected = 0;
+int the_client;
 
 user_stats user_info[10];
 
@@ -196,6 +197,11 @@ void read_from_server(int client_id)
         break;
     default: */
         bytes_read = read(client_id, servout, 4096);
+    if(bytes_read == 0)
+    {
+        write_to_transcript_window("YOU HAVE BEEN DENIED!!!");
+        close_client(the_client);
+    }
         total_read += bytes_read;
         servout[bytes_read]='\0';
 char mes[1024];
@@ -405,6 +411,7 @@ free(servout);
  * socket it creates. */
 int init_client(char *name)
 {
+    
     curr_user = (UR_OBJ)malloc(sizeof(struct user_obj));
     int client;
     struct sockaddr_in address;
@@ -421,6 +428,7 @@ int init_client(char *name)
     }
 
     client = socket(AF_INET, SOCK_STREAM, 0);   /* create the socket */
+    the_client = client;
     if(client == -1)
     {
         perror("FAILED TO CREATE SOCKET!");
