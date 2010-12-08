@@ -92,13 +92,18 @@ static void get_terminal_size(int *x, int *y)
 
 /* Re-Draw all our windows. */
 static void refresh_other_windows();
+static void draw_deepsix_window();
 /* -------------------------- */
-static void refresh_all_windows(int is_lurking, int is_yelling)
+static void refresh_all_windows(int is_lurking, int is_yelling, int in_deepsix)
 {  
         wnoutrefresh(status_win);
         wnoutrefresh(info_win);
 
-        if(!is_lurking && !is_yelling) {
+        if(in_deepsix) {
+            draw_deepsix_window();
+        }
+
+        if(!is_lurking && !is_yelling && !in_deepsix) {
                 wnoutrefresh(client_chat_window);
 
                 if(!transcript_maxed) {
@@ -570,9 +575,9 @@ static void draw_deepsix_window()
 	/* Show user names in deepsix window. */
 	for(i = 0; i < 10; i ++) {
 		if(user_info[i].name[0] != '\0' && user_info[i].canDeepSix == 1) {
-			wprintw(deepsix_win, "%d | %s\n", i, user_info[i].name);
+			wprintw(deepsix_win, "%2d | %s\n", i+1, user_info[i].name);
 		} else {
-			wprintw(deepsix_win, "%d | ------------\n", i);
+			wprintw(deepsix_win, "%2d | ------------\n", i+1);
 		}
 	}
 	wprintw(deepsix_win, "\nPress any other key to exit.");
@@ -940,7 +945,7 @@ int main(int argc, char* argv[])
 
 
 
-        refresh_all_windows(is_lurking, is_yelling);
+        refresh_all_windows(is_lurking, is_yelling, in_deepsix);
         print_client_chat_buffer();
 
 
@@ -949,7 +954,7 @@ int main(int argc, char* argv[])
 
             switch(select(client_id+1, &testfds, 0, 0, NULL)) {
             case 0:
-                refresh_all_windows(is_lurking, is_yelling);
+                refresh_all_windows(is_lurking, is_yelling, in_deepsix);
                 break;
             case -1:
                 switch(errno) {
@@ -1307,7 +1312,7 @@ int main(int argc, char* argv[])
              //   redrawwin(transcript_window);
              //   wrefresh(transcript_window);
 
-                refresh_all_windows(is_lurking, is_yelling);
+                refresh_all_windows(is_lurking, is_yelling, in_deepsix);
             }
         }
 
