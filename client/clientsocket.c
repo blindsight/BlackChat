@@ -196,6 +196,9 @@ sprintf(biff, "biff: %d %s", henbob, text);
                 else                            //send to transcript window
                 {
                    // sprintf(output, "%d says: %s", user, text);
+char biff[512];
+sprintf(biff, "biff: \"%s\"", text);
+//write_to_transcript_window(biff);
                     write_to_transcript_window(text);
                    // set_window_user_name( #win_number, char name);
                    // TODO: get the window numbers and name.

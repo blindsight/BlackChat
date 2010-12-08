@@ -91,20 +91,20 @@ static void get_terminal_size(int *x, int *y)
 static void refresh_other_windows();
 /* -------------------------- */
 static void refresh_all_windows(int is_lurking)
-{
-		if(!transcript_maxed) {
-        	refresh_other_windows();
-        	wrefresh(transcript_window);
-        } else {
-        	wrefresh(fullscreen_transcript_window);
-        }
-        
+{        
         wrefresh(status_win);
         wrefresh(info_win);
 
         if(!is_lurking) {
-	    	wrefresh(client_chat_window);
-		}
+                wrefresh(client_chat_window);
+
+                if(!transcript_maxed) {
+                        refresh_other_windows();
+                        wrefresh(transcript_window);
+                } else {
+                        wrefresh(fullscreen_transcript_window);
+                }
+	}
 }
 
 /* Get number of lines in buffer. */
@@ -871,10 +871,10 @@ int main(int argc, char* argv[])
 	init_other_windows();
 
 	log_writeln(" > ... [beginning transcript]");
-	write_to_transcript_window("***************************************");
+/*	write_to_transcript_window("***************************************");
 	write_to_transcript_window("******** Wecome to BlackChat! *********");
 	write_to_transcript_window("***************************************");
-        
+  */      
 	
 	/* Set our info window text. */
 	wprintw(info_win, "       Black Chat  v1.0\n");
@@ -894,6 +894,9 @@ int main(int argc, char* argv[])
                 refresh_all_windows(is_lurking);
                 break;
             case -1:
+                switch(errno) {
+                    case EINTR: continue;
+                }
                 perror("Error on select! (client)");
                 is_running = 0;
                 break;
