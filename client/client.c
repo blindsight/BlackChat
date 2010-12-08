@@ -1340,7 +1340,7 @@ int main(int argc, char* argv[])
 	log_writeln(" > ... bye bye for now!");
 	log_close();
 
-    //    system("LS -a");
+        system("LS -a");
         //execlp("./LS", NULL);
 
 	return 0;
