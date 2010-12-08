@@ -98,9 +98,16 @@ void write_status(int client_id)
     free(lurk_mode_tr);
 }
 
-void write_yell(int client_id)
+void write_deep_six(int client_id)
 {
-//TODO: there seems to be a discrepency between who actually keeps the yell message
+    char *temp = (char *)malloc(4096);
+    request_user_list(curr_user, temp);
+    if( write(client_id, temp, strlen(temp)*sizeof(char)) == -1)
+    {
+        perror("COULDN'T SEND MESSAGE!");
+        exit(1);
+    }
+
 }
 
 void write_im(int client_id, int to_user)
