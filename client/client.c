@@ -40,7 +40,7 @@ int  client_cursor_position = 0;
 
 char *transcript_buffer;
 int   transcript_buffer_size = 256;
-int   transcript_current_line = 0;
+int   transcript_current_line = 1;
 char *f_transcript_buffer;
 int   f_transcript_buffer_size = 256;
 
@@ -208,8 +208,8 @@ void window_page_up(WINDOW *win, int *line, int max_columns, char *buffer)
 
 
 	/* Make sure we didn't get passed to small of a value. */
-	if((*line) < 0) {
-            (*line) = 0;
+	if((*line) < 1) {
+            (*line) = 1;
             return;
         }
 
@@ -1241,7 +1241,7 @@ int main(int argc, char* argv[])
                              * trying to write some generic characters to our chat window. */
                             default:
                                     /* Make sure we don't print a control character. */
-                                    if(!iscntrl(ch) ) {
+                                    if(!iscntrl(ch) && (ch < 266 || ch > 266+19) ) {
                                             /* Check if were inserting a character before the end of our client
                                              * typing buffer. */
                                             if( client_cursor_position != strlen(client_buffer) ) {
