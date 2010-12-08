@@ -359,7 +359,7 @@ void handle_messages(SERVER_OBJ* server, SERVER_QUEUE_OBJ* messages){
 
                 for(int i = 1; i <= 10; i++){
                     
-                    if(server->clients[i] && server->clients[i]->user_data->uid != user)
+                    if(server->clients[i]->is_connected && server->clients[i]->user_data->uid != user)
                         create_next_user(server->clients[i]->user_data, buff);
                 
                 }
