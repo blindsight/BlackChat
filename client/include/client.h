@@ -79,6 +79,10 @@ void set_yell_message(int index, char *message);
 /* Returns clients name. */
 char *get_client_name();
 
+/* Returns if were lurking. */
+int get_is_lurking();
+
+
 
 #endif
 
