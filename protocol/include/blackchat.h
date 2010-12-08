@@ -18,7 +18,7 @@
 #define TEXT_YELL	2
 #define TEXT_STATUS	4	// TEXT DEFINE:UID:TEXT LEN:TEXT 
 #define TEXT_IM		8	// TEXT DEFINE:FROM UID:TO UID:TEXT LEN:TEXT 
-
+#define TEXT_MAIN_STATUS 10     //TEXT FOR MAIN STATUS WINDOW
 
 /* window defines */
 #define TYP_STATUS	0
@@ -82,6 +82,7 @@ void create_im_message(int uid, int to_uid, char *message, char *result);
 void create_status_message(int uid, char *message, char *result);
 void create_yell_message(int uid, char *message, char *result);
 void create_vote_message(int uid, int uid_vote, char *result);
+void create_main_status_message(int uid, char *message, char *result);
 
 //window
 int get_window_type_from_message(const char *message);
