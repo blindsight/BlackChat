@@ -106,17 +106,17 @@ void handle_messages(SERVER_OBJ* server, SERVER_QUEUE_OBJ* messages){
   pthread_mutex_lock(&mutex);
   message = dequeue(messages);	 
   pthread_mutex_unlock(&mutex);
-  printf("Message extracted: %s\n", message);
+  //printf("Message extracted: %s\n", message);
   
   cmd_type = get_type_from_message(message);
 
-  printf("CMD_TYPE: %d\n", cmd_type);
+ // printf("CMD_TYPE: %d\n", cmd_type);
   
   switch(cmd_type) {
   
     case CMD_TEXT:
 	text_type = get_text_type_from_message(message);
-        printf("TEXT_TYPE: %d\n", text_type);
+       // printf("TEXT_TYPE: %d\n", text_type);
 	switch(text_type) {
 	
 	  case TEXT_MAIN_CHAT:
@@ -125,13 +125,13 @@ void handle_messages(SERVER_OBJ* server, SERVER_QUEUE_OBJ* messages){
             char *message_to_server = (char *)malloc(1024 * 8);
             get_text_from_message(message, buff);
 
-            printf("Contents of Buff: %s\n", buff);
+            //printf("Contents of Buff: %s\n", buff);
 
             int user = get_user_from_message(message);
 
             sprintf(message_to_server, "%s says: %s\n", server->clients[user]->user_data->name, buff);  
             
-            printf("Message to Server: %s\n", message_to_server);
+            //printf("Message to Server: %s\n", message_to_server);
 	    
 	    HST_OBJ temp = server->clients[user]->user_data->history;
 	    
@@ -142,7 +142,7 @@ void handle_messages(SERVER_OBJ* server, SERVER_QUEUE_OBJ* messages){
 	    
 	    create_text_message(TEXT_MAIN_CHAT, user, message_to_server, buff);
 
-            printf("Sending to client: %s\n", buff);
+            //printf("Sending to client: %s\n", buff);
 	    
 	    broadcast_all(server->clients, buff);
 	    
@@ -191,7 +191,7 @@ void handle_messages(SERVER_OBJ* server, SERVER_QUEUE_OBJ* messages){
             memset(buff, '\0', strlen(to_client));
             create_status_message(user, to_client, buff);
 
-            printf("Status message sent: %s\n", buff);
+           // printf("Status message sent: %s\n", buff);
 
             broadcast_all(server->clients, buff);
 
@@ -289,7 +289,7 @@ void handle_messages(SERVER_OBJ* server, SERVER_QUEUE_OBJ* messages){
 	  if(server->clients[i]->is_connected && server->clients[i]->user_data->vote != -1){	  
 	    votes[server->clients[i]->user_data->vote]++;	    
 	  }	  
-	  pthread_mutex_lock(&mutex);
+	  pthread_mutex_unlock(&mutex);
 	  
 	}
 	

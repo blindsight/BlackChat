@@ -241,7 +241,7 @@ void fill_queue(SERVER_OBJ *server, SERVER_QUEUE_OBJ *messages){
 void *listen_thread(void *args){
 
   printf("Listen thread spawned\n"); 
-  fflush(NULL);
+  //fflush(NULL);
   
   SERVER_OBJ *server = (SERVER_OBJ *)args;
      
@@ -250,6 +250,7 @@ void *listen_thread(void *args){
     socklen_t client_len;
     int temp_client;
     int num_connections;
+    CLIENT_OBJ* temp_client_obj;
   
     client_len = sizeof(client_addr);
     
@@ -258,62 +259,34 @@ void *listen_thread(void *args){
 
     printf("Before client accept\n");
     temp_client = accept(server->server_socket, (struct sockaddr *)&client_addr, &client_len);
-    printf("Client accepted\n");
+    printf("Client accepted with socket: %d\n", temp_client);
     
-    pthread_mutex_lock(&mutex);
+    //pthread_mutex_lock(&mutex);
     num_connections = server->num_users_connected;
-    pthread_mutex_unlock(&mutex);
+    printf("num users online %d\n", num_connections);
+    //pthread_mutex_unlock(&mutex);
     
-    if(num_connections < MAX_CONNECTIONS){
+    if(num_connections <= MAX_CONNECTIONS){
+
+        for(int i = 1; i <= MAX_CONNECTIONS; i++){
             
-      for(int i = 1; i < MAX_CONNECTIONS + 1; i++){
-      
-	pthread_mutex_lock(&mutex);
-	if(!server->clients[i]->is_connected){
-            char *buff = (char *)malloc(1024 * 8);
-            char *path = (char *)malloc(1024);
-                      
-	
-	  server->clients[i]->client_socket = temp_client;
-
-          read(temp_client, buff, USER_NAME_LEN * 4);
-          memset(server->clients[i]->user_data->name, '\0', USER_NAME_LEN * 4);
-          get_user_name_message(buff, server->clients[i]->user_data->name);
-          memset(path, '\0', 1024);
-          buff[0] = '\0';
-          create_uid_message(i, buff);
-
-          printf("UID MSG: %s", buff);
-
-          write(temp_client, buff, strlen(buff));
-
-          free(buff);
-
-          sprintf(path, "./%s", server->clients[i]->user_data->name);
-
-          //mkdir(path, 777);
-          free(path);
-
-          printf("Before create client thread\n");  
-          if(pthread_create(&server->clients[i]->client_thread_id, NULL, client_thread, server->clients[i]) != 0)
-	    perror("Couldn't create client thread");
-
-          printf("After client accepted with thread id %d\n", server->clients[i]->client_thread_id);
-	  server->clients[i]->is_connected = true;
-          server->clients[i]->time_connected = time(NULL);
-          server->clients[i]->server = server;
+            if(server->clients[i]->is_connected == false){
+                temp_client_obj = server->clients[i];
+                break;
+            }
+        }
+            
+          temp_client_obj->client_socket = temp_client;
+	  temp_client_obj->is_connected = true;
+          temp_client_obj->time_connected = time(NULL);
+          temp_client_obj->server = server;
 	  
-	}
-	
-	pthread_mutex_unlock(&mutex);
-        break;
-      }      
-      
-      server->num_users_connected += 1;
+          if(pthread_create(&temp_client_obj->client_thread_id, NULL, client_thread, temp_client_obj) != 0)
+              perror("Could not spawn client thread\n");
 
-      
-      
-    }
+	  server->num_users_connected += 1;
+    }    
+    
     else{
       char *buff = (char *)malloc(1024);
       //Uncomment once function is implemented
@@ -334,6 +307,33 @@ void *client_thread(void *args){
   char *buff = (char *)malloc(1024 * 8);  //Read in 8k at a time should be more than enough
   int bytes_read;
   bool messages_empty;
+
+  char *buff2 = (char *)malloc(1024 * 8);
+  char *path = (char *)malloc(1024);
+                      
+	
+	  
+
+          read(client->client_socket, buff2, USER_NAME_LEN * 4);
+          printf("user name connected %s on socket %d\n", buff2, client->client_socket);
+          memset(client->user_data->name, '\0', USER_NAME_LEN * 4);
+          get_user_name_message(buff2, client->user_data->name);
+          memset(path, '\0', 1024);
+          buff2[0] = '\0';
+          create_uid_message(client->user_data->uid, buff2);
+
+          printf("UID MSG: %s", buff2);
+
+          write(client->client_socket, buff2, strlen(buff2));
+
+          free(buff2);
+
+          sprintf(path, "./%s", client->user_data->name);
+
+          //mkdir(path, 777);
+          free(path);
+
+
  
   for(;;){
       printf("Begin client loop\n");
@@ -355,7 +355,7 @@ void *client_thread(void *args){
 	break;
       }
 
-      printf("Adding To message queue: %s\n", buff);
+      //printf("Adding To message queue: %s\n", buff);
       pthread_mutex_lock(&mutex);
       enqueue(client->messages, buff);
       pthread_mutex_unlock(&mutex);
@@ -372,7 +372,7 @@ void *client_thread(void *args){
       if(bytes_read == 0)
 	break;
 
-      printf("Adding to message queue in else block: %s\n", buff);
+      //printf("Adding to message queue in else block: %s\n", buff);
       pthread_mutex_lock(&mutex);
       enqueue(client->messages, buff);
       pthread_mutex_unlock(&mutex);
@@ -406,12 +406,13 @@ void broadcast_all(CLIENT_OBJ* clients[], char* message){
   
   for(int i = 1; i <= MAX_CONNECTIONS; i++){
   
-   printf("Writing to server: %s\n", message); 
+  if( clients[i]->is_connected){ 
     bytes_written = write(clients[i]->client_socket, message, strlen(message));
     
     pthread_mutex_lock(&mutex);
     clients[i]->bytes_to += bytes_written;
     pthread_mutex_unlock(&mutex);
+  }
     
   }
 
