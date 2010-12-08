@@ -11,14 +11,11 @@ void update_time(int sig){
     char *buff = (char *)malloc(256);
     char *lurk_text = (char *)malloc(16);
     char *to_client = (char *)malloc(256);
-    pthread_mutex_lock(&mutex);
-    int num_clients = bc_server->num_users_connected;
-    pthread_mutex_unlock(&mutex);
     
 
     printf("UpdateTime\n");
 
-    for(int i = 0; i < num_clients; i++){
+    for(int i = 1; i <= 10; i++){
       memset(buff, '\0', 256);
       memset(lurk_text, '\0', 16);
       memset(to_client, '\0', 256);
@@ -41,6 +38,7 @@ void update_time(int sig){
     free(buff);
     free(lurk_text);
     free(to_client);
+    //alarm(1);
 }
 
 void cleanup(int sig){
@@ -66,10 +64,12 @@ void disconnect_user(int uid);
 int main(int argc, char **argv) {
   signal(SIGTERM, cleanup);
   signal(SIGPIPE, SIG_IGN);
-  signal(SIGALRM, update_time); 
+  //signal(SIGALRM, update_time); 
   #ifdef DEBUG
     printf("start main");
 #endif
+
+
   
   bc_server = (SERVER_OBJ *)malloc(sizeof(SERVER_OBJ));
   memset(bc_server, 0, sizeof(SERVER_OBJ));
@@ -90,7 +90,7 @@ int main(int argc, char **argv) {
   
   //Once here I need to start handling messages
     printf("before handle messages\n");
-
+   // alarm(1);
  for(;;){ 
   handle_messages(bc_server, messages);
  }
@@ -110,7 +110,9 @@ void handle_messages(SERVER_OBJ* server, SERVER_QUEUE_OBJ* messages){
   int user_type;
   int error_type;
   char *message;
-//  char *message_data; 
+//  char *message_data;
+
+  update_time(0);
     
   if(isEmpty(messages)){
       printf("Waiting on semaphore main thread\n");
