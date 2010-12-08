@@ -48,6 +48,8 @@ int   f_transcript_buffer_size = 256;
 user_stats user_info[10];
 char yell_messages[26][MAX_MESSAGE_LENGTH];
 
+char client_user_name[MAX_USER_NAME_LENGTH];
+
 WINDOW *transcript_window;
 WINDOW *fullscreen_transcript_window;
 WINDOW *client_chat_window;
@@ -604,7 +606,7 @@ void set_yell_message(int index, char *message)
 /* Returns the clients name. */
 char *get_client_name()
 {
-    return "H-Bomb";
+    return client_user_name;
 }
 
 
@@ -785,10 +787,18 @@ int main(int argc, char* argv[])
         int in_deepsix = 0;
         int sending_im = 0;
         int i;
+        int client_id;
+
+        memset(client_user_name, '\0', MAX_USER_NAME_LENGTH);
+        if(argc <= 1) {
+                strcpy(client_user_name, "guest");
+        } else {
+                strncpy(client_user_name, argv[1], MAX_USER_NAME_LENGTH);
+        }
 
 	/* josh-note:
 			These need to be uncommented for the client connection to work. */
-	int client_id = init_client("Henry");         /*          create a client. */
+	client_id = init_client(client_user_name);         /*          create a client. */
   //      init_user_list(client_id);                    /*  init the client size user list. */
 
 	log_init();
