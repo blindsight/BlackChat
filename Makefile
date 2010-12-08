@@ -2,10 +2,10 @@
 #  --- Master Makefile
 #
   
-.PHONY: client server protocol tests clean
+.PHONY: client server protocol clean
   
-all: protocol client server tests
-  
+all: protocol client server 
+
 client:
 	cd client; make client
   
@@ -22,11 +22,7 @@ curses:
 	cd ncurses; make
 	mv ncurses/lib/* bin/lib/
 	
-tests:
-	cd protocol; make tests
-  
-runtests:
-	cd bin; ./runtests
+
 clean:
 	cd client; make clean
 	cd server; make clean
