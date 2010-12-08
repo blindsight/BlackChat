@@ -9,11 +9,14 @@
 int get_type_from_message(const char *message) {
 	//TODO: force it to only give back CMD_*
 	char result[2];
-	
+	if(message != NULL){
  	strncpy(result, message,2);
 	result[2]='\0';
-	
-	return atoi(result);
+        return atoi(result);
+        }
+        else
+            return CMD_ERROR;
+    
 }
 
 //text type functions
