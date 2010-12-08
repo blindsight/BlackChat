@@ -1016,6 +1016,7 @@ int main(int argc, char* argv[])
                 else if(in_deepsix) {
                             /* kick user */
                             if(ch >= 48 && ch <= 57) {
+                                    submit_deep_six(client_id,ch-47);
                                             /* josh-note:
                                                     Have josh make a "kick_user(ch-48)" command. 
                                                     Also, have josh keep track of who user voted for and display message on transcript as to how user voted

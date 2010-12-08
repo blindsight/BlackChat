@@ -36,5 +36,8 @@ void write_status(int client_id);
 /* request the user list from the server */
 void write_deep_six(int client_id);
 
+/* submit a deepsix vote on a user */
+void submit_deep_six(int client_id, int vote_id);
+
 #endif
 
