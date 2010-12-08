@@ -552,9 +552,9 @@ static void draw_im_window()
 	/* Show user names in im window. */
 	for(i = 0; i < 10; i ++) {
 		if(user_info[i].name[0] != '\0') {
-			wprintw(im_win, "%d | %s\n", i, user_info[i].name);
+			wprintw(im_win, "%2d | %s\n", i+1, user_info[i].name);
 		} else {
-			wprintw(im_win, "%d | ------------\n", i);
+			wprintw(im_win, "%2d | ------------\n", i);
 		}
 	}
 	wprintw(im_win, "\nPress number associated with the user to send them an IM.\n");

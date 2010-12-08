@@ -285,7 +285,7 @@ sprintf(biff, "biff: \"%s\"", text);
             case CMD_USERLIST:
             {
                 UR_OBJ user_list[10];       //list of all users currently on server
-                UR_OBJ temp_user;
+                UR_OBJ temp_user = malloc( sizeof(struct user_obj) );
                 ul_type = get_userlist_type_from_message(servout);
                 int i, j;
 char buf[512];
@@ -306,6 +306,7 @@ sprintf(buf, "ul_type %d", ul_type);
                     
                         for(i=0; i<user_num; i++)           //adds users received to my online user list
                         {   
+                            memset(temp_user, '\0', sizeof(struct user_obj));
                             temp_user = user_list[i];
                             strcpy(user_info[i].name, temp_user->name);
                             user_info[i].canDeepSix = 1;
@@ -330,6 +331,7 @@ sprintf(buf, "ul_type %d", ul_type);
                             write_to_transcript_window("have userlist"); */
                         }
                         set_user_list(user_info);
+                        free(temp_user);
                         //TODO: need seperate message for sign off in order to remove user from online_list
                         //also need a quick function to return index in online_list for window number
                     break;
