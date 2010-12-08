@@ -31,7 +31,7 @@ void write_lurk(int client_id);
 void read_from_server(int client_id);
 
 /* write status to server for every character typed */
-void write_status(int client_id, int win_num, char *ch);
+void write_status(int client_id);
 
 #endif
 

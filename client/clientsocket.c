@@ -38,7 +38,7 @@ void write_out(int client_id)
     create_main_chat_message(uid,user_text,buffer);
    // create_status_message(uid,user_text,status);
 
-    if(write(client_id, buffer, strlen(buffer)*sizeof(char)) == -1) {
+    if(write(client_id, buffer, strlen(buffer)) == -1) {
        write_to_transcript_window("Error: Couldn't write to server main chat message!\n");
        write_to_transcript_window(buffer); 
     }
@@ -54,15 +54,19 @@ void write_out(int client_id)
 }
 
 /* writing character status message to server */
-void write_status(int client_id, int win_num, char *ch)
+void write_status(int client_id)
 {
-    char *message = (char *)malloc(10);
-    create_status_message(uid,ch,message);
-    if(write(client_id, message, strlen(message)*sizeof(char)) == -1) {
-        write_to_transcript_window("Error: Couldn't write to server for status  message!\n");
-       // write_to_transcript_window(buffer); 
+    char *status = (char *)malloc(4096);
+    memset(status, '\0', 4096);
+    char *user_text = grab_text_from_client_typing_window();
+    if(user_text[0] != '\0' && uid > 0)
+    {
+        create_status_message(uid,user_text,status);
+        if(write(client_id, status, 4096) == -1) {
+           write_to_transcript_window("Error: Couldn't write to server user status message!\n");
+        }
     }
-    
+    free(status);
 }
 
 void write_yell(int client_id)
@@ -131,6 +135,7 @@ void read_from_server(int client_id)
     int offset = 0;                 //temp for offset in user list
     int err_type = -1;              //error type
     int user_lurk = -1;             //user that is currently lurking
+    int bytes_read = 0;
 
     char *output = (char *)malloc(4096);
     char *text = (char *)malloc(4096);
@@ -153,13 +158,18 @@ void read_from_server(int client_id)
         write_to_transcript_window("Error: couldn't read from server!\n");
         break;
     default:
-        if(read(client_id, servout, 4096) > 0)
-        {
+        bytes_read = read(client_id, servout, 4096);
+        servout[bytes_read]='\0';
+char mes[1024];
+sprintf(mes, "Bytes Read from server: %d \'%s\'", bytes_read,servout);
+//write_to_transcript_window(mes);
+         if(bytes_read > 0)
+         {
             cmd_type = get_type_from_message(servout);
             user = get_user_from_message(servout);
 
-//char buf[512];
-//sprintf(buf, "cmd_type: %d | servout: %s", cmd_type, servout);
+char buf[512];
+sprintf(buf, "cmd_type: %d | servout: %s", cmd_type, servout);
 //write_to_transcript_window(buf);
             switch(cmd_type)
             {
@@ -168,10 +178,24 @@ void read_from_server(int client_id)
                 get_text_from_message(servout, text);
          //       text[strlen(text)-1] = '\0';
                 text_type = get_text_type_from_message(servout);
+char tp[512];
+sprintf(tp, "text_type: %d|%s", text_type, servout);
+//write_to_transcript_window(tp);
+
                 if(text_type == TEXT_IM)        //send to IM window
                 {
                     from_user = get_from_user_from_message(servout);
                     append_text_to_window(from_user,text);
+                }
+                else if(text_type == TEXT_STATUS)
+                {
+                    int henbob = get_user_from_message(servout);
+char biff[512];
+sprintf(biff, "biff: %d %s", henbob, text);
+//write_to_transcript_window(biff);
+
+                    clear_user_window_text(henbob);
+                    append_text_to_window(henbob,text);
                 }
                 else                            //send to transcript window
                 {
