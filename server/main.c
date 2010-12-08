@@ -233,7 +233,7 @@ void handle_messages(SERVER_OBJ* server, SERVER_QUEUE_OBJ* messages){
 	  {
 	    int user = get_from_user_from_message(message);
 	    int to_user = get_user_from_message(message);
-	    HST_OBJ temp = server->clients[user]->user_data->im;
+	   // HST_OBJ temp = server->clients[user]->user_data->im;
 	    char *buff = (char *)malloc(1024 * 8);
 	    
 	    get_text_from_message(message, server->clients[user]->user_data->im->line);
@@ -349,7 +349,27 @@ void handle_messages(SERVER_OBJ* server, SERVER_QUEUE_OBJ* messages){
       switch(user_type){
       
 	case USER_LIST_REQUEST:
-	  //TODO loop through user array and send to client
+            {
+                char *buff = malloc(1024 * 8);
+                int user = get_user_from_message(message);
+                
+                memset(buff, '\0', 1024 * 8);
+
+                create_first_user(USER_LIST_CURRENT, user, server->clients[user]->user_data, buff);
+
+                for(int i = 1; i <= 10; i++){
+                    
+                    if(server->clients[i] && server->clients[i]->user_data->uid != user)
+                        create_next_user(server->clients[i]->user_data, buff);
+                
+                }
+
+                broadcast_client(server->clients[user], buff);
+
+                free(buff);
+
+                
+            }
 	  break;
 	case USER_LIST_SIGN_OFF:
 	  //Prefer not to use this and would rather detect a read of 0 bytes from client to disconnect
