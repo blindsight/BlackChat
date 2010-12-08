@@ -307,6 +307,8 @@ sprintf(buf, "ul_type %d", ul_type);
                         for(i=0; i<user_num; i++)           //adds users received to my online user list
                         {   
                             memset(temp_user, '\0', sizeof(struct user_obj));
+                            memset(user_info[i].name, '\0', MAX_USER_NAME_LENGTH);
+
                             temp_user = user_list[i];
                             strcpy(user_info[i].name, temp_user->name);
                             user_info[i].canDeepSix = 1;
