@@ -281,6 +281,8 @@ void handle_messages(SERVER_OBJ* server, SERVER_QUEUE_OBJ* messages){
       int num_votes = 0;
       //bool is_vote_done = false;
       char *buff = (char *)malloc(1024 * 8);
+
+      printf("User voted for %d by user %d\n", voted_user, user);
       
       if(server->clients[user]->user_data->vote != voted_user){
 	
@@ -298,7 +300,7 @@ void handle_messages(SERVER_OBJ* server, SERVER_QUEUE_OBJ* messages){
 	
       }
       
-      for(int i = 1; i < MAX_CONNECTIONS + 1; i++){
+      for(int i = 1; i <=  MAX_CONNECTIONS; i++){
       
 	pthread_mutex_lock(&mutex);
 	if(server->clients[i]->is_connected && server->clients[i]->user_data->vote != -1)
@@ -329,7 +331,7 @@ void handle_messages(SERVER_OBJ* server, SERVER_QUEUE_OBJ* messages){
 	  
 	}
 	
-	disconnect_user(user_voted_off - 1);
+	disconnect_user(user_voted_off);
         server->num_users_connected -= 1;
         
 	
