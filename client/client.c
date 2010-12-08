@@ -48,6 +48,8 @@ int   f_transcript_buffer_size = 256;
 user_stats user_info[10];
 char yell_messages[26][MAX_MESSAGE_LENGTH];
 
+char status_win_text[128];
+
 char client_user_name[MAX_USER_NAME_LENGTH];
 
 WINDOW *transcript_window;
@@ -91,7 +93,7 @@ static void get_terminal_size(int *x, int *y)
 static void refresh_other_windows();
 /* -------------------------- */
 static void refresh_all_windows(int is_lurking)
-{        
+{  
         wrefresh(status_win);
         wrefresh(info_win);
 
@@ -481,7 +483,9 @@ static void free_other_windows()
 static void refresh_other_windows()
 {
         char textToPrint[OTHER_WINDOW_BUFFER_SIZE];
-	int i;
+        int num_bold_chars = 0;
+        int using_bold = 0;
+	int i, j;
 
 
 
@@ -494,9 +498,39 @@ static void refresh_other_windows()
                 strcpy(textToPrint, other_chat_windows[i].buffer);
              
 
-                /* Print */
+                /* Clear the window. */
                 wclear(other_chat_windows[i].window);
-                wprintw(other_chat_windows[i].window, textToPrint);
+
+
+
+                /* Now write our buffer to the window. */
+                for(j = 0; j < strlen(textToPrint); j ++) {
+                        /* Check if we found the start of a gaudy character. */
+                        if( textToPrint[j] == 2 ) {
+                                using_bold = 1;
+                        } else if(textToPrint[j] == 3) {
+                                using_bold = 0;
+                        } else {
+                                /* Write the character to the window. */
+                                if(using_bold) {
+                                        wattron(other_chat_windows[i].window, A_BOLD);
+                                        wprintw(other_chat_windows[i].window, "%c", textToPrint[j]);
+                                } else {
+                                        wattroff(other_chat_windows[i].window, A_BOLD);
+                                        wprintw(other_chat_windows[i].window, "%c", textToPrint[j]);
+                                }
+                        }
+                }
+
+
+                /* Disable bold-ing just in case the user forgot to disable it. */
+                wattroff(other_chat_windows[i].window, A_BOLD);
+
+
+                
+                
+                /* Redraw the window. */
+//                wprintw(other_chat_windows[i].window, textToPrint);
 		wrefresh(other_chat_windows[i].window);
 	}
 }
@@ -657,8 +691,7 @@ void clear_text_from_client_typing_window(void)
 /* Put text in status window. */
 void set_text_in_status_window(char *text)
 {
-	wclear(status_win);
-	wprintw(status_win, "%s", text);
+        strcpy(status_win_text,text);
 }
 
 
@@ -758,8 +791,8 @@ void write_to_transcript_window(char *str)
 			s[s_index] = '\0';
 
 			/* Append the text to our transcript window. */
-			transcript_buffer   = write_to_ts_win(s, TRANSCRIPT_MAX_COLUMNS,   TRANSCRIPT_MAX_ROWS, transcript_window, 			  transcript_buffer,   &transcript_current_line,   &transcript_buffer_size);
-			f_transcript_buffer = write_to_ts_win(s, TRANSCRIPT_MAX_COLUMNS*2, TRANSCRIPT_MAX_ROWS, fullscreen_transcript_window, f_transcript_buffer, &transcript_current_line, &f_transcript_buffer_size);
+			transcript_buffer   = write_to_ts_win(s, TRANSCRIPT_MAX_COLUMNS,   TRANSCRIPT_MAX_ROWS, transcript_window, 	        transcript_buffer, &transcript_current_line,   &transcript_buffer_size);
+	//		f_transcript_buffer = write_to_ts_win(s, TRANSCRIPT_MAX_COLUMNS*2, TRANSCRIPT_MAX_ROWS, fullscreen_transcript_window, f_transcript_buffer, &transcript_current_line, &f_transcript_buffer_size);
 			found_nl_index = i+1;   /* Increment our new line index. */
 
 			free(s);
@@ -808,7 +841,6 @@ int main(int argc, char* argv[])
         FD_ZERO(&servs);
         FD_SET(client_id, &servs);
         FD_SET(0, &servs);
-        struct timeval timeout = {0, 75000};
 
 
 	log_init();
@@ -871,15 +903,12 @@ int main(int argc, char* argv[])
 	init_other_windows();
 
 	log_writeln(" > ... [beginning transcript]");
-/*	write_to_transcript_window("***************************************");
+	write_to_transcript_window("***************************************");
 	write_to_transcript_window("******** Wecome to BlackChat! *********");
 	write_to_transcript_window("***************************************");
-  */      
-	
-	/* Set our info window text. */
-	wprintw(info_win, "       Black Chat  v1.0\n");
-	wprintw(info_win, "UI: Henry Stratmann|Client: Josh Hartman\n");
-	wprintw(info_win, "Server: Tyler Reid |Protocol: Tim Rhodes\n");
+        
+//        set_text_in_status_window("asdkjf aklsjdf\n23874823974\niouqrweioruweir");
+
 
 
         refresh_all_windows(is_lurking);
@@ -1150,6 +1179,7 @@ int main(int argc, char* argv[])
                                      * print it. */
                                     break;              /* TODO: Fix me! */
                             }
+
 #if 0
                             /* Scroll the clients typing window down. */
                             case KEY_DOWN:
@@ -1228,6 +1258,17 @@ int main(int argc, char* argv[])
                 {
                     read_from_server(client_id);
                 }
+
+
+                /* Update our status window. */
+            	wclear(status_win);
+        	wprintw(status_win, status_win_text);
+
+                /* Set our info window text. */
+                wclear(info_win);
+                wprintw(info_win, "            Black Chat  v1.0\n");
+                wprintw(info_win, "UI: Henry Stratmann|Client: Josh Hartman\n");
+                wprintw(info_win, "Server: Tyler Reid |Protocol: Tim Rhodes\n");
 
 
                 /* resfresh */
