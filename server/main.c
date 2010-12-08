@@ -129,7 +129,7 @@ void handle_messages(SERVER_OBJ* server, SERVER_QUEUE_OBJ* messages){
 
             int user = get_user_from_message(message);
 
-            sprintf(message_to_server, "%s says: %s\n", server->clients[user]->user_data->name, buff);  
+            sprintf(message_to_server, "%s says: %s", server->clients[user]->user_data->name, buff);  
             
             //printf("Message to Server: %s\n", message_to_server);
 	    
