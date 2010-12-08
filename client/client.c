@@ -95,19 +95,21 @@ static void refresh_other_windows();
 /* -------------------------- */
 static void refresh_all_windows(int is_lurking, int is_yelling)
 {  
-        wrefresh(status_win);
-        wrefresh(info_win);
+        wnoutrefresh(status_win);
+        wnoutrefresh(info_win);
 
         if(!is_lurking && !is_yelling) {
-                wrefresh(client_chat_window);
+                wnoutrefresh(client_chat_window);
 
                 if(!transcript_maxed) {
                         refresh_other_windows();
-                        wrefresh(transcript_window);
+                        wnoutrefresh(transcript_window);
                 } else {
-                        wrefresh(fullscreen_transcript_window);
+                        wnoutrefresh(fullscreen_transcript_window);
                 }
 	}
+
+        doupdate();
 }
 
 /* Get number of lines in buffer. */
@@ -531,7 +533,7 @@ static void refresh_other_windows()
                 
                 /* Redraw the window. */
 //                wprintw(other_chat_windows[i].window, textToPrint);
-		wrefresh(other_chat_windows[i].window);
+		wnoutrefresh(other_chat_windows[i].window);
 	}
 }
 
@@ -555,7 +557,7 @@ static void draw_im_window()
 	
 
 	/* redraw the im window. */
-	wrefresh(im_win);
+	wnoutrefresh(im_win);
 }
 
 
@@ -816,7 +818,7 @@ void scroll_ended_handler(int x)
 {
     user_is_scrolling = 0;
     print_transcript_chat_buffer();
-    wrefresh(transcript_window);
+    wnoutrefresh(transcript_window);
 }
 /**************************************************************************/
 
@@ -969,7 +971,7 @@ int main(int argc, char* argv[])
                                         is_running = 0;
                                         break;
                                 default:
-                                        wrefresh(lurk_win);
+                                        wnoutrefresh(lurk_win);
                         }
                 }
                 /* Check if were in IM mode. */
@@ -1033,9 +1035,9 @@ int main(int argc, char* argv[])
                         
                         is_yelling = 0;
                         redrawwin(client_chat_window);
-                        wrefresh(client_chat_window);
+                        wnoutrefresh(client_chat_window);
                         redrawwin(transcript_window);
-                        wrefresh(transcript_window);
+                        wnoutrefresh(transcript_window);
                 } else {
                     /* Check what keys we pressed. */
                     switch(ch) {
@@ -1103,7 +1105,7 @@ int main(int argc, char* argv[])
                                                 case 12: /* CTRL-L */
                                                             if(!is_lurking) {
                                                                 redrawwin(lurk_win);
-                                                                wrefresh(lurk_win);
+                                                                wnoutrefresh(lurk_win);
                                                                 is_lurking = 1;
                                                                 write_lurk(client_id);
                                                             }
@@ -1175,7 +1177,7 @@ int main(int argc, char* argv[])
                                                 if(!is_yelling)
                                                 {
                                                     redrawwin(yell_win);
-                                                    wrefresh(yell_win);
+                                                    wnoutrefresh(yell_win);
                                                     is_yelling = 1;
                                                 }
                                             }
@@ -1291,6 +1293,9 @@ int main(int argc, char* argv[])
 
 
                 /* resfresh */
+             //   redrawwin(transcript_window);
+             //   wrefresh(transcript_window);
+
                 refresh_all_windows(is_lurking, is_yelling);
             }
         }
