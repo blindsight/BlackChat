@@ -36,6 +36,10 @@ void write_to_transcript_window(char *str);
 
 
 
+/* Set user list. */
+void set_user_list(user_stats *info);
+
+
 
 
 

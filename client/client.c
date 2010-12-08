@@ -600,6 +600,16 @@ static void delete_num_chars_behind_cursor(int ch)
  =================================================================
  */
 
+/* Set the user list. */
+void set_user_list(user_stats *info)
+{
+    int i;
+    for(i = 0; i < 10; i ++) {
+        strcpy(user_info[i].name, info[i].name);
+        user_info[i].canDeepSix = info[i].canDeepSix;
+    }
+}
+
 /* Set a yell message. */
 void set_yell_message(int index, char *message)
 {
