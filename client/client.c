@@ -481,7 +481,7 @@ static void free_other_windows()
 static void refresh_other_windows()
 {
         char textToPrint[OTHER_WINDOW_BUFFER_SIZE];
-	int i, j, index;
+	int i;
 
 
 
@@ -492,18 +492,6 @@ static void refresh_other_windows()
                  * color continues to the end of the window. */
                 memset(textToPrint, '\0', sizeof(other_chat_windows[i].buffer));
                 strcpy(textToPrint, other_chat_windows[i].buffer);
-                if( strlen(textToPrint) > 20 ) {
-                        index = 20;
-                        for(j = strlen(textToPrint); index >= 0; j--) {
-                                textToPrint[ index ] = other_chat_windows[i].buffer[j];
-                                index --;
-                        }
-                } else {
-                        for(j = strlen(textToPrint); j < 20; j ++) {
-                            strcat(textToPrint, " ");
-                        }
-                }
-
              
 
                 /* Print */
@@ -613,12 +601,26 @@ char *get_client_name()
 /* Append text to the specified user window. */
 void append_text_to_window(int num, char *text)
 {
+        num--;
+        if(num < 0 || num > 9) {
+            log_writeln("Warning: Can't append text to window because uid/window = [%d] is not valid.", num);
+            return;
+        }
+
+   //     write_to_transcript_window(text);
+    //    write_to_transcript_window("---------------------");
         strcat(other_chat_windows[num].buffer, text);
 }
 
 /* Clear the text from the specified user window. */
 void clear_user_window_text(int num)
 {
+        num--;
+        if(num < 0 || num > 9) {
+            log_writeln("Warning: Can't clear window because uid/window = [%d] is not valid.", num);
+            return;
+        }
+
         memset(other_chat_windows[num].buffer, '\0', sizeof(other_chat_windows[num].buffer));
 }
 
@@ -853,6 +855,7 @@ int main(int argc, char* argv[])
 
         wcolor_set(lurk_win,           4, NULL);
         wcolor_set(transcript_window,  3, NULL);
+        wcolor_set(fullscreen_transcript_window, 3, NULL);
         wcolor_set(client_chat_window, 4, NULL);
         wcolor_set(yell_win,           2, NULL);
         wprintw(lurk_win, "Lurking... Use CTRL-L to unLurk or CTRL-Q to quit.");
@@ -864,19 +867,15 @@ int main(int argc, char* argv[])
 	write_to_transcript_window("******** Wecome to BlackChat! *********");
 	write_to_transcript_window("***************************************");
         
-	append_text_to_window(0, "Sup!");
-	append_text_to_window(1, "yo everyone, I'm in love with blackchat!");
-	append_text_to_window(2, "hey, my name is Dan!");
-	append_text_to_window(3, "Hey!?");
-
 	
 	/* Set our info window text. */
 	wprintw(info_win, "       Black Chat  v1.0\n");
 	wprintw(info_win, "UI: Henry Stratmann|Client: Josh Hartman\n");
-	wprintw(info_win, "Server: Tyler Reid |Protocol: Tim Rhoads\n");
+	wprintw(info_win, "Server: Tyler Reid |Protocol: Tim Rhodes\n");
 
-      
-        //  refresh_all_windows(is_lurking);
+
+        refresh_all_windows(is_lurking);
+        print_client_chat_buffer();
 
 
 	while(is_running) {
@@ -1186,6 +1185,10 @@ int main(int argc, char* argv[])
 					break;
 				}
 			}
+
+
+                        /* Resend server the client buffer ever keypress! */
+                        write_status(client_id);
 		}
 
         	/* Read from the server. */
