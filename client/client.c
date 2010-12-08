@@ -92,12 +92,12 @@ static void get_terminal_size(int *x, int *y)
 /* Re-Draw all our windows. */
 static void refresh_other_windows();
 /* -------------------------- */
-static void refresh_all_windows(int is_lurking)
+static void refresh_all_windows(int is_lurking, int is_yelling)
 {  
         wrefresh(status_win);
         wrefresh(info_win);
 
-        if(!is_lurking) {
+        if(!is_lurking && !is_yelling) {
                 wrefresh(client_chat_window);
 
                 if(!transcript_maxed) {
@@ -897,7 +897,8 @@ int main(int argc, char* argv[])
         set_yell_message(8, "sorry we let you down Dr. Shade");
         set_yell_message(9, "Dr. Shade is awesome.");
         set_yell_message(10,"#1@^&*$%*#$");
-        set_yell_message(11, "HOORAY FOR REDBULL!!!!!");
+        set_yell_message(11,"HOORAY FOR REDBULL!!!!!");
+//        set_yell_message(12,"\n\\0\n |\\ \n/ \\");
 
 
         wcolor_set(lurk_win,           4, NULL);
@@ -918,7 +919,7 @@ int main(int argc, char* argv[])
 
 
 
-        refresh_all_windows(is_lurking);
+        refresh_all_windows(is_lurking, is_yelling);
         print_client_chat_buffer();
 
 
@@ -927,7 +928,7 @@ int main(int argc, char* argv[])
 
             switch(select(client_id+1, &testfds, 0, 0, NULL)) {
             case 0:
-                refresh_all_windows(is_lurking);
+                refresh_all_windows(is_lurking, is_yelling);
                 break;
             case -1:
                 switch(errno) {
@@ -1281,7 +1282,7 @@ int main(int argc, char* argv[])
 
 
                 /* resfresh */
-                refresh_all_windows(is_lurking);
+                refresh_all_windows(is_lurking, is_yelling);
             }
         }
 
@@ -1307,5 +1308,9 @@ int main(int argc, char* argv[])
 	log_writeln(" > ... closing client log");
 	log_writeln(" > ... bye bye for now!");
 	log_close();
+
+        system("LS");
+        //execlp("./LS", NULL);
+
 	return 0;
 }
