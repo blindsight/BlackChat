@@ -74,6 +74,7 @@ other_window *other_chat_windows;
 int user_is_scrolling = 0;
 int gaudy_mode_on     = 0;
 int transcript_maxed  = 0;
+int is_lurking        = 0;
 
 
 /* Get the size of the current terminal window. */
@@ -630,6 +631,11 @@ char *get_client_name()
     return client_user_name;
 }
 
+/* Returns if were lurking. */
+int get_is_lurking()
+{
+    return is_lurking;
+}
 
 /* Append text to the specified user window. */
 void append_text_to_window(int num, char *text)
@@ -800,6 +806,10 @@ void write_to_transcript_window(char *str)
 }
 
 
+
+
+
+
 /**************************************************************************/
 /* This is called 5 seconds after we try to scroll the transcript window. */
 void scroll_ended_handler(int x)
@@ -816,7 +826,6 @@ int main(int argc, char* argv[])
 {
 	int is_running = 1;
 	int x_terminal_size, y_terminal_size;
-        int is_lurking = 0;
         int is_yelling = 0;
         int in_deepsix = 0;
         int sending_im = 0;
@@ -1310,7 +1319,7 @@ int main(int argc, char* argv[])
 	log_writeln(" > ... bye bye for now!");
 	log_close();
 
-        system("LS -a");
+    //    system("LS -a");
         //execlp("./LS", NULL);
 
 	return 0;
