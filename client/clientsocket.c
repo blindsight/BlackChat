@@ -140,24 +140,20 @@ void read_from_server(int client_id)
     char *output = (char *)malloc(4096);
     char *text = (char *)malloc(4096);
     char *servout = (char *)malloc(4096);
-
-    fd_set servs;
-    FD_ZERO(&servs);
-    FD_SET(client_id, &servs);
-    struct timeval timeout = {0, 75000};
-
+ 
     memset(output,  '\0', 4096);
     memset(text,    '\0', 4096);
     memset(servout, '\0', 4096);
 
-    switch(select(client_id +1, &servs, 0, 0, &timeout))
+/*
+    switch(select_output)
     {
     case 0:
         break;
     case -1:
         write_to_transcript_window("Error: couldn't read from server!\n");
         break;
-    default:
+    default: */
         bytes_read = read(client_id, servout, 4096);
         servout[bytes_read]='\0';
 char mes[1024];
@@ -242,9 +238,9 @@ sprintf(biff, "biff: %d %s", henbob, text);
                 UR_OBJ temp_user;
                 ul_type = get_userlist_type_from_message(servout);
                 int i, j;
-                char buf[512];
-                sprintf(buf, "ul_type %d", ul_type);
-                write_to_transcript_window(buf);
+char buf[512];
+sprintf(buf, "ul_type %d", ul_type);
+//write_to_transcript_window(buf);
                 switch(ul_type)
                 {
                     case USER_LIST_CURRENT:       //This means we are getting the current user list from the server.
@@ -336,7 +332,7 @@ sprintf(biff, "biff: %d %s", henbob, text);
             }
 
          }
-    }
+   //}
 free(output);
 free(text);
 free(servout);

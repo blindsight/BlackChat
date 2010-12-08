@@ -791,6 +791,7 @@ int main(int argc, char* argv[])
         int i;
         int client_id;
 
+
         memset(client_user_name, '\0', MAX_USER_NAME_LENGTH);
         if(argc <= 1) {
                 strcpy(client_user_name, "guest");
@@ -802,6 +803,13 @@ int main(int argc, char* argv[])
 			These need to be uncommented for the client connection to work. */
 	client_id = init_client(client_user_name);         /*          create a client. */
   //      init_user_list(client_id);                    /*  init the client size user list. */
+
+        fd_set servs;
+        FD_ZERO(&servs);
+        FD_SET(client_id, &servs);
+        FD_SET(0, &servs);
+        struct timeval timeout = {0, 75000};
+
 
 	log_init();
 	log_writeln(" --------------------------- ");
@@ -878,328 +886,351 @@ int main(int argc, char* argv[])
         print_client_chat_buffer();
 
 
-	while(is_running) {
-		int ch = getch();
-/*		char buf[512];          //get chars
+        while(is_running) {
+            fd_set testfds = servs;
 
-		sprintf(buf, "key pressed: '%c'  int value: %d\n", ch, ch);
-		write_to_transcript_window(buf);
-  */                                      //end get char
+            switch(select(client_id+1, &testfds, 0, 0, NULL)) {
+            case 0:
+                refresh_all_windows(is_lurking);
+                break;
+            case -1:
+                perror("Error on select! (client)");
+                is_running = 0;
+                break;
 
-            /* Check if were in "Lurk" mode. */
-            if(is_lurking) {
-                    switch(ch) {
-                            case 12: /* lurk-off */
-                                    write_lurk(client_id);
-                                    is_lurking = 0;
-                                    print_client_chat_buffer();
-                                    break;
-                            case 17: /* quit */
-                                    is_running = 0;
-                                    break;
-                            default:
-                                    wrefresh(lurk_win);
-                    }
-            }
-            /* Check if were in IM mode. */
-            else if(sending_im) {
-            		/*
-            		 TODO: Display list of users (like deepsix) to send IM to.
-            		 	All IM's will be displayed on the main transcript with some type of "marker"
-            		 	indicating that this was an IM.
-            		 */
-            		if(ch >= 48 && ch <= 57) {
-            				/* josh-note:
-            					Have josh send IM based on "ch" */
-            		}
-            
-            
-            		/* quit */
-                    if(ch == 17) {
-                    		is_running = 0;
-                    }
-                    
-                    /* exit IM */
-                    sending_im = 0;
-                    window_page_up(transcript_window,            &transcript_current_line, TRANSCRIPT_MAX_COLUMNS,   transcript_buffer);
-                    window_page_up(fullscreen_transcript_window, &transcript_current_line, TRANSCRIPT_MAX_COLUMNS*2, f_transcript_buffer);
-            }
-            /* Check if were in deepsix mode. */
-            else if(in_deepsix) {
-            		/* kick user */
-            		if(ch >= 48 && ch <= 57) {
-            				/* josh-note:
-            					Have josh make a "kick_user(ch-48)" command. 
-            					Also, have josh keep track of who user voted for and display message on transcript as to how user voted
-            					and/or if they already voted for the user. */		
-            		}
-            
-            		/* quit */
-                    if(ch == 17) {
-                    		is_running = 0;
-                    }
-                    
-                    /* exit deepsix */
-                    in_deepsix = 0;
-                    window_page_up(transcript_window,            &transcript_current_line, TRANSCRIPT_MAX_COLUMNS,   transcript_buffer);
-                    window_page_up(fullscreen_transcript_window, &transcript_current_line, TRANSCRIPT_MAX_COLUMNS*2, f_transcript_buffer);
-            }
-            /* Check if were yelling. */
-            else if(is_yelling) {
-                    // redrawwin(yell_win);
-                    // wrefresh(yell_win);
-                    int index = ch - 97;
-        
+            default:
+                if( FD_ISSET(0, &testfds) )
+                {
+                    int ch = getch();
+    /*		char buf[512];          //get chars
 
-                    /* Write our comment to our transcript window.  */
-                    if(index >= 0 && index < 26) {
-                            if( yell_messages[index][0] != '\0' ) {
-                                    write_to_transcript_window( yell_messages[index] );
+                    sprintf(buf, "key pressed: '%c'  int value: %d\n", ch, ch);
+                    write_to_transcript_window(buf);
+      */                                      //end get char
+
+                /* Check if were in "Lurk" mode. */
+                if(is_lurking) {
+                        switch(ch) {
+                                case 12: /* lurk-off */
+                                        write_lurk(client_id);
+                                        is_lurking = 0;
+                                        print_client_chat_buffer();
+                                        break;
+                                case 17: /* quit */
+                                        is_running = 0;
+                                        break;
+                                default:
+                                        wrefresh(lurk_win);
+                        }
+                }
+                /* Check if were in IM mode. */
+                else if(sending_im) {
+                            /*
+                             TODO: Display list of users (like deepsix) to send IM to.
+                                    All IM's will be displayed on the main transcript with some type of "marker"
+                                    indicating that this was an IM.
+                             */
+                            if(ch >= 48 && ch <= 57) {
+                                            /* josh-note:
+                                                    Have josh send IM based on "ch" */
                             }
-                    }
-                    
-                    is_yelling = 0;
-                    redrawwin(client_chat_window);
-                    wrefresh(client_chat_window);
-                    redrawwin(transcript_window);
-                    wrefresh(transcript_window);
-            } else {
-		/* Check what keys we pressed. */
-		switch(ch) {
-		        /*
-			 * Check if we pressed a control key. */
-			if(iscntrl(ch)) {
-				case 7:  /* CTRL-G */
-					gaudy_mode_on = (gaudy_mode_on == 1) ? 0 : 1;
-					if(gaudy_mode_on) {
-						client_buffer[ client_cursor_position++ ] = 2;
-					} else {
-						client_buffer[ client_cursor_position++ ] = 3;
-					}
+                
+                
+                            /* quit */
+                        if(ch == 17) {
+                                    is_running = 0;
+                        }
+                        
+                        /* exit IM */
+                        sending_im = 0;
+                        window_page_up(transcript_window,            &transcript_current_line, TRANSCRIPT_MAX_COLUMNS,   transcript_buffer);
+                        window_page_up(fullscreen_transcript_window, &transcript_current_line, TRANSCRIPT_MAX_COLUMNS*2, f_transcript_buffer);
+                }
+                /* Check if were in deepsix mode. */
+                else if(in_deepsix) {
+                            /* kick user */
+                            if(ch >= 48 && ch <= 57) {
+                                            /* josh-note:
+                                                    Have josh make a "kick_user(ch-48)" command. 
+                                                    Also, have josh keep track of who user voted for and display message on transcript as to how user voted
+                                                    and/or if they already voted for the user. */		
+                            }
+                
+                            /* quit */
+                        if(ch == 17) {
+                                    is_running = 0;
+                        }
+                        
+                        /* exit deepsix */
+                        in_deepsix = 0;
+                        window_page_up(transcript_window,            &transcript_current_line, TRANSCRIPT_MAX_COLUMNS,   transcript_buffer);
+                        window_page_up(fullscreen_transcript_window, &transcript_current_line, TRANSCRIPT_MAX_COLUMNS*2, f_transcript_buffer);
+                }
+                /* Check if were yelling. */
+                else if(is_yelling) {
+                        // redrawwin(yell_win);
+                        // wrefresh(yell_win);
+                        int index = ch - 97;
+            
 
-					/* Print out updates to the window. */
-					print_client_chat_buffer();
-					break;
+                        /* Write our comment to our transcript window.  */
+                        if(index >= 0 && index < 26) {
+                                if( yell_messages[index][0] != '\0' ) {
+                                        write_to_transcript_window( yell_messages[index] );
+                                }
+                        }
+                        
+                        is_yelling = 0;
+                        redrawwin(client_chat_window);
+                        wrefresh(client_chat_window);
+                        redrawwin(transcript_window);
+                        wrefresh(transcript_window);
+                } else {
+                    /* Check what keys we pressed. */
+                    switch(ch) {
+                            /*
+                             * Check if we pressed a control key. */
+                            if(iscntrl(ch)) {
+                                    case 7:  /* CTRL-G */
+                                            gaudy_mode_on = (gaudy_mode_on == 1) ? 0 : 1;
+                                            if(gaudy_mode_on) {
+                                                    client_buffer[ client_cursor_position++ ] = 2;
+                                            } else {
+                                                    client_buffer[ client_cursor_position++ ] = 3;
+                                            }
 
-				case 127:/* Backsapce Key (grok hack) */
-				case 8:  /* CTRL-H */
-					client_buffer[ strlen(client_buffer)-1 ] = '\0';
-					print_client_chat_buffer();
-					break;
-					
-				case 9:  /* CTRL-I   /   TAB */
-					if(!sending_im) {
-						sending_im = 1;
-						draw_im_window();
-					}
-					break;
-					
-				case 10: /* CTRL-J and CTRL-M */
-		/* UNCOMMENT ME FOR USE WITH SERVER */
-				//	{
-//						char *buf = NULL;
+                                            /* Print out updates to the window. */
+                                            print_client_chat_buffer();
+                                            break;
+
+                                    case 127:/* Backsapce Key (grok hack) */
+                                    case 8:  /* CTRL-H */
+                                            client_buffer[ strlen(client_buffer)-1 ] = '\0';
+                                            print_client_chat_buffer();
+                                            break;
+                                            
+                                    case 9:  /* CTRL-I   /   TAB */
+                                            if(!sending_im) {
+                                                    sending_im = 1;
+                                                    draw_im_window();
+                                            }
+                                            break;
+                                            
+                                    case 10: /* CTRL-J and CTRL-M */
+                    /* UNCOMMENT ME FOR USE WITH SERVER */
+                                    //	{
+    //						char *buf = NULL;
 
 
-						/* If we had gaudy mode on, we need to disable it. */
-						if(gaudy_mode_on) {
-							client_buffer[ client_cursor_position++ ] = 3;
-                                                	client_buffer[ client_cursor_position++ ] = ' ';
-							gaudy_mode_on = 0;
-						}
+                                                    /* If we had gaudy mode on, we need to disable it. */
+                                                    if(gaudy_mode_on) {
+                                                            client_buffer[ client_cursor_position++ ] = 3;
+                                                            client_buffer[ client_cursor_position++ ] = ' ';
+                                                            gaudy_mode_on = 0;
+                                                    }
 
 
 #if 0						/* Get our buffer togther to write to the transcript window. */
-						buf = (char*)malloc( (strlen("[Client Says]: ")+strlen(client_buffer)+1) * sizeof(char) );
-						sprintf(buf, "[Client Says]: %s", client_buffer);
-						write_to_transcript_window(buf);
-					}
-					clear_text_from_client_typing_window();
-#endif
-					write_out(client_id);                  /*  enter key is pressed so send a message to the server. */
-						    break;
-
-				case 11: /* CTRL-K */
-					{
-						int i;
-						for(i = client_cursor_position+1; i < strlen(client_buffer); i ++) {
-							client_buffer[i] = '\0';
-						}
-					}
-					break;
-
-					    case 12: /* CTRL-L */
-							if(!is_lurking) {
-							    redrawwin(lurk_win);
-							    wrefresh(lurk_win);
-							    is_lurking = 1;
-                                                            write_lurk(client_id);
-							}
-						    break;
-
-				case 14: /* CTRL-N */
-                                        alarm(5);
-					user_is_scrolling = 1;
-					transcript_current_line ++;
-
-					window_page_down( transcript_window,
-							  &transcript_current_line,
-							  TRANSCRIPT_MAX_COLUMNS,
-							  transcript_buffer );
-							  
-					window_page_down( fullscreen_transcript_window,
-							  &transcript_current_line,
-							  TRANSCRIPT_MAX_COLUMNS*2,
-							  f_transcript_buffer );
-					break;
-				case 16: /* CTRL-P */
-                                        alarm(5);
-					user_is_scrolling = 1;
-					transcript_current_line --;
-
-					window_page_up( transcript_window,
-						    	&transcript_current_line,
-							TRANSCRIPT_MAX_COLUMNS,
-							transcript_buffer );
-							
-					window_page_up( fullscreen_transcript_window,
-							  &transcript_current_line,
-							  TRANSCRIPT_MAX_COLUMNS*2,
-							  f_transcript_buffer );
-					break;
-		
-				case 17: /* CTRL-Q */ 
-					log_writeln(" > ... recived quit signal from client");
-					is_running = 0;
-					break;
-		
-				case 20: /* CTRL-T */
-					if(transcript_maxed) {
-						transcript_maxed = 0;
-						window_page_up(transcript_window, &transcript_current_line, TRANSCRIPT_MAX_COLUMNS, transcript_buffer);
-						wclear(fullscreen_transcript_window);
-						wrefresh(fullscreen_transcript_window);
-					} else {
-						transcript_maxed = 1;
-						window_page_up(fullscreen_transcript_window, &transcript_current_line, TRANSCRIPT_MAX_COLUMNS*2, f_transcript_buffer);
-						wclear(transcript_window);
-						wrefresh(transcript_window);
-					}
-					break;
-		
-				case 21: /* CTRL-U */
-					client_current_line = 0;
-					client_cursor_position = 0;
-					memset(client_buffer, '\0', strlen(client_buffer)+1);	
-					print_client_chat_buffer();
-					break;
-
-				case 23: /* CTRL-W */
-					delete_last_word_in_buffer(client_buffer);
-					print_client_chat_buffer();
-					break;
-                                case 25: /* CTRL-Y */
-                                        {
-                                            if(!is_yelling)
-                                            {
-                                                redrawwin(yell_win);
-                                                wrefresh(yell_win);
-                                                is_yelling = 1;
+                                                    buf = (char*)malloc( (strlen("[Client Says]: ")+strlen(client_buffer)+1) * sizeof(char) );
+                                                    sprintf(buf, "[Client Says]: %s", client_buffer);
+                                                    write_to_transcript_window(buf);
                                             }
-                                        }
-                                        break; 
-				case 29: /* CTRL-] */
-                                        alarm(0);
-					user_is_scrolling = 0;
-					print_transcript_chat_buffer();
-					break;
-                                case 30: /* CTRL-6 */
-                                        if(!in_deepsix)
-                                        {
-                                            draw_deepsix_window();
-                                            in_deepsix = 1;
-                                        }
-                                        break;
-
-                                /*
-                                 * If we encountered an unkown escape charcter, break out of here so we don't
-                                 * print it. */
-                                break;              /* TODO: Fix me! */
-			}
-#if 0
-			/* Scroll the clients typing window down. */
-			case KEY_DOWN:
-				client_current_line ++;
-				if(client_current_line*MAX_COLUMNS > strlen(client_buffer)) client_current_line --;
-
-					    wclear(client_chat_window);
-					    wprintw(client_chat_window, &client_buffer[client_current_line*MAX_COLUMNS]);
-					    break;
-			/* Scroll the clients typing window up. */
-			case KEY_UP:
-				client_current_line --;
-				if(client_current_line < 0) client_current_line = 0;
-
-					    wclear(client_chat_window);
-					    wprintw(client_chat_window, &client_buffer[client_current_line*MAX_COLUMNS]);
-					    break;
+                                            clear_text_from_client_typing_window();
 #endif
-			/* Delete the previous chracter. */
-			case KEY_BACKSPACE:
-				/* Check if were deleting the last character. */
-				if( client_cursor_position == strlen(client_buffer) ) {
-					client_buffer[ client_cursor_position-1 ] = '\0';
-					client_cursor_position --;
-					print_client_chat_buffer();
-				} else {
-					/* If were here, that means were NOT deleting the last character. */
-					int i;
-					for(i = client_cursor_position-2; i < strlen(client_buffer); i ++) {
-						client_buffer[i] = client_buffer[i+1];
-					}
-					client_cursor_position --;
-					print_client_chat_buffer();
-				}
-				break;
+                                            write_out(client_id);                  /*  enter key is pressed so send a message to the server. */
+                                                        break;
 
-			/* If were here, that means we didn't press any "special" keys so that means were
-			 * trying to write some generic characters to our chat window. */
-			default:
-				/* Make sure we don't print a control character. */
-				if(!iscntrl(ch) ) {
-					/* Check if were inserting a character before the end of our client
-					 * typing buffer. */
-					if( client_cursor_position != strlen(client_buffer) ) {
-	
-						/* Move all characters in front of the cursor up one. */
-						int i;
-						for(i = strlen(client_buffer)+1; i > client_cursor_position; i --) {
-							client_buffer[i] = client_buffer[i-1];
-						}
-					}
+                                    case 11: /* CTRL-K */
+                                            {
+                                                    int i;
+                                                    for(i = client_cursor_position+1; i < strlen(client_buffer); i ++) {
+                                                            client_buffer[i] = '\0';
+                                                    }
+                                            }
+                                            break;
 
-					/* Add the character to our buffer. */
-					client_buffer[ client_cursor_position++ ] = ch;
+                                                case 12: /* CTRL-L */
+                                                            if(!is_lurking) {
+                                                                redrawwin(lurk_win);
+                                                                wrefresh(lurk_win);
+                                                                is_lurking = 1;
+                                                                write_lurk(client_id);
+                                                            }
+                                                        break;
 
-					/* Print our new/updated buffer. */
-					print_client_chat_buffer();
-					break;
-				}
-			}
+                                    case 14: /* CTRL-N */
+                                            alarm(5);
+                                            user_is_scrolling = 1;
+                                            transcript_current_line ++;
+
+                                            window_page_down( transcript_window,
+                                                              &transcript_current_line,
+                                                              TRANSCRIPT_MAX_COLUMNS,
+                                                              transcript_buffer );
+                                                              
+                                            window_page_down( fullscreen_transcript_window,
+                                                              &transcript_current_line,
+                                                              TRANSCRIPT_MAX_COLUMNS*2,
+                                                              f_transcript_buffer );
+                                            break;
+                                    case 16: /* CTRL-P */
+                                            alarm(5);
+                                            user_is_scrolling = 1;
+                                            transcript_current_line --;
+
+                                            window_page_up( transcript_window,
+                                                            &transcript_current_line,
+                                                            TRANSCRIPT_MAX_COLUMNS,
+                                                            transcript_buffer );
+                                                            
+                                            window_page_up( fullscreen_transcript_window,
+                                                              &transcript_current_line,
+                                                              TRANSCRIPT_MAX_COLUMNS*2,
+                                                              f_transcript_buffer );
+                                            break;
+                    
+                                    case 17: /* CTRL-Q */ 
+                                            log_writeln(" > ... recived quit signal from client");
+                                            is_running = 0;
+                                            break;
+                    
+                                    case 20: /* CTRL-T */
+                                            if(transcript_maxed) {
+                                                    transcript_maxed = 0;
+                                                    window_page_up(transcript_window, &transcript_current_line, TRANSCRIPT_MAX_COLUMNS, transcript_buffer);
+                                                    wclear(fullscreen_transcript_window);
+                                                    wrefresh(fullscreen_transcript_window);
+                                            } else {
+                                                    transcript_maxed = 1;
+                                                    window_page_up(fullscreen_transcript_window, &transcript_current_line, TRANSCRIPT_MAX_COLUMNS*2, f_transcript_buffer);
+                                                    wclear(transcript_window);
+                                                    wrefresh(transcript_window);
+                                            }
+                                            break;
+                    
+                                    case 21: /* CTRL-U */
+                                            client_current_line = 0;
+                                            client_cursor_position = 0;
+                                            memset(client_buffer, '\0', strlen(client_buffer)+1);	
+                                            print_client_chat_buffer();
+                                            break;
+
+                                    case 23: /* CTRL-W */
+                                            delete_last_word_in_buffer(client_buffer);
+                                            print_client_chat_buffer();
+                                            break;
+                                    case 25: /* CTRL-Y */
+                                            {
+                                                if(!is_yelling)
+                                                {
+                                                    redrawwin(yell_win);
+                                                    wrefresh(yell_win);
+                                                    is_yelling = 1;
+                                                }
+                                            }
+                                            break; 
+                                    case 29: /* CTRL-] */
+                                            alarm(0);
+                                            user_is_scrolling = 0;
+                                            print_transcript_chat_buffer();
+                                            break;
+                                    case 30: /* CTRL-6 */
+                                            if(!in_deepsix)
+                                            {
+                                                draw_deepsix_window();
+                                                in_deepsix = 1;
+                                            }
+                                            break;
+
+                                    /*
+                                     * If we encountered an unkown escape charcter, break out of here so we don't
+                                     * print it. */
+                                    break;              /* TODO: Fix me! */
+                            }
+#if 0
+                            /* Scroll the clients typing window down. */
+                            case KEY_DOWN:
+                                    client_current_line ++;
+                                    if(client_current_line*MAX_COLUMNS > strlen(client_buffer)) client_current_line --;
+
+                                                wclear(client_chat_window);
+                                                wprintw(client_chat_window, &client_buffer[client_current_line*MAX_COLUMNS]);
+                                                break;
+                            /* Scroll the clients typing window up. */
+                            case KEY_UP:
+                                    client_current_line --;
+                                    if(client_current_line < 0) client_current_line = 0;
+
+                                                wclear(client_chat_window);
+                                                wprintw(client_chat_window, &client_buffer[client_current_line*MAX_COLUMNS]);
+                                                break;
+#endif
+                            /* Delete the previous chracter. */
+                            case KEY_BACKSPACE:
+                                    /* Check if were deleting the last character. */
+                                    if( client_cursor_position == strlen(client_buffer) ) {
+                                            client_buffer[ client_cursor_position-1 ] = '\0';
+                                            client_cursor_position --;
+                                            print_client_chat_buffer();
+                                    } else {
+                                            /* If were here, that means were NOT deleting the last character. */
+                                            int i;
+                                            for(i = client_cursor_position-2; i < strlen(client_buffer); i ++) {
+                                                    client_buffer[i] = client_buffer[i+1];
+                                            }
+                                            client_cursor_position --;
+                                            print_client_chat_buffer();
+                                    }
+                                    break;
+
+                            /* If were here, that means we didn't press any "special" keys so that means were
+                             * trying to write some generic characters to our chat window. */
+                            default:
+                                    /* Make sure we don't print a control character. */
+                                    if(!iscntrl(ch) ) {
+                                            /* Check if were inserting a character before the end of our client
+                                             * typing buffer. */
+                                            if( client_cursor_position != strlen(client_buffer) ) {
+            
+                                                    /* Move all characters in front of the cursor up one. */
+                                                    int i;
+                                                    for(i = strlen(client_buffer)+1; i > client_cursor_position; i --) {
+                                                            client_buffer[i] = client_buffer[i-1];
+                                                    }
+                                            }
+
+                                            /* Add the character to our buffer. */
+                                            client_buffer[ client_cursor_position++ ] = ch;
+
+                                            /* Print our new/updated buffer. */
+                                            print_client_chat_buffer();
+                                            break;
+
+                                    }
+                            }
 
 
-                        /* Resend server the client buffer ever keypress! */
-                        write_status(client_id);
-		}
+                            /* Resend server the client buffer ever keypress! */
+                            write_status(client_id);
 
-        	/* Read from the server. */
-        	/* josh-note
-        			Uncomment this! */
+                    }
+
+                    /* Read from the server. */
+                    /* josh-note
+                                    Uncomment this! */
+
+                }   
+                /* Check if were getting server info! */
+                if( FD_ISSET(client_id, &testfds) )
+                {
+                    read_from_server(client_id);
+                }
 
 
-        	refresh_all_windows(is_lurking);
-          	read_from_server(client_id);
-        	refresh_all_windows(is_lurking);
-	}
+                /* resfresh */
+                refresh_all_windows(is_lurking);
+            }
+        }
 
 	log_writeln(" > ... [ending transcript]");
 	log_writeln(" > ... freeing resources");
