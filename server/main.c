@@ -8,23 +8,39 @@
 SERVER_OBJ *bc_server;
 
 void update_time(int sig){
+    char *buff = (char *)malloc(256);
+    char *lurk_text = (char *)malloc(16);
+    char *to_client = (char *)malloc(256);
     pthread_mutex_lock(&mutex);
     int num_clients = bc_server->num_users_connected;
     pthread_mutex_unlock(&mutex);
     
-#ifdef DEBUG
-    printf("UpdateTime");
-#endif
+
+    printf("UpdateTime\n");
 
     for(int i = 0; i < num_clients; i++){
-      
+      memset(buff, '\0', 256);
+      memset(lurk_text, '\0', 16);
+      memset(to_client, '\0', 256);
       if(bc_server->clients[i]->is_connected){
-	bc_server->clients[i]->seconds_connected = time(NULL) - bc_server->clients[i]->time_connected;  
-      }
+	bc_server->clients[i]->seconds_connected = time(NULL) - bc_server->clients[i]->time_connected;
+        if(bc_server->clients[i]->user_data->lurk)
+            strcpy(lurk_text, "True");
+        else
+            strcpy(lurk_text, "False");
+         
+      sprintf(buff, "Bytes sent: %d | Bytes received: %d\nSeconds Connected: %d | Lurking: %s\nUser name: %s", bc_server->clients[i]->bytes_from, bc_server->clients[i]->bytes_to,
+              bc_server->clients[i]->seconds_connected, lurk_text, bc_server->clients[i]->user_data->name);
+
+      create_main_status_message(i, buff, to_client);
+      broadcast_all(bc_server->clients, to_client);
+      }     
 		     
     }
 
-  //TODO send time updates to each client
+    free(buff);
+    free(lurk_text);
+    free(to_client);
 }
 
 void cleanup(int sig){
@@ -123,22 +139,25 @@ void handle_messages(SERVER_OBJ* server, SERVER_QUEUE_OBJ* messages){
 	  {
 	    char *buff = (char *)malloc(1024 * 8);
             char *message_to_server = (char *)malloc(1024 * 8);
+            memset(buff, '\0', 1024 * 8);
+            memset(message_to_server, '\0', 1024 * 8);
             get_text_from_message(message, buff);
 
             //printf("Contents of Buff: %s\n", buff);
 
             int user = get_user_from_message(message);
 
-            sprintf(message_to_server, "%s says: %s\n", server->clients[user]->user_data->name, buff);  
+            sprintf(message_to_server, "%s says: %s", server->clients[user]->user_data->name, buff);  
             
             //printf("Message to Server: %s\n", message_to_server);
 	    
-	    HST_OBJ temp = server->clients[user]->user_data->history;
+	   // HST_OBJ temp = server->clients[user]->user_data->history;
 	    
 	    
 	    //server->clients[user]->user_data->history->from = NULL;
 	    //server->clients[user]->user_data->history->next = temp;
-	    //TODO update time
+	    
+            server->clients[user]->seconds_connected = time(NULL) - server->clients[user]->time_connected;
 	    
 	    create_text_message(TEXT_MAIN_CHAT, user, message_to_server, buff);
 

@@ -193,6 +193,10 @@ sprintf(biff, "biff: %d %s", henbob, text);
                     clear_user_window_text(henbob);
                     append_text_to_window(henbob,text);
                 }
+                else if(text_type == TEXT_MAIN_STATUS)
+                {
+                       set_text_in_status_window(text);
+                }
                 else                            //send to transcript window
                 {
                    // sprintf(output, "%d says: %s", user, text);

@@ -52,6 +52,12 @@ void create_status_message(int uid, char *message, char *result) {
 	sprintf(result,"%02d%02d%03d%s",CMD_TEXT, TEXT_STATUS, uid, message);
 }
 
+void create_main_status_message(int uid, char *message, char *result){
+	sprintf(result,"%02d%02d%03d%s",CMD_TEXT, TEXT_MAIN_STATUS, uid, message);
+
+}
+
+
 void create_yell_message(int uid, char *message, char *result) {
 	sprintf(result,"%02d%02d%03d%s",CMD_TEXT, TEXT_YELL, uid, message);
 }
