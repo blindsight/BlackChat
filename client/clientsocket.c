@@ -111,6 +111,18 @@ void write_deep_six(int client_id)
 
 }
 
+void submit_deep_six(int client_id, int vote_id)
+{
+    char *temp = (char *)malloc(4096); 
+    create_vote_message(uid, vote_id, temp);
+    if( write(client_id, temp, strlen(temp)*sizeof(char)) == -1)
+    {
+        perror("COULDN'T SEND vote MESSAGE!");
+        exit(1);
+    }
+
+}
+
 void write_im(int client_id, int to_user)
 {
     char *message = (char *)malloc(4096);
@@ -272,12 +284,12 @@ sprintf(biff, "biff: \"%s\"", text);
                 switch(vote_type)
                 {
                 case VOTE_ACCEPTED:
-                    sprintf(vote_response, "%s vote accepted",curr_user->name);
-                    write_to_transcript_window(vote_response);
+                   // sprintf(vote_response, "%s vote accepted",curr_user->name);
+                    set_text_in_status_window("Vote accepted!");
                 break;
                 case VOTE_NOT_ACCEPTED:
-                    sprintf(vote_response, "%s vote NOT accepted", curr_user->name);
-                    write_to_transcript_window(vote_response);
+                   // sprintf(vote_response, "%s vote NOT accepted", curr_user->name);
+                    set_text_in_status_window("Vote not accepted!");
                 }
                 free(vote_response);
             break;
