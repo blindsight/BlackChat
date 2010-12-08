@@ -327,8 +327,10 @@ sprintf(buf, "ul_type %d", ul_type);
                 }  //TODO: user list sign off if it is actually needed.
             break;}
             case CMD_ERROR:
-                err_type = get_error_type_from_message(servout);
-
+               // err_type = get_error_type_from_message(servout);
+                get_text_from_message(servout, text);
+                set_text_in_status_window(text);
+                
               /*  if(err_type == ERROR_CHAT_FULL)
                 {
                     write_to_transcript_window("Sorry chat is full.");
