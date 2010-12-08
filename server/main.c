@@ -113,7 +113,7 @@ void handle_messages(SERVER_OBJ* server, SERVER_QUEUE_OBJ* messages){
 //  int window_type;
 //  int vote_type;
   int user_type;
-  int error_type;
+  //int error_type;
   char *message;
 //  char *message_data;
 
@@ -389,16 +389,16 @@ void handle_messages(SERVER_OBJ* server, SERVER_QUEUE_OBJ* messages){
       }
       break;
     case CMD_ERROR:
-	error_type = get_error_type_from_message(message);
+	//error_type = get_error_type_from_message(message);
 	
-	switch(error_type){
+/*	switch(error_type){
 	
 	  default:
 	    //TODO send ERROR_UNKNOWN_MSG
 	    break;
 	  
 	}
-      break;
+      break;*/
     default:
       //TODO send ERROR_UNKNOWN_MSG
     break;
