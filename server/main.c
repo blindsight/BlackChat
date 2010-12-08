@@ -310,9 +310,9 @@ void handle_messages(SERVER_OBJ* server, SERVER_QUEUE_OBJ* messages){
       
       if(num_votes == server->num_users_connected){
 	int votes[] = {-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int user_voted_off = 0;
+	int user_voted_off = 1;
 	
-	for(int i = 1; i < MAX_CONNECTIONS; i++){
+	for(int i = 1; i <= MAX_CONNECTIONS; i++){
 	
 	  pthread_mutex_lock(&mutex);
 	  if(server->clients[i]->is_connected && server->clients[i]->user_data->vote != -1){	  
@@ -322,14 +322,14 @@ void handle_messages(SERVER_OBJ* server, SERVER_QUEUE_OBJ* messages){
 	  
 	}
 	
-	for(int i = 0; i < 11; i++){
+	for(int i = 1; i <= 10; i++){
 	
 	  if(votes[user_voted_off] > votes[i])
 	    user_voted_off = i;
 	  
 	}
 	
-	disconnect_user(user_voted_off);
+	disconnect_user(user_voted_off - 1);
         server->num_users_connected -= 1;
         
 	

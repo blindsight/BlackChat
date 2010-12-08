@@ -359,8 +359,12 @@ void *client_thread(void *args){
           sprintf(temp_buff2, "%s has logged off.", client->user_data->name);
 
           create_main_chat_message(client->user_data->uid, temp_buff2, temp_buff);
-
-          broadcast_all(client->server->clients, temp_buff);
+            
+          for(int i = 1; i <= 10; i++){
+            
+              if(client->user_data->uid != 1)
+                broadcast_client(client->server->clients[i], temp_buff);
+          }
 
 	
 	break;
