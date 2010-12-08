@@ -385,7 +385,7 @@ void handle_messages(SERVER_OBJ* server, SERVER_QUEUE_OBJ* messages){
           broadcast_all(server->clients, buff);
           free(message_to_server);
           free(buff);
-          update_time(0);
+          //update_time(0);
       }
       break;
     case CMD_ERROR:
