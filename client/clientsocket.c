@@ -24,6 +24,9 @@ int total_written = 0;
 int total_read = 0;
 int time_connected = 0;
 
+user_stats user_info[10];
+
+
 typedef struct {
     int user_id;
     char *name;
@@ -77,7 +80,7 @@ void write_status(int client_id)
     else
         strcpy(lurk_mode_tr, "False");
 
-    sprintf(update, "Total Sent: %d, Received: %d\nSeconds Connected: %d | Lurking: %s\nUser Name: %s",
+    sprintf(update, "Total Sent: %d, Received: %d\nSeconds Connected: %ld | Lurking: %s\nUser Name: %s",
             total_written, total_read, time(NULL) - time_connected, lurk_mode_tr, get_client_name());
     if(user_text[0] != '\0' && uid > 0)
     {
@@ -95,9 +98,16 @@ void write_status(int client_id)
     free(lurk_mode_tr);
 }
 
-void write_yell(int client_id)
+void write_deep_six(int client_id)
 {
-//TODO: there seems to be a discrepency between who actually keeps the yell message
+    char *temp = (char *)malloc(4096);
+    request_user_list(curr_user, temp);
+    if( write(client_id, temp, strlen(temp)*sizeof(char)) == -1)
+    {
+        perror("COULDN'T SEND MESSAGE!");
+        exit(1);
+    }
+
 }
 
 void write_im(int client_id, int to_user)
@@ -296,7 +306,10 @@ sprintf(buf, "ul_type %d", ul_type);
                     
                         for(i=0; i<user_num; i++)           //adds users received to my online user list
                         {   
-                            online_user temp_o;
+                            temp_user = user_list[i];
+                            strcpy(user_info[i].name, temp_user->name);
+                            user_info[i].canDeepSix = 1;
+                  /*          online_user temp_o;
                             temp_user = user_list[i];
                             int temp_id = temp_user->uid;
                             char temp_name[100];
@@ -314,8 +327,9 @@ sprintf(buf, "ul_type %d", ul_type);
                             
                             }
                             free(temp_user);
-                            write_to_transcript_window("have userlist");
+                            write_to_transcript_window("have userlist"); */
                         }
+                        set_user_list(user_info);
                         //TODO: need seperate message for sign off in order to remove user from online_list
                         //also need a quick function to return index in online_list for window number
                     break;
