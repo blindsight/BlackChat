@@ -38,21 +38,26 @@ void write_out(int client_id)
     char *buffer = (char *)malloc(4096);
     char *status = (char *)malloc(4096);
     char *user_text = grab_text_from_client_typing_window();
-    
-    create_main_chat_message(uid,user_text,buffer);
-   // create_status_message(uid,user_text,status);
 
-    if(write(client_id, buffer, strlen(buffer)) == -1) {
-       write_to_transcript_window("Error: Couldn't write to server main chat message!\n");
-       write_to_transcript_window(buffer); 
+    if(user_text[0] != '\0')
+    {
+
+        create_main_chat_message(uid,user_text,buffer);
+       // create_status_message(uid,user_text,status);
+
+        if(write(client_id, buffer, strlen(buffer)) == -1) {
+           write_to_transcript_window("Error: Couldn't write to server main chat message!\n");
+           write_to_transcript_window(buffer); 
+        }
+        /*
+        if(write(client_id, status, strlen(status)*sizeof(char)) == -1) {
+            write_to_transcript_window("Error: Couldn't write to server status message!\n");
+           // write_to_transcript_window(buffer); 
+        }*/
+       // clear_user_window_text(1);       //TODO: add window number
+        clear_text_from_client_typing_window();
     }
-    /*
-    if(write(client_id, status, strlen(status)*sizeof(char)) == -1) {
-        write_to_transcript_window("Error: Couldn't write to server status message!\n");
-       // write_to_transcript_window(buffer); 
-    }*/
-   // clear_user_window_text(1);       //TODO: add window number
-    clear_text_from_client_typing_window();
+
     free(buffer);
     free(status);
 }

@@ -40,7 +40,7 @@ int  client_cursor_position = 0;
 
 char *transcript_buffer;
 int   transcript_buffer_size = 256;
-int   transcript_current_line = 0;
+int   transcript_current_line = 1;
 char *f_transcript_buffer;
 int   f_transcript_buffer_size = 256;
 
@@ -208,8 +208,8 @@ void window_page_up(WINDOW *win, int *line, int max_columns, char *buffer)
 
 
 	/* Make sure we didn't get passed to small of a value. */
-	if((*line) < 0) {
-            (*line) = 0;
+	if((*line) < 1) {
+            (*line) = 1;
             return;
         }
 
@@ -599,6 +599,16 @@ static void delete_num_chars_behind_cursor(int ch)
  =================================================================
  =================================================================
  */
+
+/* Set the user list. */
+void set_user_list(user_stats *info)
+{
+    int i;
+    for(i = 0; i < 10; i ++) {
+        strcpy(user_info[i].name, info[i].name);
+        user_info[i].canDeepSix = info[i].canDeepSix;
+    }
+}
 
 /* Set a yell message. */
 void set_yell_message(int index, char *message)
@@ -1241,7 +1251,7 @@ int main(int argc, char* argv[])
                              * trying to write some generic characters to our chat window. */
                             default:
                                     /* Make sure we don't print a control character. */
-                                    if(!iscntrl(ch) ) {
+                                    if(!iscntrl(ch) && (ch < 266 || ch > 266+19) ) {
                                             /* Check if were inserting a character before the end of our client
                                              * typing buffer. */
                                             if( client_cursor_position != strlen(client_buffer) ) {
