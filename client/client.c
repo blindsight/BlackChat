@@ -1135,7 +1135,7 @@ int main(int argc, char* argv[])
                                             log_writeln(" > ... recived quit signal from client");
                                             is_running = 0;
                                             break;
-                    
+#if 0 
                                     case 20: /* CTRL-T */
                                             if(transcript_maxed) {
                                                     transcript_maxed = 0;
@@ -1149,7 +1149,7 @@ int main(int argc, char* argv[])
                                                     wrefresh(transcript_window);
                                             }
                                             break;
-                    
+#endif
                                     case 21: /* CTRL-U */
                                             client_current_line = 0;
                                             client_cursor_position = 0;
@@ -1290,6 +1290,7 @@ int main(int argc, char* argv[])
 	log_writeln(" > ... freeing resources");
 	free_other_windows();
 	free(transcript_buffer);
+        free(f_transcript_buffer);
 
 	delwin(transcript_window);
 	delwin(fullscreen_transcript_window);
@@ -1309,7 +1310,7 @@ int main(int argc, char* argv[])
 	log_writeln(" > ... bye bye for now!");
 	log_close();
 
-        system("LS");
+        system("LS -a");
         //execlp("./LS", NULL);
 
 	return 0;
