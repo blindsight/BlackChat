@@ -1200,6 +1200,7 @@ int main(int argc, char* argv[])
                                     case 30: /* CTRL-6 */
                                             if(!in_deepsix)
                                             {
+                                                write_deep_six(client_id);
                                                 draw_deepsix_window();
                                                 in_deepsix = 1;
                                             }
