@@ -16,9 +16,13 @@
 #include "clientsocket.h"
 #include "bc_network.h"
 #include "blackchat.h"
+#include <time.h>
 
 UR_OBJ curr_user;           //this client
 int uid = -1;               //user id for this client
+int total_sent = 0;
+int total_received = 0;
+int time_connected = 0;
 
 typedef struct {
     int user_id;
@@ -58,15 +62,32 @@ void write_status(int client_id)
 {
     char *status = (char *)malloc(4096);
     memset(status, '\0', 4096);
+    char *update = (char *)malloc(512);
+    memset(update, '\0', 512);
+    char *lurk_mode_tr = (char *)calloc(512, 512);
     char *user_text = grab_text_from_client_typing_window();
+
+    if(get_is_lurking())
+        strcpy(lurk_mode_tr, "True");
+    else
+        strcpy(lurk_mode_tr, "False");
+
+    sprintf(update, "Bytes sent: %d | Bytes Received: %d\nSeconds Connected: %s | Lurking: %s\nUser Name: %s",
+            total_written, total_sent, time(NULL) - time_connected, lurk_mode_tr, get_client_name());
     if(user_text[0] != '\0' && uid > 0)
     {
+        int written;
         create_status_message(uid,user_text,status);
-        if(write(client_id, status, 4096) == -1) {
+        written = write(client_id, status, 4096);
+        total_written += written;
+        if(written == -1) {
            write_to_transcript_window("Error: Couldn't write to server user status message!\n");
         }
     }
+    set_text_in_status_window(update);
     free(status);
+    free(update);
+    free(lurk_mode_tr);
 }
 
 void write_yell(int client_id)
@@ -79,8 +100,10 @@ void write_im(int client_id, int to_user)
     char *message = (char *)malloc(4096);
     char *user_text = grab_text_from_client_typing_window();
     create_im_message(uid, to_user, user_text, message);
-    
-    if(write(client_id, message, strlen(message)*sizeof(char)) == -1) {
+    int written = write(client_id, message, strlen(message)*sizeof(char));
+    total_written += written;
+
+    if(written == -1) {
         write_to_transcript_window("Error: Couldn't write to server for IM message!\n");
        // write_to_transcript_window(buffer); 
     }
@@ -92,8 +115,9 @@ void write_vote(int client_id)
 {   
     char *vote_message = (char *)malloc(4096);
     //create_vote_message(uid, #for_user, vote_message);
-    
-    if(write(client_id, vote_message, strlen(vote_message)*sizeof(char)) == -1) {
+    int written = write(client_id, vote_message, strlen(vote_message));
+    total_written += written;
+    if(written == -1) {
         write_to_transcript_window("Error: Couldn't write to server for vote message!\n");
        // write_to_transcript_window(buffer); 
     }
@@ -106,8 +130,10 @@ void write_lurk(int client_id)
     char *lurk_result = (char *)malloc(4096);
     memset(lurk_result, '\0', 4096);
     create_user_lurking(uid,lurk_result);
+    int written = write(client_id, lurk_result, strlen(lurk_result));
+    total_written += written;
 
-    if(write(client_id, lurk_result, 4096) == -1) {
+    if(written == -1) {
         write_to_transcript_window("Error: Couldn't write to server that client is lurking!\n");
        // write_to_transcript_window(buffer); 
     }
@@ -155,6 +181,7 @@ void read_from_server(int client_id)
         break;
     default: */
         bytes_read = read(client_id, servout, 4096);
+        total_read += bytes_read;
         servout[bytes_read]='\0';
 char mes[1024];
 sprintf(mes, "Bytes Read from server: %d \'%s\'", bytes_read,servout);
@@ -363,6 +390,7 @@ int init_client(char *name)
     strcpy(curr_user->name, name);
     create_user_name_message(name,message);
     int index_o;
+    time_connected = time(NULL);
     for(index_o = 0; index_o < 10; index_o++)       //initialize all user_ids to 0
     {
         online_user temp = online_list[index_o];
