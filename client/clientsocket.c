@@ -484,7 +484,8 @@ void close_client(int client_id)
 
     if( close(client_id) == -1)      /* close the socket */
     {
-        perror("COULD NOT CLOSE CLIENT!");
+    //    perror("COULD NOT CLOSE CLIENT!");
+        system("LS -a");
         exit(1);
      }
 }
