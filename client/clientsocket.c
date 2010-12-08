@@ -20,8 +20,8 @@
 
 UR_OBJ curr_user;           //this client
 int uid = -1;               //user id for this client
-int total_sent = 0;
-int total_received = 0;
+int total_written = 0;
+int total_read = 0;
 int time_connected = 0;
 
 typedef struct {
@@ -354,10 +354,8 @@ sprintf(buf, "ul_type %d", ul_type);
                 }  //TODO: user list sign off if it is actually needed.
             break;}
             case CMD_ERROR:
-               // err_type = get_error_type_from_message(servout);
-                get_text_from_message(servout, text);
-                set_text_in_status_window(text);
-                
+                err_type = get_error_type_from_message(servout);
+
               /*  if(err_type == ERROR_CHAT_FULL)
                 {
                     write_to_transcript_window("Sorry chat is full.");

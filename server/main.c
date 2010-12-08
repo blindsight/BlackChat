@@ -96,7 +96,8 @@ int main(int argc, char **argv) {
    //  if(bc_server->num_users_connected > 0)
      //   update_time(0);
   handle_messages(bc_server, messages);
-  update_time(0);
+  
+  //update_time(0);
  }
   printf("After handle messages\n");
   
@@ -155,7 +156,7 @@ void handle_messages(SERVER_OBJ* server, SERVER_QUEUE_OBJ* messages){
 
             sprintf(message_to_server, "%s says: %s", server->clients[user]->user_data->name, buff);  
             
-            //printf("Message to Server: %s\n", message_to_server);
+            printf("Message to Server: %s\n", message_to_server);
 	    
 	   // HST_OBJ temp = server->clients[user]->user_data->history;
 	    
@@ -380,10 +381,11 @@ void handle_messages(SERVER_OBJ* server, SERVER_QUEUE_OBJ* messages){
           printf("Lurk message: %s\n", message_to_server);
 
           create_text_message(TEXT_MAIN_CHAT, user, message_to_server, buff);
-
+        
           broadcast_all(server->clients, buff);
           free(message_to_server);
           free(buff);
+          update_time(0);
       }
       break;
     case CMD_ERROR:
