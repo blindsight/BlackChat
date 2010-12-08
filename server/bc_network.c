@@ -266,7 +266,7 @@ void *listen_thread(void *args){
     printf("num users online %d\n", num_connections);
     //pthread_mutex_unlock(&mutex);
     
-    if(num_connections <= MAX_CONNECTIONS){
+    if(num_connections < MAX_CONNECTIONS){
 
         for(int i = 1; i <= MAX_CONNECTIONS; i++){
             
@@ -310,6 +310,10 @@ void *client_thread(void *args){
 
   char *buff2 = (char *)malloc(1024 * 8);
   char *path = (char *)malloc(1024);
+  char *temp_buff = (char *)malloc(1024 * 8);
+  memset(temp_buff, '\0', 1024 * 8);
+  char *temp_buff2 = (char *)malloc(1024 * 8);
+  memset(temp_buff2, '\0', 1024 * 8);
                       
 	
 	  
@@ -351,6 +355,13 @@ void *client_thread(void *args){
       client->bytes_from += bytes_read;
       
       if(bytes_read == 0){
+
+          sprintf(temp_buff2, "%s has logged off.", client->user_data->name);
+
+          create(client->user_data->uid, temp_buff2, temp_buff);
+
+          broadcast_all(client->server->clients, temp_buff);
+
 	
 	break;
       }
@@ -384,6 +395,9 @@ void *client_thread(void *args){
    
   
   }
+
+  free(temp_buff);
+  free(temp_buff2);
 
   printf("Closing Client begin\n");
   pthread_mutex_lock(&mutex);
