@@ -196,6 +196,7 @@ sprintf(biff, "biff: %d %s", henbob, text);
                 else if(text_type == TEXT_MAIN_STATUS)
                 {
                        set_text_in_status_window(text);
+                
                 }
                 else                            //send to transcript window
                 {
