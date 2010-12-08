@@ -72,7 +72,7 @@ void write_status(int client_id)
     else
         strcpy(lurk_mode_tr, "False");
 
-    sprintf(update, "Bytes sent: %d | Bytes Received: %d\nSeconds Connected: %s | Lurking: %s\nUser Name: %s",
+    sprintf(update, "Total Sent: %d, Received: %d\nSeconds Connected: %d | Lurking: %s\nUser Name: %s",
             total_written, total_read, time(NULL) - time_connected, lurk_mode_tr, get_client_name());
     if(user_text[0] != '\0' && uid > 0)
     {
