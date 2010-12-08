@@ -253,7 +253,8 @@ void *listen_thread(void *args){
   
     client_len = sizeof(client_addr);
     
-if(listen(server->server_socket, LISTEN_QUEUE) == -1)
+//if(listen(server->server_socket, LISTEN_QUEUE) == -1)
+  //:w  perror("Unable to listen!!");
 
     printf("Before client accept\n");
     temp_client = accept(server->server_socket, (struct sockaddr *)&client_addr, &client_len);
@@ -276,7 +277,9 @@ if(listen(server->server_socket, LISTEN_QUEUE) == -1)
 	  server->clients[i]->client_socket = temp_client;
 
           read(temp_client, buff, USER_NAME_LEN * 4);
+          memset(server->clients[i]->user_data->name, '\0', USER_NAME_LEN * 4);
           get_user_name_message(buff, server->clients[i]->user_data->name);
+          memset(path, '\0', 1024);
           buff[0] = '\0';
           create_uid_message(i, buff);
 
@@ -288,7 +291,7 @@ if(listen(server->server_socket, LISTEN_QUEUE) == -1)
 
           sprintf(path, "./%s", server->clients[i]->user_data->name);
 
-          mkdir(path, 777);
+          //mkdir(path, 777);
           free(path);
 
           printf("Before create client thread\n");  
@@ -401,13 +404,13 @@ void broadcast_all(CLIENT_OBJ* clients[], char* message){
   
   int bytes_written;
   
-  for(int i = 1; i < MAX_CONNECTIONS + 1; i++){
+  for(int i = 1; i <= MAX_CONNECTIONS; i++){
   
-    
-    bytes_written = write(clients[i]->client_socket, message, 1024 * 8);
+   printf("Writing to server: %s\n", message); 
+    bytes_written = write(clients[i]->client_socket, message, strlen(message));
     
     pthread_mutex_lock(&mutex);
-    clients[i]->bytes_to =+ bytes_written;
+    clients[i]->bytes_to += bytes_written;
     pthread_mutex_unlock(&mutex);
     
   }

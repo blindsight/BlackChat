@@ -116,6 +116,7 @@ void handle_messages(SERVER_OBJ* server, SERVER_QUEUE_OBJ* messages){
   
     case CMD_TEXT:
 	text_type = get_text_type_from_message(message);
+        printf("TEXT_TYPE: %d\n", text_type);
 	switch(text_type) {
 	
 	  case TEXT_MAIN_CHAT:
@@ -167,11 +168,36 @@ void handle_messages(SERVER_OBJ* server, SERVER_QUEUE_OBJ* messages){
 	  {
 	   
 	    int user = get_user_from_message(message);
-	    char *buff = (char *)malloc(1024 * 8);
+            char *buff = (char *)malloc(1024 * 8);
+            char *to_client = (char *)malloc(512);
+            char *temp = (char *)malloc(32);
+            int len_of_str;
 
-            create_status_message(user, message, buff);
+            get_text_from_message(message, buff);
+            
+            len_of_str = strlen(buff);
+
+            if(len_of_str > 20){
+
+                strncpy(temp, buff+len_of_str-20, 20);
+                strncpy(buff, temp, 21);
+            
+            }
+
+
+            sprintf(to_client, "%s\n%s", server->clients[user]->user_data->name, buff);
+
+            
+            memset(buff, '\0', strlen(to_client));
+            create_status_message(user, to_client, buff);
+
+            printf("Status message sent: %s\n", buff);
 
             broadcast_all(server->clients, buff);
+
+            free(buff);
+            free(temp);
+            free(to_client);
 
 	    
 	    
