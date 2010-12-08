@@ -8,13 +8,14 @@
 SERVER_OBJ *bc_server;
 
 void update_time(int sig){
+    char *buff = (char *)malloc(256);
+    memset(buff, '\0', 256);
     pthread_mutex_lock(&mutex);
     int num_clients = bc_server->num_users_connected;
     pthread_mutex_unlock(&mutex);
     
-#ifdef DEBUG
-    printf("UpdateTime");
-#endif
+
+    printf("UpdateTime\n");
 
     for(int i = 0; i < num_clients; i++){
       
@@ -123,6 +124,8 @@ void handle_messages(SERVER_OBJ* server, SERVER_QUEUE_OBJ* messages){
 	  {
 	    char *buff = (char *)malloc(1024 * 8);
             char *message_to_server = (char *)malloc(1024 * 8);
+            memset(buff, '\0', 1024 * 8);
+            memset(message_to_server, '\0', 1024 * 8);
             get_text_from_message(message, buff);
 
             //printf("Contents of Buff: %s\n", buff);
@@ -133,12 +136,13 @@ void handle_messages(SERVER_OBJ* server, SERVER_QUEUE_OBJ* messages){
             
             //printf("Message to Server: %s\n", message_to_server);
 	    
-	    HST_OBJ temp = server->clients[user]->user_data->history;
+	   // HST_OBJ temp = server->clients[user]->user_data->history;
 	    
 	    
 	    //server->clients[user]->user_data->history->from = NULL;
 	    //server->clients[user]->user_data->history->next = temp;
-	    //TODO update time
+	    
+            server->clients[user]->seconds_connect = time(NULL) - server->clients[user]->time_connected;
 	    
 	    create_text_message(TEXT_MAIN_CHAT, user, message_to_server, buff);
 
