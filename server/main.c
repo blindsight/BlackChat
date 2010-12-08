@@ -28,8 +28,9 @@ void update_time(int sig){
          
       sprintf(buff, "Bytes sent: %d | Bytes received: %d\nSeconds Connected: %d | Lurking: %s\nUser name: %s", bc_server->clients[i]->bytes_from, bc_server->clients[i]->bytes_to,
               bc_server->clients[i]->seconds_connected, lurk_text, bc_server->clients[i]->user_data->name);
-
-      create_main_status_message(i, buff, to_client);
+    
+      create_yell_message(i, buff, to_client);
+      printf("Status Update message: %s\n", to_client);
       broadcast_all(bc_server->clients, to_client);
       }     
 		     
@@ -89,10 +90,13 @@ int main(int argc, char **argv) {
   }
   
   //Once here I need to start handling messages
-    printf("before handle messages\n");
+ //   printf("before handle messages\n");
    // alarm(1);
- for(;;){ 
+ for(;;){
+   //  if(bc_server->num_users_connected > 0)
+     //   update_time(0);
   handle_messages(bc_server, messages);
+  update_time(0);
  }
   printf("After handle messages\n");
   
@@ -112,7 +116,7 @@ void handle_messages(SERVER_OBJ* server, SERVER_QUEUE_OBJ* messages){
   char *message;
 //  char *message_data;
 
-  update_time(0);
+  //update_time(0);
     
   if(isEmpty(messages)){
       printf("Waiting on semaphore main thread\n");
