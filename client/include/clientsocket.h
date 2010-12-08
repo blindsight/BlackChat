@@ -34,7 +34,7 @@ void read_from_server(int client_id);
 void write_status(int client_id);
 
 /* request the user list from the server */
-void write_deep_six(client_id);
+void write_deep_six(int client_id);
 
 #endif
 
