@@ -575,7 +575,7 @@ static void draw_deepsix_window()
 	/* Show user names in deepsix window. */
 	for(i = 0; i < 10; i ++) {
 		if(user_info[i].name[0] != '\0' && user_info[i].canDeepSix == 1) {
-			wprintw(deepsix_win, "%2d | %s\n", i+1, user_info[i].name);
+			wprintw(deepsix_win, "%2d | %s\n", user_info[i].uid, user_info[i].name);
 		} else {
 			wprintw(deepsix_win, "%2d | ------------\n", i+1);
 		}
@@ -1014,16 +1014,17 @@ int main(int argc, char* argv[])
                 }
                 /* Check if were in deepsix mode. */
                 else if(in_deepsix) {
-                            /* kick user */
-                            if(ch >= 48 && ch <= 57) {
-                                    submit_deep_six(client_id,ch-47);
-                                            /* josh-note:
-                                                    Have josh make a "kick_user(ch-48)" command. 
-                                                    Also, have josh keep track of who user voted for and display message on transcript as to how user voted
-                                                    and/or if they already voted for the user. */		
-                            }
-                
-                            /* quit */
+
+                        /* kick user */
+                        if(ch >= 48 && ch <= 57) {
+                                submit_deep_six(client_id, user_info[ch-48].uid);
+                                        /* josh-note:
+                                                Have josh make a "kick_user(ch-48)" command. 
+                                                Also, have josh keep track of who user voted for and display message on transcript as to how user voted
+                                                and/or if they already voted for the user. */		
+                        }
+            
+                        /* quit */
                         if(ch == 17) {
                                     is_running = 0;
                         }
@@ -1206,9 +1207,11 @@ int main(int argc, char* argv[])
                                     case 30: /* CTRL-6 */
                                             if(!in_deepsix)
                                             {
+#if 0
                                                 write_deep_six(client_id);
                                                 draw_deepsix_window();
                                                 in_deepsix = 1;
+#endif
                                             }
                                             break;
 

@@ -17,6 +17,7 @@ typedef struct user_stats_t
 {
         char name[MAX_USER_NAME_LENGTH];
         int  canDeepSix;
+        int  uid;
 } user_stats;
 
 

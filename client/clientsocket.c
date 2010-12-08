@@ -330,6 +330,7 @@ sprintf(buf, "ul_type %d", ul_type);
                             temp_user = user_list[i];
                             strcpy(user_info[i].name, temp_user->name);
                             user_info[i].canDeepSix = 1;
+                            user_info[i].uid = temp_user->uid;
                   /*          online_user temp_o;
                             temp_user = user_list[i];
                             int temp_id = temp_user->uid;
