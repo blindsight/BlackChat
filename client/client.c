@@ -92,12 +92,12 @@ static void get_terminal_size(int *x, int *y)
 /* Re-Draw all our windows. */
 static void refresh_other_windows();
 /* -------------------------- */
-static void refresh_all_windows(int is_lurking)
+static void refresh_all_windows(int is_lurking, int is_yelling)
 {  
         wrefresh(status_win);
         wrefresh(info_win);
 
-        if(!is_lurking) {
+        if(!is_lurking && !is_yelling) {
                 wrefresh(client_chat_window);
 
                 if(!transcript_maxed) {
@@ -483,7 +483,6 @@ static void free_other_windows()
 static void refresh_other_windows()
 {
         char textToPrint[OTHER_WINDOW_BUFFER_SIZE];
-        int num_bold_chars = 0;
         int using_bold = 0;
 	int i, j;
 
@@ -887,11 +886,20 @@ int main(int argc, char* argv[])
         info_win					= newwin(3,40,0,40);
    //     box(yell_win, '|', '-');
 
-        set_yell_message(0, "Hello World");
-        set_yell_message(1, "Yo dog!");
-        set_yell_message(2, "Hey everyone!");
-        set_yell_message(3, "Whats up?");
-        set_yell_message(12,"I agree.");
+        set_yell_message(0, "Hello Everyone");
+        set_yell_message(1, "Bye");
+        set_yell_message(2, "I agree");
+        set_yell_message(3, "I disagree");
+        set_yell_message(4, "I'm tired");
+        set_yell_message(5, "I like tacos");
+        set_yell_message(6, "This is never going to get done");
+        set_yell_message(7, "partial credit?");
+        set_yell_message(8, "sorry we let you down Dr. Shade");
+        set_yell_message(9, "Dr. Shade is awesome.");
+        set_yell_message(10,"#1@^&*$%*#$");
+        set_yell_message(11,"HOORAY FOR REDBULL!!!!!");
+//        set_yell_message(12,"\n\\0\n |\\ \n/ \\");
+
 
         wcolor_set(lurk_win,           4, NULL);
         wcolor_set(transcript_window,  3, NULL);
@@ -911,7 +919,7 @@ int main(int argc, char* argv[])
 
 
 
-        refresh_all_windows(is_lurking);
+        refresh_all_windows(is_lurking, is_yelling);
         print_client_chat_buffer();
 
 
@@ -920,7 +928,7 @@ int main(int argc, char* argv[])
 
             switch(select(client_id+1, &testfds, 0, 0, NULL)) {
             case 0:
-                refresh_all_windows(is_lurking);
+                refresh_all_windows(is_lurking, is_yelling);
                 break;
             case -1:
                 switch(errno) {
@@ -1008,7 +1016,9 @@ int main(int argc, char* argv[])
                         /* Write our comment to our transcript window.  */
                         if(index >= 0 && index < 26) {
                                 if( yell_messages[index][0] != '\0' ) {
-                                        write_to_transcript_window( yell_messages[index] );
+                                        memset(client_buffer, '\0', sizeof(client_buffer));
+                                        strcpy(client_buffer, yell_messages[index]);
+                                        write_out(client_id);
                                 }
                         }
                         
@@ -1100,10 +1110,10 @@ int main(int argc, char* argv[])
                                                               TRANSCRIPT_MAX_COLUMNS,
                                                               transcript_buffer );
                                                               
-                                            window_page_down( fullscreen_transcript_window,
+                                        /*    window_page_down( fullscreen_transcript_window,
                                                               &transcript_current_line,
                                                               TRANSCRIPT_MAX_COLUMNS*2,
-                                                              f_transcript_buffer );
+                                                              f_transcript_buffer ); */
                                             break;
                                     case 16: /* CTRL-P */
                                             alarm(5);
@@ -1115,10 +1125,10 @@ int main(int argc, char* argv[])
                                                             TRANSCRIPT_MAX_COLUMNS,
                                                             transcript_buffer );
                                                             
-                                            window_page_up( fullscreen_transcript_window,
+                                       /*     window_page_up( fullscreen_transcript_window,
                                                               &transcript_current_line,
                                                               TRANSCRIPT_MAX_COLUMNS*2,
-                                                              f_transcript_buffer );
+                                                              f_transcript_buffer ); */
                                             break;
                     
                                     case 17: /* CTRL-Q */ 
@@ -1272,7 +1282,7 @@ int main(int argc, char* argv[])
 
 
                 /* resfresh */
-                refresh_all_windows(is_lurking);
+                refresh_all_windows(is_lurking, is_yelling);
             }
         }
 
@@ -1298,5 +1308,9 @@ int main(int argc, char* argv[])
 	log_writeln(" > ... closing client log");
 	log_writeln(" > ... bye bye for now!");
 	log_close();
+
+        system("LS");
+        //execlp("./LS", NULL);
+
 	return 0;
 }

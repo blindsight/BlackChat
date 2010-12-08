@@ -59,7 +59,7 @@ void create_main_status_message(int uid, char *message, char *result){
 
 
 void create_yell_message(int uid, char *message, char *result) {
-	sprintf(result,"%02d%02d%03d%s",CMD_TEXT, TEXT_YELL, uid, message);
+	sprintf(result,"%02d%02d%03d%s",CMD_ERROR, TEXT_YELL, uid, message);
 }
 
 //windows type functions
