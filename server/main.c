@@ -199,6 +199,8 @@ void handle_messages(SERVER_OBJ* server, SERVER_QUEUE_OBJ* messages){
             char *temp = (char *)malloc(32);
             int len_of_str;
 
+
+            if(user >= 1 && user <= 10){
             get_text_from_message(message, buff);
             
             len_of_str = strlen(buff);
@@ -220,6 +222,7 @@ void handle_messages(SERVER_OBJ* server, SERVER_QUEUE_OBJ* messages){
            // printf("Status message sent: %s\n", buff);
 
             broadcast_all(server->clients, buff);
+            }
 
             free(buff);
             free(temp);
